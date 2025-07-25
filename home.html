@@ -250,10 +250,15 @@
   const loader = document.getElementById("loader");
   let iframeLoadTimeout = null;
 
-  // Detect base URL based on environment (GitHub or Localhost)
+  // Detect base URL (GitHub or Localhost)
   const baseURL = location.hostname.includes("github.io")
     ? "https://penportindia.github.io/lak/Pages"
     : "pages";
+
+  // Capitalize first letter of page name
+  function capitalizePage(page) {
+    return page.charAt(0).toUpperCase() + page.slice(1).toLowerCase();
+  }
 
   function setActiveMenu(el) {
     document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
@@ -266,7 +271,8 @@
     loader.style.display = "flex";
     iframe.classList.remove("visible");
 
-    iframe.src = `${baseURL}/${page}/index.html`;
+    const formattedPage = capitalizePage(page);
+    iframe.src = `${baseURL}/${formattedPage}/index.html`;
 
     iframeLoadTimeout = setTimeout(() => {
       fallbackToDashboard();
@@ -277,7 +283,7 @@
     const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
     if (dashboardItem) {
       setActiveMenu(dashboardItem);
-      iframe.src = `${baseURL}/dashboard/index.html`;
+      iframe.src = `${baseURL}/Dashboard/index.html`;
     }
   }
 
@@ -306,11 +312,13 @@
   });
 
   function logout() {
-    // localStorage.clear();
-    // sessionStorage.clear();
-    window.location.href = "index.html";
+    const homepage = location.hostname.includes("github.io")
+      ? "https://penportindia.github.io/lak/home.html"
+      : "home.html";
+    window.location.href = homepage;
   }
 </script>
+
 
 
 </body>
