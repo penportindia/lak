@@ -1,0 +1,157 @@
+/* --------------------- */
+/* Backgrounds */
+/* --------------------- */
+.bg-dark-custom {
+  background-color: #1e2a38;
+}
+.hover\:bg-dark-hover:hover {
+  background-color: #273444;
+}
+
+/* --------------------- */
+/* Select box */
+/* --------------------- */
+.select-box {
+  border: 1px solid #d1d5db;
+  border-radius: 0.375rem;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  background-color: white;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: all 0.3s ease-in-out;
+}
+
+/* --------------------- */
+/* Buttons */
+/* --------------------- */
+.btn-default, .btn-dark, .btn-danger {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border-radius: 0.375rem;
+  transition: 0.3s;
+  font-weight: 500;
+}
+.btn-default {
+  background-color: #f3f4f6;
+  color: #1f2937;
+}
+.btn-default:hover {
+  background-color: #e5e7eb;
+}
+.btn-dark {
+  background-color: #1e2a38;
+  color: white;
+}
+.btn-dark:hover {
+  background-color: #273444;
+}
+.btn-danger {
+  background-color: #b91c1c;
+  color: white;
+}
+.btn-danger:hover {
+  background-color: #991b1b;
+}
+
+/* --------------------- */
+/* Checkbox */
+/* --------------------- */
+input[type="checkbox"] {
+  appearance: none;
+  width: 1rem;
+  height: 1rem;
+  border-radius: 0.25rem;
+  border: 2px solid #ccc;
+  background-color: white;
+  transition: all 0.2s ease-in-out;
+  position: relative;
+}
+input[type="checkbox"]:checked {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+input[type="checkbox"]:checked::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 5px;
+  width: 3px;
+  height: 8px;
+  border: solid white;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+/* --------------------- */
+/* Table */
+/* --------------------- */
+thead th, tbody td {
+  padding: 0.75rem 1rem;
+  text-align: left;
+}
+tbody tr:hover {
+  background-color: #f9fafb;
+}
+
+/* --------------------- */
+/* Toast Notification (Top Right) */
+/* --------------------- */
+#notification {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  z-index: 9999;
+  font-weight: 500;
+  display: none;
+}
+.notification-success {
+  background-color: #10b981;
+  color: white;
+}
+.notification-error {
+  background-color: #ef4444;
+  color: white;
+}
+
+/* --------------------- */
+/* Center Popup Message */
+/* --------------------- */
+#popup-message {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 300px;
+  max-width: 90%;
+  padding: 1.5rem 2rem;
+  border-radius: 0.5rem;
+  z-index: 10000;
+  display: none;
+  text-align: center;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+  font-size: 1rem;
+  font-weight: 500;
+  animation: fadeInOut 3s ease-in-out;
+  color: white;
+}
+
+/* Popup Types */
+.popup-success {
+  background-color: #16a34a;
+}
+.popup-error {
+  background-color: #dc2626;
+}
+.popup-info {
+  background-color: #2563eb;
+}
+
+/* Animation for center popup */
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translate(-50%, -60%); }
+  10% { opacity: 1; transform: translate(-50%, -50%); }
+  90% { opacity: 1; transform: translate(-50%, -50%); }
+  100% { opacity: 0; transform: translate(-50%, -40%); }
+}

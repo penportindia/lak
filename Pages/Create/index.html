@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LAKSHMI ID MAKER</title>
+
+  <!-- ✅ External CSS -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- ✅ Font Awesome & Libraries -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js" defer></script>
+  <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" defer></script>
+</head>
+
+<body>
+  <header class="main-header">
+    <h1><i class="fas fa-id-card-alt"></i> LAKSHMI ID MAKER</h1>
+    <p class="tagline">"Your Trusted Partner for ID Solutions"</p>
+  </header>
+
+  <main class="container">
+
+    <!-- 🔐 Login Section -->
+    <section id="loginPage" aria-labelledby="loginHeading">
+      <h2 id="loginHeading">🔐 Login</h2>
+      <div class="form-group">
+        <label for="loginUser">User ID</label>
+        <input type="text" id="loginUser" placeholder="Enter your User ID" autocomplete="username" />
+      </div>
+      <div class="form-group">
+        <label for="loginPass">Password</label>
+        <input type="password" id="loginPass" placeholder="Enter your Password" autocomplete="current-password" />
+      </div>
+      <button type="button" onclick="verifyLogin()">Login</button>
+    </section>
+
+    <!-- 🎯 Home Page -->
+    <section id="homePage" class="hidden" aria-labelledby="homeHeading">
+      <h2 id="homeHeading">🎯 Start Creating Your ID</h2>
+      <div class="form-group">
+        <label for="schoolName">School Name</label>
+        <select id="schoolName" disabled>
+          <option>Auto-filled...</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="idType">ID Type</label>
+        <select id="idType">
+          <option value="">Select Type</option>
+          <option value="student">STUDENT</option>
+          <option value="staff">STAFF</option>
+        </select>
+      </div>
+      <button type="button" onclick="navigateToForm()">Continue</button>
+    </section>
+
+    <!-- ⏳ Splash Overlay -->
+    <div id="splashOverlay" role="alert" aria-live="assertive" class="hidden">
+      <div class="splash-content">
+        <div class="splash-spinner" aria-hidden="true"></div>
+        <div class="splash-text">Submitting...</div>
+      </div>
+    </div>
+
+    <!-- 📝 ID Form -->
+    <section id="idForm" class="hidden" aria-labelledby="formHeading">
+      <h2 id="formHeading">📝 Fill ID Form</h2>
+      <form onsubmit="handleSubmit(event)">
+        <div id="formFields">
+          <!-- Fields added dynamically via JS -->
+        </div>
+
+        <video id="video" autoplay playsinline muted class="hidden"></video>
+        <canvas id="canvas" class="hidden"></canvas>
+
+        <div class="button-group">
+          <button id="cameraBtn" type="button" class="icon-btn" onclick="startCamera()" title="Start Camera">
+            <i class="fas fa-video"></i><span>Camera</span>
+          </button>
+          <button type="button" class="icon-btn" onclick="takePicture()" title="Capture">
+            <i class="fas fa-camera"></i><span>Capture</span>
+          </button>
+          <button id="submitBtn" type="submit" class="icon-btn" title="Submit">
+            <i class="fas fa-paper-plane"></i><span>Submit</span>
+          </button>
+          <button type="button" class="icon-btn" onclick="goHome()" title="Go to Home">
+            <i class="fas fa-house"></i><span>Home</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- 🖼️ Preview Page -->
+    <section id="previewPage" class="hidden" aria-labelledby="previewHeading">
+      <h2 id="previewHeading">🎨 Preview ID</h2>
+      <div id="preview"></div>
+      <div class="button-group">
+        <button class="icon-btn" onclick="saveIDAsImage()" title="Save as Image">
+          <i class="fas fa-download"></i><span>Save</span>
+        </button>
+        <button class="icon-btn" onclick="editEntry()" title="Edit Entry">
+          <i class="fas fa-pen"></i><span>Edit</span>
+        </button>
+        <button class="icon-btn" onclick="newEntry()" title="Create New ID">
+          <i class="fas fa-plus"></i><span>New ID</span>
+        </button>
+      </div>
+    </section>
+
+  </main>
+
+  <div id="messagePopup" class="success" style="display:none;"></div>
+
+  <!-- ✅ Main JS (Module) -->
+  <script type="module" src="main.js"></script>
+</body>
+</html>

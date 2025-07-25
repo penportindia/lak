@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login | Lakshimi ID Card</title>
+
+  <!-- Fonts and Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
+
+  <style>
+    * {
+      margin: 0; padding: 0; box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body, html {
+      height: 100%;
+      background: url('https://i.ibb.co/wZ1F6MdS/flat-lay-workstation-with-copy-space-laptop.jpg') no-repeat center center/cover;
+    }
+
+    .overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      z-index: 0;
+    }
+
+    .container {
+      position: relative;
+      z-index: 1;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .login-box {
+      background: rgba(255, 255, 255, 0.1);
+      backdrop-filter: blur(10px);
+      border-radius: 15px;
+      padding: 30px;
+      width: 90%;
+      max-width: 400px;
+      color: white;
+      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-box h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      color: #00f7ff;
+    }
+
+    .input-group {
+      margin-bottom: 15px;
+    }
+
+    .input-group label {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: none;
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+    }
+
+    .input-group input::placeholder {
+      color: #ccc;
+    }
+
+    .login-btn {
+      width: 100%;
+      padding: 12px;
+      background: #00f7ff;
+      color: black;
+      font-weight: bold;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    .login-btn:hover {
+      background: #00c2d6;
+    }
+
+    .error {
+      margin-top: 10px;
+      text-align: center;
+      color: #ff7070;
+    }
+
+    .footer {
+      margin-top: 20px;
+      font-size: 13px;
+      text-align: center;
+      color: #ccc;
+    }
+
+    .footer a {
+      color: #00f7ff;
+      text-decoration: none;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="overlay"></div>
+
+  <div class="container">
+    <div class="login-box">
+      <h2><i class="fas fa-id-card-alt"></i> Lakshimi</h2>
+      <form id="loginForm">
+        <div class="input-group">
+          <label for="email"><i class="fas fa-user"></i> Email</label>
+          <input type="email" id="email" placeholder="Enter your email" required />
+        </div>
+        <div class="input-group">
+          <label for="password"><i class="fas fa-lock"></i> Password</label>
+          <input type="password" id="password" placeholder="Enter your password" required />
+        </div>
+        <button type="submit" class="login-btn">Log In</button>
+        <div id="errorMsg" class="error"></div>
+      </form>
+      <div class="footer">
+        Designed by <a href="https://penportindia.github.io/penport/" target="_blank">Penport India</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase Scripts -->
+  <script type="module">
+    // ✅ Firebase v9 Modular Import (latest working CDN)
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
+      authDomain: "schools-cdce8.firebaseapp.com",
+      projectId: "schools-cdce8",
+      storageBucket: "schools-cdce8.appspot.com",
+      messagingSenderId: "772712220138",
+      appId: "1:772712220138:web:381c173dccf1a6513fde93"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const form = document.getElementById("loginForm");
+    const errorDiv = document.getElementById("errorMsg");
+
+    form.addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+
+      signInWithEmailAndPassword(auth, email, password)
+        .then((userCredential) => {
+          // ✅ Login Success
+          window.location.href = "home.html";
+        })
+        .catch((error) => {
+          errorDiv.textContent = "❌ " + error.message;
+        });
+    });
+  </script>
+</body>
+</html>

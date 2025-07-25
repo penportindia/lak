@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>School Data Manager</title>
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet" />
+  <style>
+  :root {
+    --primary: #007bff;
+    --danger: #dc3545;
+    --secondary: #6c757d;
+    --dark: #1e2a38; /* Updated from #111 */
+    --gray: #f1f1f1;
+    --light: #fafafa;
+    --border: #ddd;
+  }
+
+  * {
+    box-sizing: border-box;
+    font-family: 'Segoe UI', sans-serif;
+  }
+
+  body {
+    margin: 0;
+    background: var(--gray);
+  }
+
+  .container {
+    padding: 30px 60px;
+    background: white;
+    min-height: 100vh;
+  }
+
+  .form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+  }
+
+  .input-group {
+    position: relative;
+  }
+
+  .input-group input {
+    width: 100%;
+    padding: 12px 12px 12px 44px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .input-group .material-icons {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #888;
+  }
+
+  .action-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  .search-box {
+    position: relative;
+    flex: 1;
+    max-width: 300px;
+  }
+
+  .search-box input {
+    width: 100%;
+    padding: 12px 12px 12px 44px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+
+  .search-box .material-icons {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    transform: translateY(-50%);
+    color: #888;
+  }
+
+  .btn-group {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+
+  .btn-icon {
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.3s;
+  }
+
+  .btn-primary { background: var(--primary); color: white; }
+  .btn-danger { background: var(--danger); color: white; }
+  .btn-secondary { background: var(--secondary); color: white; }
+
+  .btn-primary:hover { background: #0056b3; }
+  .btn-danger:hover { background: #c82333; }
+  .btn-secondary:hover { background: #5a6268; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 0 10px rgba(0,0,0,0.05);
+  }
+
+  th, td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #eee;
+  }
+
+  th {
+    background: var(--dark); /* Uses updated dark value */
+    color: white;
+  }
+
+  tr:hover {
+    background-color: var(--light);
+    cursor: pointer;
+  }
+</style>
+
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import {
+      getDatabase, ref, set, get, child, remove
+    } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
+      authDomain: "schools-cdce8.firebaseapp.com",
+      databaseURL: "https://schools-cdce8-default-rtdb.firebaseio.com",
+      projectId: "schools-cdce8",
+      storageBucket: "schools-cdce8.appspot.com",
+      messagingSenderId: "772712220138",
+      appId: "1:772712220138:web:381c173dccf1a6513fde93"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+
+    let schoolData = [];
+    let selectedRowIndex = null;
+
+    window.handleSaveOrUpdate = async function () {
+      const data = getFormData();
+      if (!data) return;
+
+      try {
+        await set(ref(db, "schools/" + data.userid), data);
+        await fetchData();
+        clearForm();
+      } catch (err) {
+        console.error("Error:", err);
+        alert("Something went wrong.");
+      }
+    };
+
+    window.deleteData = async function () {
+      if (selectedRowIndex === null) return alert("Select a row to delete.");
+      const userId = schoolData[selectedRowIndex].userid;
+      if (confirm("Are you sure to delete?")) {
+        try {
+          await remove(ref(db, "schools/" + userId));
+          await fetchData();
+          clearForm();
+        } catch (err) {
+          console.error("Error:", err);
+        }
+      }
+    };
+
+    window.clearForm = function () {
+      ["schoolName", "address", "phone", "userid", "password", "searchBox"].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      selectedRowIndex = null;
+      renderTable(schoolData);
+      document.getElementById("searchBox").focus();
+      document.getElementById("saveUpdateBtn").title = "Save";
+      document.getElementById("btnIcon").innerText = "save";
+    };
+
+    window.searchTable = function () {
+      const input = document.getElementById("searchBox").value.trim().toUpperCase();
+      const filtered = schoolData.filter(row =>
+        (row.name || "").toUpperCase().includes(input) || (row.phone || "").toUpperCase().includes(input)
+      );
+      renderTable(filtered);
+    };
+
+    window.autoUpperCase = function (input) {
+      input.value = input.value.toUpperCase();
+    };
+
+    function getFormData() {
+      const name = document.getElementById("schoolName").value.trim();
+      const address = document.getElementById("address").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      let userid = document.getElementById("userid").value.trim();
+      let password = document.getElementById("password").value.trim();
+
+      if (!name || !address || !phone) {
+        alert("Fill all required fields.");
+        return null;
+      }
+
+      if (!userid) {
+        const initials = name.split(" ").map(w => w[0].toUpperCase()).join("");
+        userid = initials + Math.floor(100 + Math.random() * 900);
+        document.getElementById("userid").value = userid;
+      }
+
+      if (!password) {
+        password = Math.random().toString(36).substr(2, 6).toUpperCase();
+        document.getElementById("password").value = password;
+      }
+
+      return { name, address, phone, userid, password };
+    }
+
+    function fillForm(row, index) {
+      const cells = row.getElementsByTagName("td");
+      document.getElementById("schoolName").value = cells[0].innerText;
+      document.getElementById("address").value = cells[1].innerText;
+      document.getElementById("phone").value = cells[2].innerText;
+      document.getElementById("userid").value = cells[3].innerText;
+      document.getElementById("password").value = cells[4].innerText;
+      selectedRowIndex = index;
+      document.getElementById("saveUpdateBtn").title = "Update";
+      document.getElementById("btnIcon").innerText = "edit";
+    }
+
+    function renderTable(data) {
+      const tbody = document.querySelector("#schoolTable tbody");
+      tbody.innerHTML = "";
+      data.forEach((row, index) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `<td>${row.name}</td><td>${row.address}</td><td>${row.phone}</td><td>${row.userid}</td><td>${row.password}</td>`;
+        tr.onclick = () => fillForm(tr, index);
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function fetchData() {
+      const dbRef = ref(db);
+      try {
+        const snapshot = await get(child(dbRef, "schools"));
+        if (snapshot.exists()) {
+          const data = snapshot.val();
+          schoolData = Object.values(data);
+          renderTable(schoolData);
+        } else {
+          schoolData = [];
+          renderTable([]);
+        }
+      } catch (err) {
+        console.error("Fetch error:", err);
+      }
+    }
+
+    window.onload = fetchData;
+  </script>
+</head>
+<body>
+  <div class="container">
+    <div class="form-grid">
+      <div class="input-group">
+        <span class="material-icons">school</span>
+        <input id="schoolName" placeholder="School Name" oninput="autoUpperCase(this)">
+      </div>
+      <div class="input-group">
+        <span class="material-icons">location_on</span>
+        <input id="address" placeholder="Address" oninput="autoUpperCase(this)">
+      </div>
+      <div class="input-group">
+        <span class="material-icons">phone</span>
+        <input id="phone" placeholder="Phone">
+      </div>
+      <div class="input-group">
+        <span class="material-icons">person</span>
+        <input id="userid" placeholder="User ID" readonly>
+      </div>
+      <div class="input-group">
+        <span class="material-icons">lock</span>
+        <input id="password" placeholder="Password">
+      </div>
+    </div>
+
+    <div class="action-row">
+      <div class="search-box">
+        <span class="material-icons">search</span>
+        <input id="searchBox" placeholder="Search..." oninput="searchTable()">
+      </div>
+      <div class="btn-group">
+        <button class="btn-icon btn-primary" id="saveUpdateBtn" onclick="handleSaveOrUpdate()" title="Save">
+          <span class="material-icons" id="btnIcon">save</span>
+        </button>
+        <button class="btn-icon btn-danger" onclick="deleteData()" title="Delete">
+          <span class="material-icons">delete</span>
+        </button>
+        <button class="btn-icon btn-secondary" onclick="clearForm()" title="Clear">
+          <span class="material-icons">clear</span>
+        </button>
+      </div>
+    </div>
+
+    <table id="schoolTable">
+      <thead>
+        <tr><th>School</th><th>Address</th><th>Phone</th><th>User ID</th><th>Password</th></tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</body>
+</html>

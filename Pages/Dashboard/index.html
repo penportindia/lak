@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
+  <style>
+    :root {
+      --card-bg: rgba(255, 255, 255, 0.9);
+      --text: #1f2937;
+      --accent: #2563eb;
+      --highlight: #3b82f6;
+      --border: #e5e7eb;
+      --shadow: rgba(0, 0, 0, 0.1);
+      --glass-blur: blur(12px);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
+
+    body {
+      background: white;
+      color: var(--text);
+      padding: 40px 60px;
+      min-height: 100vh;
+      background-attachment: fixed;
+      background-size: cover;
+      transition: all 0.3s ease;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .dashboard-title {
+      text-align: center;
+      font-size: 40px;
+      font-weight: 700;
+      margin-bottom: 50px;
+      color: var(--accent);
+      text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    .cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 30px;
+      margin-bottom: 40px;
+    }
+
+    .card {
+      background: var(--card-bg);
+      padding: 30px;
+      border-radius: 20px;
+      backdrop-filter: var(--glass-blur);
+      box-shadow: 0 8px 20px var(--shadow);
+      border-left: 6px solid var(--accent);
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: '';
+      position: absolute;
+      top: -40%;
+      left: -40%;
+      width: 180%;
+      height: 180%;
+      background: radial-gradient(circle, rgba(59, 130, 246, 0.05), transparent);
+      transform: rotate(45deg);
+    }
+
+    .card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    .card i {
+      font-size: 40px;
+      color: var(--highlight);
+      margin-bottom: 18px;
+    }
+
+    .card h4 {
+      font-size: 18px;
+      color: #6b7280;
+      margin-bottom: 6px;
+    }
+
+    .card span {
+      font-size: 30px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .dropdown-section {
+      margin-top: 50px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      align-items: center;
+    }
+
+    .dropdown-section label {
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    select {
+      padding: 14px 20px;
+      font-size: 16px;
+      background: #fff;
+      border: 2px solid var(--border);
+      color: var(--text);
+      border-radius: 14px;
+      outline: none;
+      min-width: 260px;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+      box-shadow: 0 2px 5px var(--shadow);
+    }
+
+    select:focus {
+      border-color: var(--highlight);
+      box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+    }
+
+    .highlight {
+      margin-top: 40px;
+      background: rgba(59, 130, 246, 0.1);
+      padding: 28px;
+      border-radius: 16px;
+      border-left: 8px solid var(--highlight);
+      box-shadow: 0 6px 15px rgba(59, 130, 246, 0.1);
+    }
+
+    .highlight h4 {
+      font-size: 18px;
+      color: #1d4ed8;
+    }
+
+    .highlight span {
+      font-size: 28px;
+      font-weight: bold;
+      color: #1e40af;
+      display: block;
+      margin-top: 8px;
+    }
+
+    footer {
+      margin-top: auto;
+      text-align: center;
+      padding: 20px 10px 10px;
+      font-size: 14px;
+      font-weight: 400;
+      opacity: 0.9;
+    }
+
+    @media(max-width: 600px) {
+      body {
+        padding: 20px;
+      }
+      .dashboard-title {
+        font-size: 28px;
+      }
+      .dropdown-section {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+      select {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="cards">
+    <div class="card">
+      <i class="ri-user-3-line"></i>
+      <h4>Total Students</h4>
+      <span id="studentCount">0</span>
+    </div>
+    <div class="card">
+      <i class="ri-team-line"></i>
+      <h4>Total Staff</h4>
+      <span id="staffCount">0</span>
+    </div>
+    <div class="card">
+      <i class="ri-bar-chart-2-line"></i>
+      <h4>Total Enrollment</h4>
+      <span id="totalEnrollment">0</span>
+    </div>
+    <div class="card">
+      <i class="ri-building-line"></i>
+      <h4>Schools</h4>
+      <span id="uniqueSchools">0</span>
+    </div>
+  </div>
+
+  <div class="dropdown-section">
+    <label for="schoolSelect">Select School:</label>
+    <select id="schoolSelect">
+      <option value="">-- Select --</option>
+    </select>
+  </div>
+
+  <div class="highlight">
+    <h4>Enrollment in Selected School</h4>
+    <span id="selectedSchoolEnrollment">0</span>
+  </div>
+
+  <footer>
+    <div style="display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px; font-weight: 500; color: #374151;">
+      <i class="ri-shield-star-line" style="color: #2563eb; font-size: 18px;"></i>
+      Designed & Developed 
+      <a href="https://penportindia.github.io/penport/" target="_blank" style="color: #1d4ed8; font-weight: 600; text-transform: uppercase; text-decoration: none; letter-spacing: 0.6px;">Penport India</a>
+    </div>
+    <p style="font-size: 12px; margin-top: 4px; color: #6b7280;">Simplifying Complexity Through Code</p>
+  </footer>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
