@@ -246,68 +246,72 @@
   </div>
 
   <script>
-    const iframe = document.getElementById("contentFrame");
-    const loader = document.getElementById("loader");
-    let iframeLoadTimeout = null;
+  const iframe = document.getElementById("contentFrame");
+  const loader = document.getElementById("loader");
+  let iframeLoadTimeout = null;
 
-    function setActiveMenu(el) {
-      document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
-      el.classList.add("active");
+  // Detect base URL based on environment (GitHub or Localhost)
+  const baseURL = location.hostname.includes("github.io")
+    ? "https://penportindia.github.io/lak/Pages"
+    : "pages";
+
+  function setActiveMenu(el) {
+    document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
+    el.classList.add("active");
+  }
+
+  function loadPage(el, page) {
+    clearTimeout(iframeLoadTimeout);
+    setActiveMenu(el);
+    loader.style.display = "flex";
+    iframe.classList.remove("visible");
+
+    iframe.src = `${baseURL}/${page}/index.html`;
+
+    iframeLoadTimeout = setTimeout(() => {
+      fallbackToDashboard();
+    }, 4000);
+  }
+
+  function fallbackToDashboard() {
+    const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
+    if (dashboardItem) {
+      setActiveMenu(dashboardItem);
+      iframe.src = `${baseURL}/dashboard/index.html`;
     }
+  }
 
-    function loadPage(el, page) {
-      clearTimeout(iframeLoadTimeout);
-      setActiveMenu(el);
-      loader.style.display = "flex";
-      iframe.classList.remove("visible");
-      iframe.src = `pages/${page}/index.html`;
+  iframe.onload = () => {
+    clearTimeout(iframeLoadTimeout);
+    try {
+      const doc = iframe.contentDocument || iframe.contentWindow.document;
+      const content = doc.body.innerText || "";
 
-      iframeLoadTimeout = setTimeout(() => {
+      if (content.includes("Cannot GET") || doc.title.toLowerCase().includes("404")) {
         fallbackToDashboard();
-      }, 4000);
-    }
-
-    function fallbackToDashboard() {
-      const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
-      if (dashboardItem) {
-        setActiveMenu(dashboardItem);
-        iframe.src = `pages/dashboard/index.html`;
+      } else {
+        loader.style.display = "none";
+        iframe.classList.add("visible");
       }
+    } catch (err) {
+      fallbackToDashboard();
     }
+  };
 
-    iframe.onload = () => {
-      clearTimeout(iframeLoadTimeout);
-      try {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        const content = doc.body.innerText || "";
-
-        if (content.includes("Cannot GET") || doc.title.toLowerCase().includes("404")) {
-          fallbackToDashboard();
-        } else {
-          loader.style.display = "none";
-          iframe.classList.add("visible");
-        }
-      } catch (err) {
-        fallbackToDashboard();
-      }
-    };
-
-    window.addEventListener("DOMContentLoaded", () => {
-      const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
-      if (dashboardItem) {
-        loadPage(dashboardItem, "dashboard");
-      }
-    });
-
-    function logout() {
-      // Clear session/local storage if needed
-      // localStorage.clear();
-      // sessionStorage.clear();
-
-      // Redirect to index.html
-      window.location.href = "index.html";
+  window.addEventListener("DOMContentLoaded", () => {
+    const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
+    if (dashboardItem) {
+      loadPage(dashboardItem, "dashboard");
     }
-  </script>
+  });
+
+  function logout() {
+    // localStorage.clear();
+    // sessionStorage.clear();
+    window.location.href = "index.html";
+  }
+</script>
+
 
 </body>
 </html>
