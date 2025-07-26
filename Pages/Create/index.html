@@ -93,21 +93,67 @@
     </section>
 
     <!-- 🖼️ Preview Page -->
-    <section id="previewPage" class="hidden" aria-labelledby="previewHeading">
-      <h2 id="previewHeading">🎨 Preview ID</h2>
-      <div id="preview"></div>
-      <div class="button-group">
-        <button class="icon-btn" onclick="saveIDAsImage()" title="Save as Image">
-          <i class="fas fa-download"></i><span>Save</span>
-        </button>
-        <button class="icon-btn" onclick="editEntry()" title="Edit Entry">
-          <i class="fas fa-pen"></i><span>Edit</span>
-        </button>
-        <button class="icon-btn" onclick="newEntry()" title="Create New ID">
-          <i class="fas fa-plus"></i><span>New ID</span>
-        </button>
-      </div>
-    </section>
+      <section id="previewPage" class="hidden" aria-labelledby="previewHeading" style="padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
+        <h2 id="previewHeading" style="font-size: 1.5rem; margin-bottom: 15px;">🎨 Preview ID</h2>
+
+        <div id="preview" style="margin-bottom: 20px;"></div>
+
+        <!-- ✨ Ultra Modern Progress Bar -->
+        <div id="progressContainer" style="
+          width: 100%;
+          max-width: 500px;
+          height: 28px;
+          background: rgba(255, 255, 255, 0.2);
+          border-radius: 16px;
+          overflow: hidden;
+          border: 1px solid rgba(255, 255, 255, 0.3);
+          backdrop-filter: blur(8px);
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+          margin-bottom: 20px;
+          position: relative;
+        ">
+          <div id="uploadProgress" style="
+            width: 0%;
+            height: 100%;
+            background: linear-gradient(90deg, #06beb6, #48b1bf);
+            color: #fff;
+            text-align: center;
+            line-height: 28px;
+            font-weight: 500;
+            font-family: 'Poppins', 'Segoe UI', sans-serif;
+            font-size: 14px;
+            transition: width 0.4s ease-in-out;
+            position: relative;
+            z-index: 1;
+          ">
+            0%
+          </div>
+          <div style="
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+            z-index: 0;
+          "></div>
+        </div>
+
+        <!-- 📦 Button Group -->
+        <div class="button-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+          <button class="icon-btn" onclick="saveIDAsImage()" title="Save as Image" style="padding: 10px 15px; background-color: #2196f3; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+            <i class="fas fa-download"></i> <span>Save</span>
+          </button>
+          <button class="icon-btn" onclick="editEntry()" title="Edit Entry" style="padding: 10px 15px; background-color: #ff9800; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+            <i class="fas fa-pen"></i> <span>Edit</span>
+          </button>
+          <button class="icon-btn" onclick="newEntry()" title="Create New ID" style="padding: 10px 15px; background-color: #4caf50; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+            <i class="fas fa-plus"></i> <span>New ID</span>
+          </button>
+        </div>
+      </section>
+
 
   </main>
 
