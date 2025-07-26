@@ -66,11 +66,6 @@
       margin-bottom: 4px;
     }
 
-    .sidebar-header div {
-      font-size: 12px;
-      color: var(--text-muted);
-    }
-
     .menu {
       flex: 1;
       padding-top: 10px;
@@ -125,7 +120,6 @@
       font-size: 14px;
       font-weight: 500;
       backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
       box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     }
 
@@ -157,10 +151,14 @@
 
     iframe {
       width: 100%;
-      height: calc(100vh - 40px); /* 40px reserved for footer */
+      height: calc(100vh - 40px);
       border: none;
       opacity: 0;
       transition: opacity 0.5s ease;
+    }
+
+    iframe.visible {
+      opacity: 1;
     }
 
     #loader {
@@ -171,14 +169,20 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 18px;
-      font-weight: 500;
-      color: var(--primary-color);
       z-index: 10;
     }
 
-    iframe.visible {
-      opacity: 1;
+    .spinner {
+      width: 48px;
+      height: 48px;
+      border: 6px solid #e0e0e0;
+      border-top: 6px solid var(--primary-color);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
     }
 
     footer {
@@ -203,9 +207,8 @@
   <div class="container">
     <div class="sidebar">
       <div class="sidebar-header">
-        <img src="https://i.ibb.co/pv4P6tML/Lakshmi-Logo-01.png" alt="Lakshmi Logo" style="width: 48px; height: 48px; object-fit: contain;" />
+        <img src="https://i.ibb.co/pv4P6tML/Lakshmi-Logo-01.png" alt="Lakshmi Logo" />
       </div>
-
       <div class="menu">
         <div class="menu-item active" data-title="Dashboard" onclick="loadPage(this, 'dashboard')">
           <i class="material-icons-outlined">dashboard</i>
@@ -231,8 +234,6 @@
         <div class="menu-item" data-title="Settings" onclick="loadPage(this, 'setting')">
           <i class="material-icons-outlined">settings</i>
         </div>
-
-        <!-- Logout button added at bottom -->
         <div class="menu-item" data-title="Logout" onclick="logout()" style="margin-top: auto; margin-bottom: 16px;">
           <i class="material-icons-outlined">logout</i>
         </div>
@@ -240,90 +241,89 @@
     </div>
 
     <div class="main-content">
-      <div id="loader">Loading...</div>
+      <div id="loader">
+        <div class="spinner"></div>
+      </div>
       <iframe id="contentFrame"></iframe>
     </div>
   </div>
-<script>
-  const iframe = document.getElementById("contentFrame");
-  const loader = document.getElementById("loader");
-  let iframeLoadTimeout = null;
 
-  // Define links for each page
-  const pageLinks = {
-    dashboard: "https://penportindia.github.io/lak/Pages/Dashboard/index.html",
-    create: "https://penportindia.github.io/lak/Pages/Create/index.html",
-    schools: "https://penportindia.github.io/lak/Pages/Schools/index.html",
-    export: "https://penportindia.github.io/lak/Pages/Export/index.html",
-    // fallback pages
-    manage: null,
-    template: null,
-    print: null,
-    setting: null
-  };
+  <script>
+    const iframe = document.getElementById("contentFrame");
+    const loader = document.getElementById("loader");
+    let iframeLoadTimeout = null;
 
-  function setActiveMenu(el) {
-    document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
-    el.classList.add("active");
-  }
+    const pageLinks = {
+      dashboard: "https://penportindia.github.io/lak/Pages/Dashboard/index.html",
+      create: "https://penportindia.github.io/lak/Pages/Create/index.html",
+      schools: "https://penportindia.github.io/lak/Pages/Schools/index.html",
+      export: "https://penportindia.github.io/lak/Pages/Export/index.html",
+      manage: null,
+      template: null,
+      print: null,
+      setting: null
+    };
 
-  function loadPage(el, page) {
-    clearTimeout(iframeLoadTimeout);
-    setActiveMenu(el);
-    loader.style.display = "flex";
-    iframe.classList.remove("visible");
-
-    const link = pageLinks[page.toLowerCase()];
-    if (!link) {
-      fallbackToDashboard();
-      return;
+    function setActiveMenu(el) {
+      document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
+      el.classList.add("active");
     }
 
-    iframe.src = link;
+    function loadPage(el, page) {
+      clearTimeout(iframeLoadTimeout);
+      setActiveMenu(el);
+      loader.style.display = "flex";
+      iframe.classList.remove("visible");
 
-    iframeLoadTimeout = setTimeout(() => {
-      fallbackToDashboard();
-    }, 5000);
-  }
-
-  function fallbackToDashboard() {
-    const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
-    if (dashboardItem) {
-      setActiveMenu(dashboardItem);
-      iframe.src = pageLinks["dashboard"];
-    }
-  }
-
-  iframe.onload = () => {
-    clearTimeout(iframeLoadTimeout);
-    try {
-      const doc = iframe.contentDocument || iframe.contentWindow.document;
-      const content = doc.body.innerText || "";
-
-      if (content.includes("Cannot GET") || doc.title.toLowerCase().includes("404")) {
+      const link = pageLinks[page.toLowerCase()];
+      if (!link) {
         fallbackToDashboard();
-      } else {
-        loader.style.display = "none";
-        iframe.classList.add("visible");
-        document.title = doc.title || "Lakshmi ID Maker";
+        return;
       }
-    } catch (err) {
-      fallbackToDashboard();
-    }
-  };
 
-  window.addEventListener("DOMContentLoaded", () => {
-    const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
-    if (dashboardItem) {
-      loadPage(dashboardItem, "dashboard");
-    }
-  });
+      iframe.src = link;
 
-  function logout() {
-    const homepage = "https://penportindia.github.io/lak/index.html";
-    window.location.href = homepage;
-  }
-</script>
-  
+      iframeLoadTimeout = setTimeout(() => {
+        fallbackToDashboard();
+      }, 5000);
+    }
+
+    function fallbackToDashboard() {
+      const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
+      if (dashboardItem) {
+        setActiveMenu(dashboardItem);
+        iframe.src = pageLinks["dashboard"];
+      }
+    }
+
+    iframe.onload = () => {
+      clearTimeout(iframeLoadTimeout);
+      try {
+        const doc = iframe.contentDocument || iframe.contentWindow.document;
+        const content = doc.body.innerText || "";
+
+        if (content.includes("Cannot GET") || doc.title.toLowerCase().includes("404")) {
+          fallbackToDashboard();
+        } else {
+          loader.style.display = "none";
+          iframe.classList.add("visible");
+          document.title = doc.title || "Lakshmi ID Maker";
+        }
+      } catch (err) {
+        fallbackToDashboard();
+      }
+    };
+
+    window.addEventListener("DOMContentLoaded", () => {
+      const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
+      if (dashboardItem) {
+        loadPage(dashboardItem, "dashboard");
+      }
+    });
+
+    function logout() {
+      window.location.href = "https://penportindia.github.io/lak/index.html";
+    }
+  </script>
 </body>
 </html>
