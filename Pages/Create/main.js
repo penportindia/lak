@@ -167,6 +167,25 @@ async function generateFormFields(type) {
   });
 }
 
+function compressImage(canvas, maxWidth = 480, quality = 0.6) {
+  const ctx = canvas.getContext("2d");
+  const ratio = canvas.width / canvas.height;
+  const newWidth = Math.min(canvas.width, maxWidth);
+  const newHeight = newWidth / ratio;
+
+  // नया canvas बनाएं compress करने के लिए
+  const outputCanvas = document.createElement("canvas");
+  outputCanvas.width = newWidth;
+  outputCanvas.height = newHeight;
+  const outputCtx = outputCanvas.getContext("2d");
+
+  outputCtx.drawImage(canvas, 0, 0, newWidth, newHeight);
+
+  // JPEG format में compress करें (0.6 = 60% quality)
+  return outputCanvas.toDataURL("image/jpeg", quality);
+}
+
+
 // ✅ Camera Functions
 function startCamera() {
   navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
@@ -188,13 +207,20 @@ function stopCamera() {
 function takePicture() {
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
+
   if (!video.videoWidth) return alert("Camera not ready.");
+
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0);
+
   canvas.classList.remove("hidden");
-  imageData = canvas.toDataURL("image/png");
+
+  // 🔄 Replace PNG with compressed JPEG
+  imageData = compressImage(canvas, 480, 0.6);  // Resize width = 480px, quality = 60%
+
   stopCamera();
+
   const cameraBtn = document.getElementById("cameraBtn");
   cameraBtn.innerHTML = `<i class="fas fa-redo"></i><span>Retake</span>`;
   cameraBtn.onclick = retakePicture;
@@ -269,9 +295,11 @@ function handleSubmit(e) {
     .catch(() => showOrAlert("\u274C Failed to save data. Please try again.", "error"));
 }
 
-// ✅ Upload to ImgBB and update Firebase photo only
 function uploadImageToImgBB(enroll, dbPath) {
-  if (!imageData) return showOrAlert("\ud83d\udcf8 Please capture or select an image!", "error");
+  if (!imageData) {
+    showOrAlert("📸 Please capture or select an image!", "error");
+    return;
+  }
 
   const base64 = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
   const formData = new FormData();
@@ -279,23 +307,52 @@ function uploadImageToImgBB(enroll, dbPath) {
   formData.append("image", base64);
   formData.append("name", enroll);
 
-  fetch("https://api.imgbb.com/1/upload", {
-    method: "POST",
-    body: formData
-  })
-    .then(res => res.json())
-    .then(result => {
+  updateProgressBar(0); // Start at 0%
+
+  const xhr = new XMLHttpRequest();
+  xhr.open("POST", "https://api.imgbb.com/1/upload");
+
+  // Progress tracker
+  xhr.upload.onprogress = function (e) {
+    if (e.lengthComputable) {
+      const percent = Math.round((e.loaded / e.total) * 100);
+      updateProgressBar(percent);
+    }
+  };
+
+  xhr.onload = function () {
+    if (xhr.status === 200) {
+      const result = JSON.parse(xhr.responseText);
       if (result.success) {
         const photoURL = result.data.display_url;
-        update(dbRef(database, dbPath), { photo: photoURL })
-          .then(() => {
-            showOrAlert("\u2705 Submitted Successfully!", "success");
-          });
+        update(dbRef(database, dbPath), { photo: photoURL }).then(() => {
+          updateProgressBar(100);
+          showOrAlert("Submitted Successfully!", "success");
+        });
       } else {
-        showOrAlert("\u274C Image upload failed!", "error");
+        showOrAlert("❌ Image upload failed!", "error");
+        updateProgressBar(0);
       }
-    })
-    .catch(err => showOrAlert(`\u274C Error: ${err.message || "Please try again."}`, "error"));
+    } else {
+      showOrAlert(`❌ Upload error: ${xhr.status}`, "error");
+      updateProgressBar(0);
+    }
+  };
+
+  xhr.onerror = function () {
+    showOrAlert("❌ Network error during upload.", "error");
+    updateProgressBar(0);
+  };
+
+  xhr.send(formData);
+}
+
+function updateProgressBar(percent) {
+  const el = document.getElementById("uploadProgress");
+  if (el) {
+    el.style.width = percent + "%";
+    el.textContent = percent + "%";
+  }
 }
 
 // ✅ Show Preview using provided image source
