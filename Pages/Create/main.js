@@ -107,47 +107,50 @@ async function generateFormFields(type) {
 
   const studentFields = [
     ['enroll', 'Enrollment Number *', 'text', true],
-    ['adm', 'Admission Number', 'text'], // optional
+    ['adm', 'Admission Number', 'text'],
     ['name', 'Student Name *', 'text'],
-    ['class', 'Class *', 'select', ['PG','NURSERY','LKG','UKG','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII']],
-    ['section', 'Section *', 'select', ['A','B','C','D','E','F','G','H','I','J','K']],
+    ['class', 'Class *', 'select', ['PG', 'NURSERY', 'LKG', 'UKG', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII']],
+    ['section', 'Section *', 'select', ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']],
     ['roll', 'Roll Number *', 'text'],
-    ['dob', 'Date of Birth *', 'date'],
+    ['dob', 'Date of Birth', 'date'],
     ['father', "Father's Name *", 'text'],
     ['mother', "Mother's Name *", 'text'],
-    ['contact', 'Contact Number *', 'text'],
+    ['contact', 'Contact Number', 'text'],
     ['address', 'Address *', 'textarea'],
-    ['transport', 'Mode of Transport *', 'select', ['SELF','TRANSPORT']],
-    ['house', 'House Name', 'text'], // optional
-    ['blood', 'Blood Group *', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','NA']]
+    ['transport', 'Mode of Transport *', 'select', ['SELF', 'TRANSPORT']],
+    ['house', 'House Name', 'text'],
+    ['blood', 'Blood Group *', 'select', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'NA']]
   ];
 
   const staffFields = [
     ['enroll', 'Enrollment Number *', 'text', true],
-    ['empid', 'Employee ID', 'text'], // optional
+    ['empid', 'Employee ID', 'text'],
     ['name', 'Name *', 'text'],
-    ['designation', 'Designation *', 'select', ['DIRECTOR','PRINCIPAL','VICE PRINCIPAL','ADMIN','ACCOUNTANT','LIBRARIAN','TEACHER','CLERK','COMPUTER OPERATOR','RECEPTIONIST','DRIVER','ATTENDANT','GUARD','CARETAKER','HELPER','PEON','MED','OTHER']],
+    ['designation', 'Designation *', 'select', ['DIRECTOR', 'PRINCIPAL', 'VICE PRINCIPAL', 'ADMIN', 'ACCOUNTANT', 'LIBRARIAN', 'TEACHER', 'CLERK', 'COMPUTER OPERATOR', 'RECEPTIONIST', 'DRIVER', 'ATTENDANT', 'GUARD', 'CARETAKER', 'HELPER', 'PEON', 'MED', 'OTHER']],
     ['father', "Father's Name *", 'text'],
-    ['dob', 'Date of Birth *', 'date'],
-    ['contact', 'Contact Number *', 'text'],
+    ['dob', 'Date of Birth', 'date'], //
+    ['contact', 'Contact Number', 'text'],
     ['address', 'Address *', 'textarea'],
-    ['blood', 'Blood Group *', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','NA']]
+    ['blood', 'Blood Group *', 'select', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'NA']]
   ];
 
   const fields = type === 'student' ? studentFields : staffFields;
   const container = document.getElementById("formFields");
   container.innerHTML = '';
+
   const enrollNo = await generateUniqueEnrollment(type);
 
   fields.forEach(([id, label, controlType, readonly]) => {
     const fullId = `${type}_${id}`;
     let inputHTML = '';
-    const isRequired = label.includes('*') ? 'required' : ''; // '*' = required
+
+    // ✅ Required only if label has * AND field is not 'dob' or 'contact'
+    const isRequired = (label.includes('*') && !['dob', 'contact'].includes(id)) ? 'required' : '';
 
     if (controlType === 'select') {
       const options = readonly || [];
       inputHTML = `<select id="${fullId}" name="${fullId}" ${isRequired}>
-        <option value="" disabled selected>Select ${label.replace('*','').trim()}</option>`;
+        <option value="" disabled selected>Select ${label.replace('*', '').trim()}</option>`;
       options.forEach(opt => inputHTML += `<option value="${opt}">${opt}</option>`);
       inputHTML += `</select>`;
     } else if (controlType === 'textarea') {
