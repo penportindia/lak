@@ -106,66 +106,67 @@ async function generateFormFields(type) {
   const numberFields = ['adm', 'roll', 'contact', 'empid'];
 
   const studentFields = [
-    ['enroll', 'Enrollment Number', 'text', true],
-    ['adm', 'Admission Number', 'text'],
-    ['name', 'Student Name', 'text'],
-    ['class', 'Class', 'select', ['PG','LKG','UKG','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII']],
-    ['section', 'Section', 'select', ['A','B','C','D','E','F','G','H','I','J','K']],
-    ['roll', 'Roll Number', 'text'],
-    ['dob', 'Date of Birth', 'date'],
-    ['father', "Father's Name", 'text'],
-    ['mother', "Mother's Name", 'text'],
-    ['contact', 'Contact Number', 'text'],
-    ['address', 'Address', 'textarea'],
-    ['transport', 'Mode of Transport', 'select', ['SELF','TRANSPORT']],
-    ['house', 'House Name', 'text'],
-    ['blood', 'Blood Group', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','UNDER INVESTIGATION']]
-  ];
+  ['enroll', 'Enrollment Number *', 'text', true],
+  ['adm', 'Admission Number', 'text'], // optional
+  ['name', 'Student Name *', 'text'],
+  ['class', 'Class *', 'select', ['PG','NURSERY','LKG','UKG','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII']],
+  ['section', 'Section *', 'select', ['A','B','C','D','E','F','G','H','I','J','K']],
+  ['roll', 'Roll Number *', 'text'],
+  ['dob', 'Date of Birth *', 'date'],
+  ['father', "Father's Name *", 'text'],
+  ['mother', "Mother's Name *", 'text'],
+  ['contact', 'Contact Number *', 'text'],
+  ['address', 'Address *', 'textarea'],
+  ['transport', 'Mode of Transport *', 'select', ['SELF','TRANSPORT']],
+  ['house', 'House Name', 'text'], // optional
+  ['blood', 'Blood Group *', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','UNDER INVESTIGATION']]
+];
 
-  const staffFields = [
-    ['enroll', 'Enrollment Number', 'text', true],
-    ['empid', 'Employee ID', 'text'],
-    ['name', 'Name', 'text'],
-    ['designation', 'Designation', 'select', ['DIRECTOR','PRINCIPAL','VICE PRINCIPAL','ADMIN','ACCOUNTANT','LIBRARIAN','TEACHER','CLERK','COMPUTER OPERATOR','RECEPTIONIST','DRIVER','ATTENDANT','GUARD','CARETAKER','HELPER','PEON','MED','OTHER']],
-    ['father', "Father's Name", 'text'],
-    ['dob', 'Date of Birth', 'date'],
-    ['contact', 'Contact Number', 'text'],
-    ['address', 'Address', 'textarea'],
-    ['blood', 'Blood Group', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','UNDER INVESTIGATION']]
-  ];
+const staffFields = [
+  ['enroll', 'Enrollment Number *', 'text', true],
+  ['empid', 'Employee ID', 'text'], // optional
+  ['name', 'Name *', 'text'],
+  ['designation', 'Designation *', 'select', ['DIRECTOR','PRINCIPAL','VICE PRINCIPAL','ADMIN','ACCOUNTANT','LIBRARIAN','TEACHER','CLERK','COMPUTER OPERATOR','RECEPTIONIST','DRIVER','ATTENDANT','GUARD','CARETAKER','HELPER','PEON','MED','OTHER']],
+  ['father', "Father's Name *", 'text'],
+  ['dob', 'Date of Birth *', 'date'],
+  ['contact', 'Contact Number *', 'text'],
+  ['address', 'Address *', 'textarea'],
+  ['blood', 'Blood Group *', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','NA']]
+];
 
-  const fields = type === 'student' ? studentFields : staffFields;
-  const container = document.getElementById("formFields");
-  container.innerHTML = '';
-  const enrollNo = await generateUniqueEnrollment(type);
+const fields = type === 'student' ? studentFields : staffFields;
+const container = document.getElementById("formFields");
+container.innerHTML = '';
+const enrollNo = await generateUniqueEnrollment(type);
 
-  fields.forEach(([id, label, controlType, readonly]) => {
-    const fullId = `${type}_${id}`;
-    let inputHTML = '';
+fields.forEach(([id, label, controlType, readonly]) => {
+  const fullId = `${type}_${id}`;
+  let inputHTML = '';
+  const isRequired = label.includes('*') ? 'required' : '';
 
-    if (controlType === 'select') {
-      const options = readonly || [];
-      inputHTML = `<select id="${fullId}" name="${fullId}" required>
-        <option value="" disabled selected>Select ${label}</option>`;
-      options.forEach(opt => inputHTML += `<option value="${opt}">${opt}</option>`);
-      inputHTML += `</select>`;
-    } else if (controlType === 'textarea') {
-      inputHTML = `<textarea id="${fullId}" name="${fullId}" rows="2" required></textarea>`;
-    } else {
-      const value = id === 'enroll' ? enrollNo : '';
-      const ro = id === 'enroll' ? 'readonly' : '';
-      const inputType = id === 'dob' ? 'date' : (numberFields.includes(id) ? 'tel' : 'text');
-      const inputAttributes = numberFields.includes(id) ? 'pattern="\\d*" inputmode="numeric"' : '';
-      inputHTML = `<input type="${inputType}" id="${fullId}" name="${fullId}" ${ro} value="${value}" ${inputAttributes} required />`;
-    }
+  if (controlType === 'select') {
+    const options = readonly || [];
+    inputHTML = `<select id="${fullId}" name="${fullId}" ${isRequired}>
+      <option value="" disabled selected>Select ${label.replace('*','').trim()}</option>`;
+    options.forEach(opt => inputHTML += `<option value="${opt}">${opt}</option>`);
+    inputHTML += `</select>`;
+  } else if (controlType === 'textarea') {
+    inputHTML = `<textarea id="${fullId}" name="${fullId}" rows="2" ${isRequired}></textarea>`;
+  } else {
+    const value = id === 'enroll' ? enrollNo : '';
+    const ro = id === 'enroll' ? 'readonly' : '';
+    const inputType = id === 'dob' ? 'date' : (numberFields.includes(id) ? 'tel' : 'text');
+    const inputAttributes = numberFields.includes(id) ? 'pattern="\\d*" inputmode="numeric"' : '';
+    inputHTML = `<input type="${inputType}" id="${fullId}" name="${fullId}" ${ro} value="${value}" ${inputAttributes} ${isRequired} />`;
+  }
 
-    container.innerHTML += `
-      <div class="form-group">
-        <label for="${fullId}">${label}</label>
-        ${inputHTML}
-      </div>`;
-  });
-}
+  container.innerHTML += `
+    <div class="form-group">
+      <label for="${fullId}">${label}</label>
+      ${inputHTML}
+    </div>`;
+});
+
 
 function compressImage(canvas, maxWidth = 480, quality = 0.6) {
   const ctx = canvas.getContext("2d");
