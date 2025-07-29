@@ -127,7 +127,7 @@ async function generateFormFields(type) {
     ['empid', 'Employee ID', 'text'],
     ['name', 'Name *', 'text'],
     ['designation', 'Designation *', 'select', ['DIRECTOR', 'PRINCIPAL', 'VICE PRINCIPAL', 'ADMIN', 'ACCOUNTANT', 'LIBRARIAN', 'TEACHER', 'CLERK', 'COMPUTER OPERATOR', 'RECEPTIONIST', 'DRIVER', 'ATTENDANT', 'GUARD', 'CARETAKER', 'HELPER', 'PEON', 'MED', 'OTHER']],
-    ['father', "Father's Name *", 'text'],
+    ['father', "Father / Spouse Name *", 'text']
     ['dob', 'Date of Birth', 'date'], //
     ['contact', 'Contact Number', 'text'],
     ['address', 'Address *', 'textarea'],
