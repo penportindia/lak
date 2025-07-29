@@ -1,5 +1,4 @@
-
-/* Reset and Base */
+/* ==== Reset and Base ==== */
 * {
   margin: 0;
   padding: 0;
@@ -15,7 +14,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-/* Header */
+/* ==== Header ==== */
 header {
   background: linear-gradient(135deg, #1e2a38, #3b4c63);
   color: white;
@@ -37,7 +36,8 @@ header p {
   font-style: italic;
   color: #e2e8f0;
 }
-/* Message Popup */
+
+/* ==== Message Popup ==== */
 #messagePopup {
   position: fixed;
   top: 20px;
@@ -57,35 +57,17 @@ header p {
   max-width: 90%;
 }
 
-/* Optional status types */
-#messagePopup.success {
-  background: #10b981;
-}
-
-#messagePopup.error {
-  background: #ef4444;
-}
-
-#messagePopup.info {
-  background: #3b82f6;
-}
+#messagePopup.success { background: #10b981; }
+#messagePopup.error { background: #ef4444; }
+#messagePopup.info { background: #3b82f6; }
 
 @keyframes fadeInOut {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
-  }
-  10%, 90% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
-  }
+  0%   { opacity: 0; transform: translateX(-50%) translateY(-20px); }
+  10%, 90% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-20px); }
 }
 
-/* Main Container */
+/* ==== Main Container ==== */
 .container {
   width: 94%;
   max-width: 520px;
@@ -102,7 +84,7 @@ header p {
   box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12);
 }
 
-/* Headings */
+/* ==== Headings ==== */
 h2 {
   color: #1e293b;
   font-size: 24px;
@@ -110,16 +92,32 @@ h2 {
   text-align: center;
 }
 
-/* Form Labels */
+/* ==== Form Groups ==== */
+.form-group {
+  margin-bottom: 24px;
+}
+
+/* ==== Label Styling with Star ==== */
 label {
   font-weight: 600;
   margin-top: 18px;
   display: block;
   font-size: 16px;
+  color: #1e293b;
 }
 
-/* Inputs & Selects */
-input, select, textarea {
+.required {
+  color: #ef4444;
+  margin-left: 4px;
+  font-weight: bold;
+  font-size: 16px;
+  vertical-align: middle;
+}
+
+/* ==== Inputs, Selects, Textareas ==== */
+input,
+select,
+textarea {
   width: 100%;
   padding: 14px 16px;
   font-size: 16px;
@@ -130,14 +128,16 @@ input, select, textarea {
   transition: all 0.25s ease-in-out;
 }
 
-input:focus, select:focus, textarea:focus {
+input:focus,
+select:focus,
+textarea:focus {
   border-color: #2563eb;
   background-color: #ffffff;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
   outline: none;
 }
 
-/* Buttons */
+/* ==== Buttons ==== */
 button {
   width: 100%;
   padding: 16px;
@@ -157,7 +157,7 @@ button:hover {
   background: linear-gradient(135deg, #2a3a4f, #4a607e);
 }
 
-/* Button Group (Icon Style Buttons) */
+/* ==== Button Group ==== */
 .button-group {
   display: flex;
   justify-content: center;
@@ -196,7 +196,7 @@ button:hover {
   font-size: 11px;
 }
 
-/* Media Queries */
+/* ==== Media Queries ==== */
 @media (max-width: 480px) {
   body { font-size: 16px; }
   header h1 { font-size: 22px; }
@@ -205,12 +205,15 @@ button:hover {
   button { font-size: 16px; }
 }
 
-/* Input Uppercase */
-input[type="text"], input[type="tel"], textarea, select {
+/* ==== Input Text Transform ==== */
+input[type="text"],
+input[type="tel"],
+textarea,
+select {
   text-transform: uppercase;
 }
 
-/* Video & Canvas */
+/* ==== Video and Canvas Styling ==== */
 video, canvas {
   display: block;
   margin: 16px auto;
@@ -220,7 +223,7 @@ video, canvas {
   border: 2px solid #cbd5e1;
 }
 
-/* Splash Overlay Loader */
+/* ==== Splash Overlay Loader ==== */
 #splashOverlay {
   position: fixed;
   top: 0;
@@ -287,12 +290,12 @@ video, canvas {
   100% { content: ""; }
 }
 
-/* Hidden Utility Class */
+/* ==== Hidden Utility Class ==== */
 .hidden {
   display: none;
 }
 
-/* Footer Branding */
+/* ==== Footer Branding ==== */
 footer {
   text-align: center;
   margin-top: 40px;
