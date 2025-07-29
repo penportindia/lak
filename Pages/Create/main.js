@@ -119,7 +119,7 @@ async function generateFormFields(type) {
     ['address', 'Address *', 'textarea'],
     ['transport', 'Mode of Transport *', 'select', ['SELF','TRANSPORT']],
     ['house', 'House Name', 'text'], // optional
-    ['blood', 'Blood Group *', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','UNDER INVESTIGATION']]
+    ['blood', 'Blood Group *', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','NA']]
   ];
 
   const staffFields = [
