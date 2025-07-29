@@ -251,11 +251,23 @@ function handleSubmit(e) {
     rawData[field.name] = value;
   });
 
-  const enroll = rawData[`${lastType}_enroll`];
+  const enrollKey = `${lastType}_enroll`;
+  const nameKey = `${lastType}_name`;
   const dobKey = `${lastType}_dob`;
+  const enroll = rawData[enrollKey];
   const dbPath = `${lastType}/${enroll}`;
 
-  // ✅ Format DOB (e.g. 23-JUL-2025)
+  // ❌ Validation: Enrollment Number
+  if (!enroll) {
+    return showOrAlert("❌ Enrollment number is missing!", "error");
+  }
+
+  // ❌ Validation: Photo
+  if (!imageData) {
+    return showOrAlert("📸 Please capture or select a photo!", "error");
+  }
+
+  // ✅ Format DOB
   if (rawData[dobKey]) {
     const dobDate = new Date(rawData[dobKey]);
     if (!isNaN(dobDate)) {
@@ -264,38 +276,38 @@ function handleSubmit(e) {
       const year = dobDate.getFullYear();
       rawData[dobKey] = `${day}-${month}-${year}`;
     } else {
-      return showOrAlert("\u274C Please enter a valid Date of Birth!", "error");
+      return showOrAlert("❌ Please enter a valid Date of Birth!", "error");
     }
   }
 
   rawData.schoolName = schoolName?.toUpperCase?.() || "SCHOOL NAME";
 
   const data = {
-    [`${lastType}_enroll`]: rawData[`${lastType}_enroll`],
-    [`${lastType}_name`]: rawData[`${lastType}_name`],
+    [enrollKey]: enroll,
+    [nameKey]: rawData[nameKey],
     schoolName: rawData.schoolName,
-    photo: ""
+    photo: "" // Placeholder for photo URL
   };
 
+  // ✅ Add all other fields to data object
   Object.keys(rawData).forEach(key => {
-    if (!["photo", "schoolName", `${lastType}_name`, `${lastType}_enroll`].includes(key)) {
+    if (!["photo", "schoolName", nameKey, enrollKey].includes(key)) {
       data[key] = rawData[key];
     }
   });
 
   entryData = data;
 
-  // ✅ Show local preview immediately if imageData is present
-  if (imageData) {
-    showPreview(imageData, enroll);
-  }
+  // ✅ Show local preview
+  showPreview(imageData, enroll);
 
-  // ✅ Save data to Firebase immediately
+  // ✅ Save data to Firebase
   set(dbRef(database, dbPath), data)
     .then(() => uploadImageToImgBB(enroll, dbPath))
-    .catch(() => showOrAlert("\u274C Failed to save data. Please try again.", "error"));
+    .catch(() => showOrAlert("❌ Failed to save data. Please try again.", "error"));
 }
 
+// ✅ Upload Image to ImgBB
 function uploadImageToImgBB(enroll, dbPath) {
   if (!imageData) {
     showOrAlert("📸 Please capture or select an image!", "error");
@@ -313,7 +325,6 @@ function uploadImageToImgBB(enroll, dbPath) {
   const xhr = new XMLHttpRequest();
   xhr.open("POST", "https://api.imgbb.com/1/upload");
 
-  // Progress tracker
   xhr.upload.onprogress = function (e) {
     if (e.lengthComputable) {
       const percent = Math.round((e.loaded / e.total) * 100);
@@ -328,7 +339,7 @@ function uploadImageToImgBB(enroll, dbPath) {
         const photoURL = result.data.display_url;
         update(dbRef(database, dbPath), { photo: photoURL }).then(() => {
           updateProgressBar(100);
-          showOrAlert("Submitted Successfully!", "success");
+          showOrAlert("✅ Submitted Successfully!", "success");
         });
       } else {
         showOrAlert("❌ Image upload failed!", "error");
@@ -348,6 +359,7 @@ function uploadImageToImgBB(enroll, dbPath) {
   xhr.send(formData);
 }
 
+// ✅ Upload Progress UI
 function updateProgressBar(percent) {
   const el = document.getElementById("uploadProgress");
   if (el) {
@@ -359,7 +371,7 @@ function updateProgressBar(percent) {
 // ✅ Show Preview using provided image source
 function showPreview(photoUrl, enrollmentNumber) {
   if (!photoUrl || !enrollmentNumber) {
-    showOrAlert("\u274C Missing photo or enrollment number!", "error");
+    showOrAlert("❌ Missing photo or enrollment number!", "error");
     return;
   }
 
@@ -368,7 +380,7 @@ function showPreview(photoUrl, enrollmentNumber) {
   const previewContainer = document.getElementById("preview");
 
   if (!previewPage || !idForm || !previewContainer) {
-    alert("\u274C Required preview elements not found in DOM.");
+    alert("❌ Required preview elements not found in DOM.");
     return;
   }
 
@@ -436,6 +448,7 @@ function showPreview(photoUrl, enrollmentNumber) {
   }
 }
 
+// ✅ Generate Barcode as PNG
 function generateBarcodeImage(enroll) {
   if (!enroll) return;
 
@@ -500,20 +513,37 @@ function editEntry() {
 }
 
 function newEntry() {
-  document.getElementById("previewPage").classList.add("hidden");
-  document.getElementById("formFields").innerHTML = '';
+  // ✅ Hide preview page and reset form
+  const previewPage = document.getElementById("previewPage");
+  const formFields = document.getElementById("formFields");
+  const idForm = document.getElementById("idForm");
+  const canvas = document.getElementById("canvas");
+  const video = document.getElementById("video");
+  const cameraBtn = document.getElementById("cameraBtn");
+  const idTypeSelect = document.getElementById("idType");
+
+  if (previewPage) previewPage.classList.add("hidden");
+  if (formFields) formFields.innerHTML = '';
+  if (canvas) canvas.classList.add("hidden");
+  if (video) video.classList.add("hidden");
+  if (idForm) idForm.classList.remove("hidden");
+
+  // ✅ Reset global values
   imageData = '';
   entryData = {};
-  lastType = '';
+  lastType = idTypeSelect?.value?.trim().toLowerCase() || '';
+
   stopCamera();
-  document.getElementById("canvas").classList.add("hidden");
-  document.getElementById("video").classList.add("hidden");
-  document.getElementById("idForm").classList.remove("hidden");
-  const cameraBtn = document.getElementById("cameraBtn");
-  cameraBtn.innerHTML = `<i class="fas fa-video"></i><span>Camera</span>`;
-  cameraBtn.onclick = startCamera;
-  generateFormFields(document.getElementById("idType").value);
+
+  if (cameraBtn) {
+    cameraBtn.innerHTML = `<i class="fas fa-video"></i><span>Camera</span>`;
+    cameraBtn.onclick = startCamera;
+  }
+
+  // ✅ Generate dynamic form fields
+  generateFormFields(lastType);
 }
+
 
 function goHome() {
   document.getElementById("previewPage").classList.add("hidden");
