@@ -107,9 +107,9 @@ label {
 }
 
 .required {
-  color: #ef4444;
-  margin-left: 4px;
+  color: red; /* ✅ Only the star will be red now */
   font-weight: bold;
+  margin-left: 4px;
   font-size: 16px;
   vertical-align: middle;
 }
