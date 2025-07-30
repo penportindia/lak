@@ -8,6 +8,20 @@
   <!-- ✅ External CSS -->
   <link rel="stylesheet" href="style.css" />
 
+  <!-- ✅ Manifest & Icons for PWA -->
+  <link rel="manifest" href="manifest.json" />
+  <meta name="theme-color" content="#2196f3" />
+
+  <!-- ✅ Standard Favicon for browser tab -->
+  <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png" />
+
+  <!-- ✅ Apple-specific settings for iOS -->
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="apple-touch-icon" sizes="192x192" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" sizes="512x512" href="icons/icon-512.png" />
+
+
   <!-- ✅ Font Awesome & Libraries -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js" defer></script>
@@ -21,7 +35,6 @@
   </header>
 
   <main class="container">
-
     <!-- 🔐 Login Section -->
     <section id="loginPage" aria-labelledby="loginHeading">
       <h2 id="loginHeading">🔐 Login</h2>
@@ -93,73 +106,80 @@
     </section>
 
     <!-- 🖼️ Preview Page -->
-      <section id="previewPage" class="hidden" aria-labelledby="previewHeading" style="padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
-        <h2 id="previewHeading" style="font-size: 1.5rem; margin-bottom: 15px;">🎨 Preview ID</h2>
+    <section id="previewPage" class="hidden" aria-labelledby="previewHeading" style="padding: 20px; background-color: #f9f9f9; border-radius: 10px;">
+      <h2 id="previewHeading" style="font-size: 1.5rem; margin-bottom: 15px;">🎨 Preview ID</h2>
 
-        <div id="preview" style="margin-bottom: 20px;"></div>
+      <div id="preview" style="margin-bottom: 20px;"></div>
 
-        <!-- ✨ Ultra Modern Progress Bar -->
-        <div id="progressContainer" style="
-          width: 100%;
-          max-width: 500px;
-          height: 28px;
-          background: rgba(255, 255, 255, 0.2);
-          border-radius: 16px;
-          overflow: hidden;
-          border: 1px solid rgba(255, 255, 255, 0.3);
-          backdrop-filter: blur(8px);
-          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-          margin-bottom: 20px;
+      <!-- ✨ Progress Bar -->
+      <div id="progressContainer" style="
+        width: 100%;
+        max-width: 500px;
+        height: 28px;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 16px;
+        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        backdrop-filter: blur(8px);
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+        position: relative;
+      ">
+        <div id="uploadProgress" style="
+          width: 0%;
+          height: 100%;
+          background: linear-gradient(90deg, #06beb6, #48b1bf);
+          color: #fff;
+          text-align: center;
+          line-height: 28px;
+          font-weight: 500;
+          font-family: 'Poppins', 'Segoe UI', sans-serif;
+          font-size: 14px;
+          transition: width 0.4s ease-in-out;
           position: relative;
-        ">
-          <div id="uploadProgress" style="
-            width: 0%;
-            height: 100%;
-            background: linear-gradient(90deg, #06beb6, #48b1bf);
-            color: #fff;
-            text-align: center;
-            line-height: 28px;
-            font-weight: 500;
-            font-family: 'Poppins', 'Segoe UI', sans-serif;
-            font-size: 14px;
-            transition: width 0.4s ease-in-out;
-            position: relative;
-            z-index: 1;
-          ">
-            0%
-          </div>
-          <div style="
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
-            z-index: 0;
-          "></div>
-        </div>
+          z-index: 1;
+        ">0%</div>
+        <div style="
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          height: 100%;
+          width: 100%;
+          background: linear-gradient(135deg, rgba(255,255,255,0.15) 0%, rgba(255,255,255,0) 100%);
+          z-index: 0;
+        "></div>
+      </div>
 
-        <!-- 📦 Button Group -->
-        <div class="button-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
-          <button class="icon-btn" onclick="saveIDAsImage()" title="Save as Image" style="padding: 10px 15px; background-color: #2196f3; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
-            <i class="fas fa-download"></i> <span>Save</span>
-          </button>
-          <button class="icon-btn" onclick="editEntry()" title="Edit Entry" style="padding: 10px 15px; background-color: #ff9800; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
-            <i class="fas fa-pen"></i> <span>Edit</span>
-          </button>
-          <button class="icon-btn" onclick="newEntry()" title="Create New ID" style="padding: 10px 15px; background-color: #4caf50; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
-            <i class="fas fa-plus"></i> <span>New ID</span>
-          </button>
-        </div>
-      </section>
-
-
+      <!-- 📦 Button Group -->
+      <div class="button-group" style="display: flex; gap: 10px; flex-wrap: wrap;">
+        <button class="icon-btn" onclick="saveIDAsImage()" title="Save as Image" style="padding: 10px 15px; background-color: #2196f3; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+          <i class="fas fa-download"></i> <span>Save</span>
+        </button>
+        <button class="icon-btn" onclick="editEntry()" title="Edit Entry" style="padding: 10px 15px; background-color: #ff9800; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+          <i class="fas fa-pen"></i> <span>Edit</span>
+        </button>
+        <button class="icon-btn" onclick="newEntry()" title="Create New ID" style="padding: 10px 15px; background-color: #4caf50; color: #fff; border: none; border-radius: 5px; cursor: pointer;">
+          <i class="fas fa-plus"></i> <span>New ID</span>
+        </button>
+      </div>
+    </section>
   </main>
 
   <div id="messagePopup" class="success" style="display:none;"></div>
 
   <!-- ✅ Main JS (Module) -->
   <script type="module" src="main.js"></script>
+
+  <!-- ✅ Register Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(reg => console.log('✅ Service Worker registered:', reg.scope))
+          .catch(err => console.error('❌ Service Worker registration failed:', err));
+      });
+    }
+  </script>
 </body>
 </html>
