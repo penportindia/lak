@@ -190,6 +190,8 @@ async function exportSelectedData() {
   headers.push(...columnHeaders);
 
   const data = [];
+  const zip = new JSZip();
+  const imageFolder = zip.folder("Photos");
 
   for (const row of selectedRows) {
     const cells = row.querySelectorAll("td");
@@ -212,18 +214,14 @@ async function exportSelectedData() {
         const response = await fetch(photoURL);
         if (!response.ok) throw new Error("Photo fetch failed");
         const blob = await response.blob();
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `${enrollment}.jpg`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
+        imageFolder.file(`${enrollment}.jpg`, blob);
       } catch (err) {
         console.warn(`❌ Failed to download photo for ${enrollment}:`, err.message);
       }
     }
   }
 
+  // Create CSV from data
   const csvRows = [];
   csvRows.push(headers.join(","));
 
@@ -231,7 +229,7 @@ async function exportSelectedData() {
     const values = headers.map(h => {
       let val = (row[h] || "").replace(/"/g, '""');
       if (h.toLowerCase().includes("dob")) {
-        return `"=""${val}"""`;
+        return `"=""${val}"""`; // Prevent Excel date parsing
       } else {
         return `"${val}"`;
       }
@@ -239,17 +237,16 @@ async function exportSelectedData() {
     csvRows.push(values.join(","));
   });
 
-  const blob = new Blob([csvRows.join("\n")], { type: "text/csv;charset=utf-8;" });
-  const csvURL = URL.createObjectURL(blob);
-  const csvLink = document.createElement("a");
-  csvLink.href = csvURL;
-  csvLink.download = `${dataTypeSelect.value || "Export"}-Data-${Date.now()}.csv`;
-  document.body.appendChild(csvLink);
-  csvLink.click();
-  csvLink.remove();
+  const csvContent = csvRows.join("\n");
+  zip.file("data.csv", csvContent);
 
-  showToast(`${selectedRows.length} records exported.`, "success");
+  // Generate and download the zip
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  saveAs(zipBlob, `Exported-Data-${Date.now()}.zip`);
+
+  showToast(`${selectedRows.length} records exported as zip.`, "success");
 }
+
 
 // Listeners
 dataTypeSelect.addEventListener("change", () => fetchData(dataTypeSelect.value));
