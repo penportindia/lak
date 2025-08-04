@@ -208,9 +208,10 @@ function stopCamera() {
   video.srcObject = null;
   video.classList.add("hidden");
 }
-function takePicture() {
+async function takePicture() {
   const video = document.getElementById("video");
   const canvas = document.getElementById("canvas");
+  const resultImg = document.getElementById("resultImg"); // <img id="resultImg"> होना चाहिए
 
   if (!video.videoWidth) return alert("Camera not ready.");
 
@@ -218,7 +219,36 @@ function takePicture() {
   canvas.height = video.videoHeight;
   canvas.getContext("2d").drawImage(video, 0, 0);
 
-  canvas.classList.remove("hidden");
+  // Base64 से Blob बनाएं
+  const base64Data = canvas.toDataURL("image/png");
+  const blob = await (await fetch(base64Data)).blob();
+
+  const formData = new FormData();
+  formData.append("image_file", blob);
+  formData.append("size", "auto");
+
+  try {
+    const response = await fetch("https://api.remove.bg/v1.0/removebg", {
+      method: "POST",
+      headers: {
+        "X-Api-Key": "DziNrXUrs3iter27UDN2eBsR", // 🔁 अपनी API key यहाँ डालें
+      },
+      body: formData,
+    });
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(error);
+    }
+
+    const resultBlob = await response.blob();
+    resultImg.src = URL.createObjectURL(resultBlob);
+    resultImg.classList.remove("hidden");
+    canvas.classList.add("hidden");
+  } catch (error) {
+    alert("Background removal failed:\n" + error.message);
+  }
+}
 
   // 🔄 Replace PNG with compressed JPEG
   imageData = compressImage(canvas, 480, 0.6);  // Resize width = 480px, quality = 60%
@@ -589,4 +619,5 @@ window.saveIDAsImage = saveIDAsImage;
 window.editEntry = editEntry;
 window.newEntry = newEntry;
 window.goHome = goHome;
+
 window.generateBarcodeImage = generateBarcodeImage;
