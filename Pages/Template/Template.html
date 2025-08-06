@@ -74,7 +74,6 @@
     .btn:hover {
       background-color: #1e40af;
     }
-
     .preview-wrapper {
       flex: 1;
       padding: 32px;
@@ -85,7 +84,6 @@
       justify-content: center;
       background: #f9fafb;
     }
-
     .preview-box {
       flex: 1 1 260px;
       max-width: 280px;
@@ -94,13 +92,11 @@
       align-items: center;
       gap: 12px;
     }
-
     .preview-box h4 {
       font-size: 16px;
       font-weight: 600;
       color: #374151;
     }
-
     .card-container {
       position: relative;
       width: 220px;
@@ -111,14 +107,12 @@
       overflow: hidden;
       box-shadow: 0 3px 6px rgba(0, 0, 0, 0.08);
     }
-
     .card-item {
       position: absolute;
       font-size: 12px;
       color: #111827;
       word-break: break-word;
     }
-
     .hidden {
       display: none;
     }
@@ -127,7 +121,6 @@
 <body>
   <div class="sidebar">
     <h2>🛠 Template Editor</h2>
-
     <div class="field-group">
       <label for="idType">ID Type</label>
       <select id="idType">
@@ -135,7 +128,6 @@
         <option value="staff">Staff</option>
       </select>
     </div>
-
     <div class="field-group">
       <label for="templateType">Template Type</label>
       <select id="templateType">
@@ -143,17 +135,14 @@
         <option value="2">2 Page</option>
       </select>
     </div>
-
     <div class="field-group">
       <label for="frontBg">Upload Front Background</label>
       <input type="file" id="frontBg" accept="image/*">
     </div>
-
     <div class="field-group" id="backBgGroup">
       <label for="backBg">Upload Back Background</label>
       <input type="file" id="backBg" accept="image/*">
     </div>
-
     <button class="btn" id="downloadBtn">📥 Download Template</button>
   </div>
 
@@ -187,12 +176,17 @@
     document.getElementById('downloadBtn').addEventListener('click', downloadTemplate);
 
     function loadTemplate() {
-      const idType = idTypeSelect.value;
-      const pageType = templateTypeSelect.value;
-      const fileName = `${idType}-${pageType}.json`;
+      const idType = idTypeSelect.value; // 'student' or 'staff'
+      const pageType = templateTypeSelect.value; // '1' or '2'
+      const baseURL = 'https://raw.githubusercontent.com/penportindia/lak/main/Pages/Template/templates';
+      const fileName = `${idType.charAt(0).toUpperCase() + idType.slice(1)}-${pageType}.json`;
+      const fileURL = `${baseURL}/${fileName}`;
 
-      fetch(`templates/${fileName}`)
-        .then(res => res.json())
+      fetch(fileURL)
+        .then(res => {
+          if (!res.ok) throw new Error("Template not found.");
+          return res.json();
+        })
         .then(data => {
           currentTemplate = data;
           const isTwoPage = pageType === '2';
@@ -201,7 +195,7 @@
           renderCard('front');
           if (isTwoPage) renderCard('back');
         })
-        .catch(err => alert("⚠️ Template file not found!"));
+        .catch(err => alert("⚠️ Error loading template: " + err.message));
     }
 
     function renderCard(side) {
@@ -261,17 +255,10 @@
       const json = JSON.stringify(currentTemplate, null, 2);
       const blob = new Blob([json], { type: 'application/json' });
       const a = document.createElement('a');
-
-      // Default suggested file name
       const defaultName = `${idTypeSelect.value.toUpperCase()}_${templateTypeSelect.value}PAGE_Template.json`;
-      
-      // Ask user for file name
       const fileName = prompt("Enter filename to save (with or without .json):", defaultName);
-      
       if (fileName) {
-        // Ensure file has .json extension
         const finalName = fileName.endsWith('.json') ? fileName : `${fileName}.json`;
-
         a.href = URL.createObjectURL(blob);
         a.download = finalName;
         a.click();
@@ -280,7 +267,8 @@
       }
     }
 
-    loadTemplate(); // Auto load at start
+    loadTemplate(); // auto-load on start
   </script>
 </body>
 </html>
+
