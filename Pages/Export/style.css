@@ -1,4 +1,36 @@
 /* --------------------- */
+/* Reset & Layout */
+/* --------------------- */
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  font-family: 'sans-serif';
+  background-color: #f9fafb;
+  overflow-x: hidden;
+}
+
+/* --------------------- */
+/* Full Width Utility */
+/* --------------------- */
+.full-width-container {
+  width: 100%;
+  padding: 1rem;
+  box-sizing: border-box;
+}
+
+.table-full {
+  width: 100%;
+  border-collapse: collapse;
+  background-color: white;
+}
+
+/* --------------------- */
 /* Backgrounds */
 /* --------------------- */
 .bg-dark-custom {
@@ -9,7 +41,7 @@
 }
 
 /* --------------------- */
-/* Select box */
+/* Select Box */
 /* --------------------- */
 .select-box {
   border: 1px solid #d1d5db;
@@ -19,6 +51,7 @@
   background-color: white;
   box-shadow: 0 1px 2px rgba(0,0,0,0.05);
   transition: all 0.3s ease-in-out;
+  width: 100%;
 }
 
 /* --------------------- */
@@ -32,7 +65,9 @@
   border-radius: 0.375rem;
   transition: 0.3s;
   font-weight: 500;
+  justify-content: center;
 }
+
 .btn-default {
   background-color: #f3f4f6;
   color: #1f2937;
@@ -40,6 +75,7 @@
 .btn-default:hover {
   background-color: #e5e7eb;
 }
+
 .btn-dark {
   background-color: #1e2a38;
   color: white;
@@ -47,6 +83,7 @@
 .btn-dark:hover {
   background-color: #273444;
 }
+
 .btn-danger {
   background-color: #b91c1c;
   color: white;
@@ -85,7 +122,7 @@ input[type="checkbox"]:checked::after {
 }
 
 /* --------------------- */
-/* Table */
+/* Table Styling */
 /* --------------------- */
 thead th, tbody td {
   padding: 0.75rem 1rem;
@@ -96,7 +133,7 @@ tbody tr:hover {
 }
 
 /* --------------------- */
-/* Toast Notification (Top Right) */
+/* Notification Toast */
 /* --------------------- */
 #notification {
   position: fixed;
@@ -148,10 +185,36 @@ tbody tr:hover {
   background-color: #2563eb;
 }
 
-/* Animation for center popup */
+/* Fade Animation */
 @keyframes fadeInOut {
   0% { opacity: 0; transform: translate(-50%, -60%); }
   10% { opacity: 1; transform: translate(-50%, -50%); }
   90% { opacity: 1; transform: translate(-50%, -50%); }
   100% { opacity: 0; transform: translate(-50%, -40%); }
+}
+
+/* --------------------- */
+/* Modal Styling */
+/* --------------------- */
+#confirmModal {
+  display: none;
+  align-items: center;
+  justify-content: center;
+}
+
+/* --------------------- */
+/* Responsive Tweaks */
+/* --------------------- */
+@media (max-width: 768px) {
+  .full-width-container {
+    padding: 0.5rem;
+  }
+
+  .btn-default, .btn-dark, .btn-danger {
+    width: 100%;
+  }
+
+  .select-box {
+    width: 100%;
+  }
 }
