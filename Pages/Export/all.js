@@ -140,9 +140,11 @@ function resetFilters() {
   renderTable(fullDataArray);
 }
 
+import { ref, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+
 function deleteSelectedData() {
   const rows = Array.from(document.querySelectorAll("#tableBody tr"));
-  const selectedRows = rows.filter(r => r.querySelector("input[type='checkbox']").checked);
+  const selectedRows = rows.filter(row => row.querySelector("input[type='checkbox']").checked);
 
   if (selectedRows.length === 0) {
     showToast("No records selected to delete.", "error");
@@ -152,11 +154,12 @@ function deleteSelectedData() {
   const confirmDelete = confirm(`Are you sure you want to delete ${selectedRows.length} record(s)?`);
   if (!confirmDelete) return;
 
-  const type = dataTypeSelect.value;
+  const type = dataTypeSelect.value; // e.g., 'Students', 'Users'
   const deletePromises = [];
 
   selectedRows.forEach(row => {
-    const key = row.dataset.key;
+    const key = row.getAttribute("data-key");
+
     if (key) {
       const recordRef = ref(db, `${type}/${key}`);
       deletePromises.push(remove(recordRef));
@@ -165,14 +168,15 @@ function deleteSelectedData() {
 
   Promise.all(deletePromises)
     .then(() => {
-      showToast(`${selectedRows.length} record(s) deleted.`, "success");
-      fetchData(type);
+      showToast(`${selectedRows.length} record(s) deleted successfully.`, "success");
+      fetchData(type); // Table reload
     })
-    .catch(err => {
-      console.error("Deletion error:", err);
+    .catch(error => {
+      console.error("Error deleting records:", error);
       showToast("Some records could not be deleted.", "error");
     });
 }
+
 
 async function exportSelectedData() {
   const rows = Array.from(document.querySelectorAll("#tableBody tr"));
@@ -257,3 +261,4 @@ exportBtn.addEventListener("click", exportSelectedData);
 
 // Initial Load
 fetchData(dataTypeSelect.value);
+
