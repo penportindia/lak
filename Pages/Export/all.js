@@ -1,7 +1,8 @@
+// ✅ 1. Import Firebase Modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-// Firebase config
+// ✅ 2. Firebase Configuration
 const firebaseConfig = {
   apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
   authDomain: "schools-cdce8.firebaseapp.com",
@@ -12,10 +13,11 @@ const firebaseConfig = {
   appId: "1:772712220138:web:381c173dccf1a6513fde93"
 };
 
+// ✅ 3. Initialize Firebase App and Database
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// DOM Elements
+// ✅ 4. DOM Element References
 const dataTypeSelect = document.getElementById("dataType");
 const schoolFilter = document.getElementById("schoolFilter");
 const resetBtn = document.getElementById("resetBtn");
@@ -24,9 +26,12 @@ const deleteBtn = document.getElementById("deleteBtn");
 const tableHead = document.getElementById("tableHead");
 const tableBody = document.getElementById("tableBody");
 const notification = document.getElementById("notification");
+const dataCount = document.getElementById("dataCount");
 
+// ✅ 5. Data Storage Variable
 let fullDataArray = [];
 
+// ✅ 6. Show Toast Notification
 function showToast(message, type = "success") {
   notification.textContent = message;
   notification.className = `notification-${type}`;
@@ -36,7 +41,7 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
-// ✅ FETCH DATA — includes entries even if photo is null/missing
+// ✅ 7. Fetch Data from Firebase
 function fetchData(type) {
   const dbRef = ref(db, type);
   onValue(dbRef, (snapshot) => {
@@ -46,8 +51,8 @@ function fetchData(type) {
     if (dataObj) {
       Object.entries(dataObj).forEach(([key, item]) => {
         if (item && typeof item === "object") {
-          item.__key = key;
-          fullDataArray.push(item); // include all, even without photo
+          item.__key = key; // store Firebase key for later use
+          fullDataArray.push(item);
         }
       });
     }
@@ -57,7 +62,7 @@ function fetchData(type) {
   });
 }
 
-// ✅ Populate School Filter
+// ✅ 8. Populate School Dropdown with Unique School Names
 function populateSchoolFilter(data) {
   const schools = [...new Set(data.map(item => item.school || Object.values(item)[1]))]
     .filter(Boolean).sort();
@@ -71,10 +76,13 @@ function populateSchoolFilter(data) {
   });
 }
 
-// ✅ Render Table
+// ✅ 9. Render Data Table
 function renderTable(dataArray) {
   tableHead.innerHTML = "";
   tableBody.innerHTML = "";
+
+  // Update count display
+  dataCount.textContent = `Total: ${dataArray.length}`;
 
   if (dataArray.length === 0) {
     tableBody.innerHTML = `<tr><td colspan='100%' class="text-center p-4">No matching records found.</td></tr>`;
@@ -84,6 +92,7 @@ function renderTable(dataArray) {
   const keys = Object.keys(dataArray[0]).filter(k => k !== "__key");
   const headerRow = document.createElement("tr");
 
+  // Add checkbox column
   const selectAllTh = document.createElement("th");
   const selectAllCheckbox = document.createElement("input");
   selectAllCheckbox.type = "checkbox";
@@ -94,6 +103,7 @@ function renderTable(dataArray) {
   selectAllTh.appendChild(selectAllCheckbox);
   headerRow.appendChild(selectAllTh);
 
+  // Add header columns
   keys.forEach(key => {
     const th = document.createElement("th");
     th.textContent = key;
@@ -102,6 +112,7 @@ function renderTable(dataArray) {
 
   tableHead.appendChild(headerRow);
 
+  // Render each row
   dataArray.forEach(item => {
     const tr = document.createElement("tr");
     tr.dataset.key = item.__key;
@@ -125,7 +136,7 @@ function renderTable(dataArray) {
   });
 }
 
-// ✅ Apply Filter
+// ✅ 10. Filter Table by School
 function applyFilters() {
   const schoolVal = schoolFilter.value.trim().toLowerCase();
   const filtered = fullDataArray.filter(item => {
@@ -135,7 +146,7 @@ function applyFilters() {
   renderTable(filtered);
 }
 
-// ✅ Reset
+// ✅ 11. Reset Filters
 function resetFilters() {
   schoolFilter.value = "";
   const selectAll = tableHead.querySelector("input[type='checkbox']");
@@ -143,7 +154,7 @@ function resetFilters() {
   renderTable(fullDataArray);
 }
 
-// ✅ DELETE SELECTED DATA
+// ✅ 12. Delete Selected Records from Firebase
 function deleteSelectedData() {
   const rows = Array.from(document.querySelectorAll("#tableBody tr"));
   const selectedRows = rows.filter(row => row.querySelector("input[type='checkbox']").checked);
@@ -178,7 +189,7 @@ function deleteSelectedData() {
     });
 }
 
-// ✅ EXPORT SELECTED DATA
+// ✅ 13. Export Selected Rows as CSV + Photos as ZIP
 async function exportSelectedData() {
   const rows = Array.from(document.querySelectorAll("#tableBody tr"));
   const selectedRows = rows.filter(r => r.querySelector("input[type='checkbox']").checked);
@@ -229,7 +240,7 @@ async function exportSelectedData() {
     const values = headers.map(h => {
       let val = (row[h] || "").replace(/"/g, '""');
       if (h.toLowerCase().includes("dob")) {
-        return `"=""${val}"""`;
+        return `"=""${val}"""`; // force Excel to treat as text
       } else {
         return `"${val}"`;
       }
@@ -245,12 +256,12 @@ async function exportSelectedData() {
   showToast(`${selectedRows.length} records exported as zip.`, "success");
 }
 
-// ✅ Event Listeners
+// ✅ 14. Event Listeners
 dataTypeSelect.addEventListener("change", () => fetchData(dataTypeSelect.value));
 schoolFilter.addEventListener("change", applyFilters);
 resetBtn.addEventListener("click", resetFilters);
 deleteBtn.addEventListener("click", deleteSelectedData);
 exportBtn.addEventListener("click", exportSelectedData);
 
-// ✅ Initial Load
+// ✅ 15. Load Initial Data on Page Load
 fetchData(dataTypeSelect.value);
