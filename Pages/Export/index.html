@@ -8,93 +8,71 @@
   <!-- Tailwind CSS -->
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
 
-  <!-- Custom Styles -->
-  <link rel="stylesheet" href="style.css" />
-
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
 
-  <!-- XLSX Export Library -->
+  <!-- XLSX + FileSaver + JSZip -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
+
+  <!-- External Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
 </head>
 
-<body class="bg-gray-100 text-gray-900 font-sans w-full h-screen overflow-x-auto">
+<body>
 
-  <div class="container mx-auto px-4 py-6">
+  <!-- Main Container -->
+  <div class="main-container">
 
     <!-- Filter Panel -->
-    <div class="bg-white border rounded-xl shadow-md p-5 mb-6 flex flex-wrap gap-4 items-center justify-between">
-      <div class="flex gap-3 flex-wrap items-center">
-        <select id="dataType" class="border rounded px-3 py-2 text-sm w-48 focus:outline-none focus:ring focus:border-blue-300">
+    <div class="filter-panel">
+
+      <!-- Left Filters -->
+      <div class="filter-left">
+        <select id="dataType">
           <option value="staff">Staff</option>
           <option value="student">Student</option>
         </select>
 
-        <select id="schoolFilter" class="border rounded px-3 py-2 text-sm w-64 focus:outline-none focus:ring focus:border-blue-300">
-          <option value="">All Schools</option>
-        </select>
+        <div class="school-data-count">
+          <select id="schoolFilter">
+            <option value="">All Schools</option>
+          </select>
+          <div id="dataCount">Total: 0</div>
+        </div>
       </div>
 
-      <div class="flex gap-3 flex-wrap">
-        <button id="resetBtn" class="flex items-center gap-1 px-4 py-2 bg-gray-200 hover:bg-gray-300 text-sm rounded">
-          <i data-lucide="rotate-ccw" class="w-4 h-4"></i> Reset
+      <!-- Right Buttons -->
+      <div class="filter-actions">
+        <button id="resetBtn">
+          <i data-lucide="rotate-ccw"></i> Reset
         </button>
 
-        <button id="exportBtn" class="flex items-center gap-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded">
-          <i data-lucide="download" class="w-4 h-4"></i> Export
+        <button id="exportBtn">
+          <i data-lucide="download"></i> Export
         </button>
 
-        <button id="deleteBtn" class="flex items-center gap-1 px-4 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded">
-          <i data-lucide="trash" class="w-4 h-4"></i> Delete Selected
+        <button id="deleteBtn">
+          <i data-lucide="trash"></i> Delete Selected
         </button>
       </div>
     </div>
 
     <!-- Data Table -->
-    <div class="overflow-auto bg-white border rounded-xl shadow-md">
-      <table id="data-table" class="min-w-full table-auto text-sm">
-        <thead id="tableHead" class="bg-gray-800 text-white text-left">
-          <!-- Dynamic Columns -->
-        </thead>
-        <tbody id="tableBody" class="divide-y divide-gray-200">
-          <!-- Dynamic Rows -->
-        </tbody>
+    <div class="table-wrapper">
+      <table id="data-table">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
       </table>
     </div>
   </div>
-
-  <!-- Toast Notification -->
-  <div id="notification" class="fixed top-5 right-5 bg-green-500 text-white text-sm px-4 py-2 rounded shadow hidden z-50 transition-opacity duration-300"></div>
-
-  <!-- Center Popup Message -->
-  <div id="popup-message" class="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-black text-white text-sm px-6 py-3 rounded-lg hidden z-50"></div>
-
-  <!-- Confirm Modal -->
-  <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-    <div class="bg-white rounded-lg shadow-xl p-6 w-80 text-center">
-      <h3 class="text-lg font-semibold mb-4" id="confirmMessage">Are you sure?</h3>
-      <div class="flex justify-center gap-4">
-        <button id="confirmYes" class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">Yes</button>
-        <button id="confirmNo" class="bg-gray-300 hover:bg-gray-400 text-black px-4 py-2 rounded">No</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- JS Scripts -->
+  
+  <!-- Main Script -->
   <script type="module" src="all.js"></script>
+
   <script>
     lucide.createIcons();
-
-    // Center Popup
-    function showPopup(message, duration = 3000) {
-      const popup = document.getElementById('popup-message');
-      popup.innerText = message;
-      popup.classList.remove("hidden");
-      setTimeout(() => {
-        popup.classList.add("hidden");
-      }, duration);
-    }
   </script>
-
 </body>
 </html>
