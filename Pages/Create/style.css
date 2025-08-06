@@ -12,6 +12,7 @@ body {
   font-size: 17px;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  line-height: 1.5;
 }
 
 /* ==== Header ==== */
@@ -58,8 +59,8 @@ header p {
 }
 
 #messagePopup.success { background: #10b981; }
-#messagePopup.error { background: #ef4444; }
-#messagePopup.info { background: #3b82f6; }
+#messagePopup.error   { background: #ef4444; }
+#messagePopup.info    { background: #3b82f6; }
 
 @keyframes fadeInOut {
   0%   { opacity: 0; transform: translateX(-50%) translateY(-20px); }
@@ -92,12 +93,11 @@ h2 {
   text-align: center;
 }
 
-/* ==== Form Groups ==== */
+/* ==== Form Layout ==== */
 .form-group {
   margin-bottom: 24px;
 }
 
-/* ==== Label Styling with Star ==== */
 label {
   font-weight: 600;
   margin-top: 18px;
@@ -107,7 +107,7 @@ label {
 }
 
 .required {
-  color: red; /* ✅ Only the star will be red now */
+  color: red;
   font-weight: bold;
   margin-left: 4px;
   font-size: 16px;
@@ -125,7 +125,8 @@ textarea {
   border-radius: 12px;
   margin-top: 10px;
   background-color: #f8fafc;
-  transition: all 0.25s ease-in-out;
+  transition: border 0.25s ease-in-out, box-shadow 0.25s ease-in-out;
+  text-transform: uppercase;
 }
 
 input:focus,
@@ -135,6 +136,17 @@ textarea:focus {
   background-color: #ffffff;
   box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
   outline: none;
+}
+
+/* ==== Video & Canvas Styling ==== */
+video,
+canvas {
+  display: block;
+  margin: 16px auto;
+  border-radius: 12px;
+  max-width: 100%;
+  height: auto;
+  border: 2px solid #cbd5e1;
 }
 
 /* ==== Buttons ==== */
@@ -149,15 +161,22 @@ button {
   border: none;
   border-radius: 12px;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: background 0.3s ease, transform 0.3s ease;
 }
 
-button:hover {
+button:hover:not(:disabled) {
   transform: scale(1.03);
   background: linear-gradient(135deg, #2a3a4f, #4a607e);
 }
 
-/* ==== Button Group ==== */
+button:disabled {
+  background: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.7;
+  transform: none;
+}
+
+/* ==== Button Group / Icon Buttons ==== */
 .button-group {
   display: flex;
   justify-content: center;
@@ -179,7 +198,7 @@ button:hover {
   width: 80px;
   height: 80px;
   cursor: pointer;
-  transition: transform 0.2s ease, background 0.3s ease;
+  transition: background 0.3s ease, transform 0.2s ease;
 }
 
 .icon-btn:hover {
@@ -194,33 +213,6 @@ button:hover {
 
 .icon-btn span {
   font-size: 11px;
-}
-
-/* ==== Media Queries ==== */
-@media (max-width: 480px) {
-  body { font-size: 16px; }
-  header h1 { font-size: 22px; }
-  h2 { font-size: 20px; }
-  label { font-size: 15px; }
-  button { font-size: 16px; }
-}
-
-/* ==== Input Text Transform ==== */
-input[type="text"],
-input[type="tel"],
-textarea,
-select {
-  text-transform: uppercase;
-}
-
-/* ==== Video and Canvas Styling ==== */
-video, canvas {
-  display: block;
-  margin: 16px auto;
-  border-radius: 12px;
-  max-width: 100%;
-  height: auto;
-  border: 2px solid #cbd5e1;
 }
 
 /* ==== Splash Overlay Loader ==== */
@@ -254,8 +246,8 @@ video, canvas {
 }
 
 @keyframes zoomIn {
-  from { transform: scale(0.9); opacity: 0; }
-  to   { transform: scale(1); opacity: 1; }
+  0% { transform: scale(0.9); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
 }
 
 .splash-spinner {
@@ -292,7 +284,7 @@ video, canvas {
 
 /* ==== Hidden Utility Class ==== */
 .hidden {
-  display: none;
+  display: none !important;
 }
 
 /* ==== Footer Branding ==== */
@@ -307,4 +299,13 @@ footer strong {
   font-weight: 600;
   color: #1e2a38;
   font-style: italic;
+}
+
+/* ==== Responsiveness ==== */
+@media (max-width: 480px) {
+  body { font-size: 16px; }
+  header h1 { font-size: 22px; }
+  h2 { font-size: 20px; }
+  label { font-size: 15px; }
+  button { font-size: 16px; padding: 14px; }
 }
