@@ -238,9 +238,15 @@ function retakePicture() {
   cameraBtn.onclick = startCamera;
 }
 
+// 🔗 Grab the New Entry Button
+const newEntryBtn = document.getElementById("newEntryBtn"); // 🧠 Button ID must be 'newEntryBtn'
+
 // ✅ Submit Handler
 function handleSubmit(e) {
   e.preventDefault();
+
+  // 🔒 Disable the New Entry Button
+  if (newEntryBtn) newEntryBtn.disabled = true;
 
   const formFields = document.querySelectorAll("#formFields input, #formFields select, #formFields textarea");
   const rawData = {};
@@ -262,12 +268,16 @@ function handleSubmit(e) {
 
   // ❌ Validation: Enrollment Number
   if (!enroll) {
-    return showOrAlert("❌ Enrollment number is missing!", "error");
+    showOrAlert("❌ Enrollment number is missing!", "error");
+    if (newEntryBtn) newEntryBtn.disabled = false;
+    return;
   }
 
   // ❌ Validation: Photo
   if (!imageData) {
-    return showOrAlert("📸 Please capture or select a photo!", "error");
+    showOrAlert("📸 Please capture or select a photo!", "error");
+    if (newEntryBtn) newEntryBtn.disabled = false;
+    return;
   }
 
   // ✅ Format DOB
@@ -279,7 +289,9 @@ function handleSubmit(e) {
       const year = dobDate.getFullYear();
       rawData[dobKey] = `${day}-${month}-${year}`;
     } else {
-      return showOrAlert("❌ Please enter a valid Date of Birth!", "error");
+      showOrAlert("❌ Please enter a valid Date of Birth!", "error");
+      if (newEntryBtn) newEntryBtn.disabled = false;
+      return;
     }
   }
 
@@ -307,13 +319,17 @@ function handleSubmit(e) {
   // ✅ Save data to Firebase
   set(dbRef(database, dbPath), data)
     .then(() => uploadImageToImgBB(enroll, dbPath))
-    .catch(() => showOrAlert("❌ Failed to save data. Please try again.", "error"));
+    .catch(() => {
+      showOrAlert("❌ Failed to save data. Please try again.", "error");
+      if (newEntryBtn) newEntryBtn.disabled = false;
+    });
 }
 
 // ✅ Upload Image to ImgBB
 function uploadImageToImgBB(enroll, dbPath) {
   if (!imageData) {
     showOrAlert("📸 Please capture or select an image!", "error");
+    if (newEntryBtn) newEntryBtn.disabled = false;
     return;
   }
 
@@ -343,20 +359,24 @@ function uploadImageToImgBB(enroll, dbPath) {
         update(dbRef(database, dbPath), { photo: photoURL }).then(() => {
           updateProgressBar(100);
           showOrAlert("✅ Submitted Successfully!", "success");
+          if (newEntryBtn) newEntryBtn.disabled = false; // ✅ Enable Button
         });
       } else {
         showOrAlert("❌ Image upload failed!", "error");
         updateProgressBar(0);
+        if (newEntryBtn) newEntryBtn.disabled = false;
       }
     } else {
       showOrAlert(`❌ Upload error: ${xhr.status}`, "error");
       updateProgressBar(0);
+      if (newEntryBtn) newEntryBtn.disabled = false;
     }
   };
 
   xhr.onerror = function () {
     showOrAlert("❌ Network error during upload.", "error");
     updateProgressBar(0);
+    if (newEntryBtn) newEntryBtn.disabled = false;
   };
 
   xhr.send(formData);
@@ -591,4 +611,5 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 
 window.generateBarcodeImage = generateBarcodeImage;
+
 
