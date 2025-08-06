@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-// Firebase Config
+// Firebase config
 const firebaseConfig = {
   apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
   authDomain: "schools-cdce8.firebaseapp.com",
@@ -15,6 +15,7 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// DOM Elements
 const dataTypeSelect = document.getElementById("dataType");
 const schoolFilter = document.getElementById("schoolFilter");
 const resetBtn = document.getElementById("resetBtn");
@@ -35,6 +36,7 @@ function showToast(message, type = "success") {
   }, 3000);
 }
 
+// ✅ FETCH DATA — includes entries even if photo is null/missing
 function fetchData(type) {
   const dbRef = ref(db, type);
   onValue(dbRef, (snapshot) => {
@@ -44,11 +46,8 @@ function fetchData(type) {
     if (dataObj) {
       Object.entries(dataObj).forEach(([key, item]) => {
         if (item && typeof item === "object") {
-          const photo = item.photo || "";
-          if (!photo.toLowerCase().includes("deleted") && photo.startsWith("http")) {
-            item.__key = key;
-            fullDataArray.push(item);
-          }
+          item.__key = key;
+          fullDataArray.push(item); // include all, even without photo
         }
       });
     }
@@ -58,6 +57,7 @@ function fetchData(type) {
   });
 }
 
+// ✅ Populate School Filter
 function populateSchoolFilter(data) {
   const schools = [...new Set(data.map(item => item.school || Object.values(item)[1]))]
     .filter(Boolean).sort();
@@ -71,6 +71,7 @@ function populateSchoolFilter(data) {
   });
 }
 
+// ✅ Render Table
 function renderTable(dataArray) {
   tableHead.innerHTML = "";
   tableBody.innerHTML = "";
@@ -112,7 +113,7 @@ function renderTable(dataArray) {
     keys.forEach(key => {
       const td = document.createElement("td");
       td.classList.add("border", "p-2");
-      if (key.toLowerCase() === "photo") {
+      if (key.toLowerCase() === "photo" && item[key]) {
         td.innerHTML = `<img src="${item[key]}" alt="photo" class="w-12 h-12 rounded-full">`;
       } else {
         td.textContent = item[key] || "";
@@ -124,6 +125,7 @@ function renderTable(dataArray) {
   });
 }
 
+// ✅ Apply Filter
 function applyFilters() {
   const schoolVal = schoolFilter.value.trim().toLowerCase();
   const filtered = fullDataArray.filter(item => {
@@ -133,6 +135,7 @@ function applyFilters() {
   renderTable(filtered);
 }
 
+// ✅ Reset
 function resetFilters() {
   schoolFilter.value = "";
   const selectAll = tableHead.querySelector("input[type='checkbox']");
@@ -140,8 +143,7 @@ function resetFilters() {
   renderTable(fullDataArray);
 }
 
-import { ref, remove } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
+// ✅ DELETE SELECTED DATA
 function deleteSelectedData() {
   const rows = Array.from(document.querySelectorAll("#tableBody tr"));
   const selectedRows = rows.filter(row => row.querySelector("input[type='checkbox']").checked);
@@ -154,12 +156,11 @@ function deleteSelectedData() {
   const confirmDelete = confirm(`Are you sure you want to delete ${selectedRows.length} record(s)?`);
   if (!confirmDelete) return;
 
-  const type = dataTypeSelect.value; // e.g., 'Students', 'Users'
+  const type = dataTypeSelect.value;
   const deletePromises = [];
 
   selectedRows.forEach(row => {
     const key = row.getAttribute("data-key");
-
     if (key) {
       const recordRef = ref(db, `${type}/${key}`);
       deletePromises.push(remove(recordRef));
@@ -169,7 +170,7 @@ function deleteSelectedData() {
   Promise.all(deletePromises)
     .then(() => {
       showToast(`${selectedRows.length} record(s) deleted successfully.`, "success");
-      fetchData(type); // Table reload
+      fetchData(type);
     })
     .catch(error => {
       console.error("Error deleting records:", error);
@@ -177,7 +178,7 @@ function deleteSelectedData() {
     });
 }
 
-
+// ✅ EXPORT SELECTED DATA
 async function exportSelectedData() {
   const rows = Array.from(document.querySelectorAll("#tableBody tr"));
   const selectedRows = rows.filter(r => r.querySelector("input[type='checkbox']").checked);
@@ -188,9 +189,7 @@ async function exportSelectedData() {
   }
 
   const headers = ["Enrollment"];
-  const columnHeaders = Array.from(document.querySelectorAll("#tableHead th"))
-    .slice(1)
-    .map(th => th.textContent.trim());
+  const columnHeaders = Array.from(document.querySelectorAll("#tableHead th")).slice(1).map(th => th.textContent.trim());
   headers.push(...columnHeaders);
 
   const data = [];
@@ -225,15 +224,12 @@ async function exportSelectedData() {
     }
   }
 
-  // Create CSV from data
-  const csvRows = [];
-  csvRows.push(headers.join(","));
-
+  const csvRows = [headers.join(",")];
   data.forEach(row => {
     const values = headers.map(h => {
       let val = (row[h] || "").replace(/"/g, '""');
       if (h.toLowerCase().includes("dob")) {
-        return `"=""${val}"""`; // Prevent Excel date parsing
+        return `"=""${val}"""`;
       } else {
         return `"${val}"`;
       }
@@ -243,22 +239,18 @@ async function exportSelectedData() {
 
   const csvContent = csvRows.join("\n");
   zip.file("data.csv", csvContent);
-
-  // Generate and download the zip
   const zipBlob = await zip.generateAsync({ type: "blob" });
   saveAs(zipBlob, `Exported-Data-${Date.now()}.zip`);
 
   showToast(`${selectedRows.length} records exported as zip.`, "success");
 }
 
-
-// Listeners
+// ✅ Event Listeners
 dataTypeSelect.addEventListener("change", () => fetchData(dataTypeSelect.value));
 schoolFilter.addEventListener("change", applyFilters);
 resetBtn.addEventListener("click", resetFilters);
 deleteBtn.addEventListener("click", deleteSelectedData);
 exportBtn.addEventListener("click", exportSelectedData);
 
-// Initial Load
+// ✅ Initial Load
 fetchData(dataTypeSelect.value);
-
