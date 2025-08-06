@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ID Card Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+  <!-- Page 1: Data Table View -->
+  <section id="page-1" class="section active">
+
+    <!-- Filters -->
+    <div class="filters">
+
+      <!-- ID Type -->
+      <div class="filter-group">
+        <select id="dataType">
+          <option value="">ID TYPE</option>
+          <option value="student">Students</option>
+          <option value="staff">Staff</option>
+        </select>
+      </div>
+
+      <!-- School -->
+      <div class="filter-group">
+        <select id="schoolFilter">
+          <option value="">SCHOOLS</option>
+        </select>
+      </div>
+
+
+      <!-- Reset Button -->
+      <div class="filter-group align-end">
+        <button id="resetBtn">
+          <i data-lucide="rotate-ccw"></i>
+          <span>Reset</span>
+        </button>
+      </div>
+
+      <!-- Generate Button -->
+      <div class="filter-group align-end">
+        <button id="generateBtn">
+          <i data-lucide="scan-face"></i>
+          <span>Generate</span>
+        </button>
+      </div>
+
+      <!-- Record Count -->
+      <div class="record-group align-end">
+        <span id="recordCount">0 Records</span>
+      </div>
+      
+    </div>
+
+    <!-- Data Table -->
+    <div class="table-wrapper">
+      <table id="data-table">
+        <thead id="tableHead"></thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Page 2: ID Card Generator View -->
+  <section id="page-2" class="section">
+
+    <!-- Controls -->
+    <div class="controls">
+
+      <!-- Upload -->
+      <div class="control-group">
+        <label for="templateUpload" class="label-flex">
+          <i data-lucide="upload-cloud"></i>
+          <span>Upload</span>
+        </label>
+        <input type="file" id="templateUpload" accept=".json" hidden />
+      </div>
+
+      <!-- Render -->
+      <div class="control-group align-end">
+        <button id="renderBtn">
+          <i data-lucide="layout-template"></i>
+          <span>Render</span>
+        </button>
+      </div>
+
+      <!-- Go to Data Button (added) -->
+      <div class="control-group align-end">
+        <button id="goToDataBtn">
+          <i data-lucide="arrow-left-circle"></i>
+          <span>Go to Data</span>
+        </button>
+      </div>
+
+      <!-- Print -->
+      <div class="control-group align-end">
+        <button id="printBtn">
+          <i data-lucide="printer"></i>
+          <span>Print</span>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Rendered Cards -->
+    <div class="slides" id="slidesWrapper">
+      <!-- Cards will be injected here -->
+    </div>
+  </section>
+
+  <!-- Scripts -->
+  <script type="module" src="firebase.js"></script>
+  <script type="module" src="render.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    lucide.createIcons();
+  </script>
+</body>
+</html>

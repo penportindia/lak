@@ -1,0 +1,295 @@
+{
+  "front": {
+    "pageStyle": {
+      "width": "220px",
+      "height": "340px",
+      "background": "#cfd8dc",
+      "padding": "10px",
+      "boxSizing": "border-box"
+    },
+    "items": [
+      {
+        "type": "text",
+        "bookmark": "",
+        "text": "",
+        "top": "10px",
+        "width": "100%",
+        "fontSize": "18px",
+        "fontWeight": "bold",
+        "color": "#1a237e",
+        "textAlign": "center"
+      },
+      {
+        "type": "text",
+        "bookmark": "",
+        "text": "",
+        "top": "32px",
+        "width": "100%",
+        "fontSize": "12px",
+        "color": "#000",
+        "textAlign": "center"
+      },
+      {
+        "type": "image",
+        "bookmark": "photo",
+        "top": "60px",
+        "left": "60px",
+        "width": "100px",
+        "height": "120px",
+        "borderRadius": "10px"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_name",
+        "text": "Name:",
+        "left": "12px",
+        "top": "185px",
+        "width": "196px",
+        "fontSize": "12px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_name",
+        "text": "",
+        "left": "12px",
+        "top": "200px",
+        "width": "196px",
+        "fontSize": "15px",
+        "fontWeight": "bold",
+        "color": "#006400",
+        "textAlign": "center"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_adm",
+        "text": "Admission No.:",
+        "left": "12px",
+        "top": "227px",
+        "width": "196px",
+        "fontSize": "12px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_adm",
+        "text": "",
+        "left": "12px",
+        "top": "242px",
+        "width": "196px",
+        "fontSize": "13px",
+        "fontWeight": "bold",
+        "color": "#000",
+        "textAlign": "center"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_classinfo",
+        "text": "Class / Section / Roll No.:",
+        "left": "12px",
+        "top": "262px",
+        "width": "196px",
+        "fontSize": "8px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_classinfo",
+        "text": "{{student_class}} / {{student_section}} / {{student_roll}}",
+        "left": "12px",
+        "top": "278px",
+        "width": "196px",
+        "fontSize": "14px",
+        "fontWeight": "bold",
+        "color": "#000",
+        "textAlign": "center"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_dob",
+        "text": "Date of Birth:",
+        "left": "12px",
+        "top": "300px",
+        "width": "196px",
+        "fontSize": "12px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_dob",
+        "text": "",
+        "left": "12px",
+        "top": "315px",
+        "width": "196px",
+        "fontSize": "13px",
+        "color": "#000",
+        "textAlign": "center"
+      }
+    ]
+  },
+  "back": {
+    "pageStyle": {
+      "width": "220px",
+      "height": "340px",
+      "background": "#eceff1",
+      "padding": "10px",
+      "boxSizing": "border-box"
+    },
+    "items": [
+      {
+        "type": "text",
+        "bookmark": "label_father",
+        "text": "Father's Name:",
+        "left": "12px",
+        "top": "20px",
+        "width": "196px",
+        "fontSize": "12px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_father",
+        "text": "",
+        "left": "12px",
+        "top": "35px",
+        "width": "196px",
+        "fontSize": "13px",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_mother",
+        "text": "Mother's Name:",
+        "left": "12px",
+        "top": "60px",
+        "width": "196px",
+        "fontSize": "12px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_mother",
+        "text": "",
+        "left": "12px",
+        "top": "75px",
+        "width": "196px",
+        "fontSize": "13px",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_blood",
+        "text": "Blood Group:",
+        "left": "12px",
+        "top": "100px",
+        "width": "196px",
+        "fontSize": "12px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_blood",
+        "text": "",
+        "left": "12px",
+        "top": "115px",
+        "width": "196px",
+        "fontSize": "13px",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_contact",
+        "text": "Contact No.:",
+        "left": "12px",
+        "top": "137px",
+        "width": "196px",
+        "fontSize": "12px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_contact",
+        "text": "",
+        "left": "12px",
+        "top": "152px",
+        "width": "196px",
+        "fontSize": "13px",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_address",
+        "text": "Address:",
+        "left": "12px",
+        "top": "170px",
+        "width": "196px",
+        "fontSize": "12px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_address",
+        "text": "",
+        "left": "12px",
+        "top": "188px",
+        "width": "196px",
+        "fontSize": "12px",
+        "color": "#000",
+        "lineHeight": "16px"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_transport",
+        "text": "Mode:",
+        "left": "12px",
+        "top": "234px",
+        "width": "196px",
+        "fontSize": "11px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_transport",
+        "text": "",
+        "left": "12px",
+        "top": "245px",
+        "width": "196px",
+        "fontSize": "12px",
+        "color": "#000",
+        "textAlign": "center"
+      },
+      {
+        "type": "text",
+        "bookmark": "label_enroll",
+        "text": "ID No.:",
+        "left": "12px",
+        "top": "261px",
+        "width": "196px",
+        "fontSize": "11px",
+        "fontWeight": "bold",
+        "color": "#000"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_enroll",
+        "text": "",
+        "left": "12px",
+        "top": "276px",
+        "width": "196px",
+        "fontSize": "8px",
+        "color": "#000",
+        "textAlign": "center"
+      }
+    ]
+  }
+}
