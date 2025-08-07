@@ -115,31 +115,49 @@ body {
   overflow-x: auto;
   background-color: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
 }
 
 /* Table */
 #data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 14px;
+  font-size: 12px; /* छोटा फॉन्ट */
+  table-layout: fixed; /* सभी कॉलम समान चौड़ाई और wrapping */
 }
 
+/* Table Head */
 #data-table thead {
   background-color: #1f2937;
   color: white;
 }
 
+/* Table Header & Cells */
 #data-table th,
 #data-table td {
-  padding: 12px 16px;
+  padding: 6px 10px; /* पतली row */
   text-align: left;
   border-bottom: 1px solid #e5e7eb;
+  vertical-align: top;
+  white-space: normal;      /* wrapping allow */
+  word-break: break-word;   /* text break */
 }
 
+/* Hover Row Effect */
 #data-table tbody tr:hover {
   background-color: #f9fafb;
 }
+
+/* Thumbnail Styling (first column images) */
+#data-table td img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;         /* थोड़ा सा rounded */
+  border: 1px solid #e5e7eb;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+}
+
 
 /* Toast Notification */
 .notification-toast {
@@ -228,3 +246,4 @@ body {
 #confirmNo:hover {
   background-color: #d1d5db;
 }
+
