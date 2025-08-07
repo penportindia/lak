@@ -110,54 +110,71 @@ body {
   background-color: #b91c1c;
 }
 
-/* Table Wrapper */
+/* 📋 Data Table */
 .table-wrapper {
+  width: 100%;
   overflow-x: auto;
-  background-color: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06);
 }
 
-/* Table */
+/* Main Table */
 #data-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 12px; /* छोटा फॉन्ट */
-  table-layout: fixed; /* सभी कॉलम समान चौड़ाई और wrapping */
+  font-size: 13px;
+  text-align: left;
+  table-layout: fixed; /* wrapping allow */
 }
 
-/* Table Head */
+/* Table Header */
 #data-table thead {
-  background-color: #1f2937;
+  background-color: #1a1a1a;
   color: white;
 }
 
-/* Table Header & Cells */
-#data-table th,
-#data-table td {
-  padding: 6px 10px; /* पतली row */
-  text-align: left;
-  border-bottom: 1px solid #e5e7eb;
-  vertical-align: top;
-  white-space: normal;      /* wrapping allow */
-  word-break: break-word;   /* text break */
+#data-table thead th {
+  padding: 14px 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
 }
 
-/* Hover Row Effect */
+/* Table Rows */
+#data-table tbody tr {
+  transition: background 0.3s ease;
+  cursor: pointer;
+}
+
+/* 🔶 Hover effect - light yellow */
 #data-table tbody tr:hover {
-  background-color: #f9fafb;
+  background-color: #fff9db;
 }
 
-/* Thumbnail Styling (first column images) */
+/* ✅ Selected row */
+#data-table tbody tr.selected {
+  background-color: #dbeafe;
+}
+
+/* Table Cells */
+#data-table td {
+  padding: 12px 18px;
+  border-bottom: 1px solid #e2e8f0;
+  color: #333333;
+  vertical-align: top;
+  white-space: normal;
+  word-break: break-word;
+}
+
+/* 📸 Thumbnail image (first column) */
 #data-table td img {
   width: 40px;
   height: 40px;
   object-fit: cover;
-  border-radius: 6px;         /* थोड़ा सा rounded */
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+  border-radius: 6px;
 }
-
 
 /* Toast Notification */
 .notification-toast {
@@ -246,4 +263,5 @@ body {
 #confirmNo:hover {
   background-color: #d1d5db;
 }
+
 
