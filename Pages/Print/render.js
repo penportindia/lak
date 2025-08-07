@@ -362,17 +362,6 @@ function handleA4Print() {
     allPagesHTML += `<div class="page">${pageCardsHTML}</div>`;
   }
 
-  // Instruction overlay to remind user: scale 100%, no fit-to-page
-  const instructionBox = `
-    <div class="print-instructions">
-      Print Settings:<br/>
-      • Scale: <strong>100%</strong><br/>
-      • Fit to page / Shrink to fit: <strong>OFF</strong><br/>
-      • Paper size: <strong>A4 Landscape</strong><br/>
-      • Margins: <strong>None</strong>
-    </div>
-  `;
-
   const html = `
     <html>
       <head>
@@ -390,3 +379,4 @@ function handleA4Print() {
   printWindow.document.write(html);
   printWindow.document.close();
 }
+
