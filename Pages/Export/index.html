@@ -5,8 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data Viewer</title>
 
-  <!-- Tailwind CSS -->
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <!-- ❌ Tailwind हट गया -->
+  <!-- ✅ Custom CSS -->
+  <link rel="stylesheet" href="style.css" />
 
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
@@ -15,20 +16,13 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
-
-  <!-- External Custom CSS -->
-  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-
-  <!-- Main Container -->
   <div class="main-container">
 
     <!-- Filter Panel -->
     <div class="filter-panel">
-
-      <!-- Left Filters -->
       <div class="filter-left">
         <select id="dataType">
           <option value="staff">Staff</option>
@@ -43,7 +37,6 @@
         </div>
       </div>
 
-      <!-- Right Buttons -->
       <div class="filter-actions">
         <button id="resetBtn">
           <i data-lucide="rotate-ccw"></i> Reset
@@ -59,7 +52,6 @@
       </div>
     </div>
 
-    <!-- Data Table -->
     <div class="table-wrapper">
       <table id="data-table">
         <thead id="tableHead"></thead>
@@ -67,10 +59,8 @@
       </table>
     </div>
   </div>
-  
-  <!-- Main Script -->
-  <script type="module" src="all.js"></script>
 
+  <script type="module" src="all.js"></script>
   <script>
     lucide.createIcons();
   </script>
