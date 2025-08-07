@@ -280,103 +280,32 @@ function handleA4Print() {
     return alert("No rendered cards to print.");
   }
 
-  const printWindow = window.open("", "_blank");
-  if (!printWindow) {
-    return alert("Pop-up blocked. Please allow pop-ups for this site.");
-  }
+  function printInSamePage() {
+  const printContents = document.getElementById("print-area").innerHTML;
+  const originalContents = document.body.innerHTML;
 
-  const style = `
+  document.body.innerHTML = `
     <style>
       @page {
-        size: 297mm 210mm; /* A4 Landscape exact */
+        size: A4 landscape;
         margin: 0;
       }
-      html, body {
+      body {
         margin: 0;
         padding: 0;
         -webkit-print-color-adjust: exact;
         print-color-adjust: exact;
         font-family: Arial, sans-serif;
       }
-      /* Force no scaling in print if browser honors it */
-      @media print {
-        body {
-          transform: scale(1);
-          transform-origin: top left;
-        }
-      }
-      .print-instructions {
-        position: fixed;
-        top: 4mm;
-        right: 4mm;
-        background: rgba(255,255,255,0.9);
-        border: 1px solid #000;
-        padding: 4px 6px;
-        font-size: 9px;
-        z-index: 1000;
-      }
-      .page {
-        width: 297mm;
-        height: 210mm;
-        display: grid;
-        grid-template-columns: repeat(5, 5.5cm);
-        grid-template-rows: auto auto;
-        column-gap: 5mm;
-        row-gap: 5mm;
-        padding: 7mm 0 7mm 7mm; /* top,right,bottom,left */
-        box-sizing: border-box;
-        page-break-after: always;
-      }
       .card {
         width: 5.5cm;
         height: 8.5cm;
-        overflow: hidden;
-        position: relative;
-        background: #fff;
         page-break-inside: avoid;
       }
-      .editor {
-        width: 100%;
-        height: 100%;
-        box-shadow: none !important;
-        border: none !important;
-        margin: 0 !important;
-      }
-      img {
-        max-width: 100%;
-        max-height: 100%;
-        display: block;
-      }
     </style>
+    ${printContents}
   `;
 
-  // Build pages
-  let allPagesHTML = '';
-  for (let i = 0; i < renderedCards.length; i += 10) {
-    let pageCardsHTML = '';
-    for (let j = i; j < i + 10 && j < renderedCards.length; j++) {
-      const clone = renderedCards[j].cloneNode(true);
-      clone.classList.add("card");
-      pageCardsHTML += clone.outerHTML;
-    }
-    allPagesHTML += `<div class="page">${pageCardsHTML}</div>`;
-  }
-
-  const html = `
-    <html>
-      <head>
-        <title>Print ID Cards</title>
-        ${style}
-      </head>
-      <body onload="setTimeout(()=>{window.print();},100);">
-        ${instructionBox}
-        ${allPagesHTML}
-      </body>
-    </html>
-  `;
-
-  printWindow.document.open();
-  printWindow.document.write(html);
-  printWindow.document.close();
+  window.print();
+  document.body.innerHTML = originalContents;
 }
-
