@@ -36,18 +36,40 @@
 
   <main class="container">
     <!-- 🔐 Login Section -->
-    <section id="loginPage" aria-labelledby="loginHeading">
-      <h2 id="loginHeading">🔐 Login</h2>
-      <div class="form-group">
-        <label for="loginUser">User ID</label>
-        <input type="text" id="loginUser" placeholder="Enter your User ID" autocomplete="username" />
-      </div>
-      <div class="form-group">
-        <label for="loginPass">Password</label>
-        <input type="password" id="loginPass" placeholder="Enter your Password" autocomplete="current-password" />
-      </div>
-      <button type="button" onclick="verifyLogin()">Login</button>
-    </section>
+        <section id="loginPage" aria-labelledby="loginHeading">
+        <h2 id="loginHeading">🔐 Login</h2>
+        <div class="form-group">
+            <label for="loginUser">User ID</label>
+            <input type="text" id="loginUser" placeholder="Enter your User ID" autocomplete="username" />
+        </div>
+        <div class="form-group">
+            <label for="loginPass">Password</label>
+            <input type="password" id="loginPass" placeholder="Enter your Password" autocomplete="current-password" />
+        </div>
+        <button type="button" onclick="verifyLogin()">Login</button>
+        </section>
+
+        <!-- ✨ Penport India Branding -->
+        <footer style="
+        margin-top: 30px;
+        text-align: center;
+        font-size: 14px;
+        font-family: 'Segoe UI', Arial, sans-serif;
+        color: #888;
+        ">
+        <span style="letter-spacing: 0.5px;">
+            Powered by 
+            <a href="https://penportindia.github.io/penport/" target="_blank" style="
+            color: #0077cc;
+            font-weight: 600;
+            text-decoration: none;
+            transition: color 0.3s ease;
+            " onmouseover="this.style.color='#005999'" onmouseout="this.style.color='#0077cc'">
+            Penport India
+            </a>
+            <span style="font-size: 12px; color: #aaa;">© 2025</span>
+        </span>
+        </footer>
 
     <!-- 🎯 Home Page -->
     <section id="homePage" class="hidden" aria-labelledby="homeHeading">
@@ -183,4 +205,3 @@
   </script>
 </body>
 </html>
-
