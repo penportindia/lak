@@ -201,31 +201,23 @@ button:disabled {
   transition: background 0.3s ease, transform 0.2s ease;
 }
 
+/* Normal icon button hover */
 .icon-btn:hover {
   background: #334155;
   transform: scale(1.05);
 }
 
-.icon-btn i {
-  font-size: 22px;
-  margin-bottom: 6px;
-}
-
-.icon-btn span {
-  font-size: 11px;
-}
-
-/* ==== ✅ New Entry Button Enable State ==== */
-#newEntryBtn {
-  transition: background-color 0.3s ease;
-}
-
-#newEntryBtn:disabled {
+/* Disabled state fix for icon buttons */
+.icon-btn:disabled,
+.icon-btn:disabled:hover,
+.icon-btn:disabled:focus {
   background-color: #94a3b8 !important;
+  transform: none;
   cursor: not-allowed;
   opacity: 0.7;
 }
 
+/* ==== ✅ New Entry Button Enable State ==== */
 #newEntryBtn:enabled {
   background-color: #22c55e !important; /* Green */
   color: white;
