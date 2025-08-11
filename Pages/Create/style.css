@@ -157,22 +157,21 @@ button {
   background: linear-gradient(135deg, #1e2a38, #3b4c63);
   color: white;
   font-weight: 600;
-  font-size: 15px; /* ⬅ Font size reduced */
+  font-size: 14px; /* smaller text size */
   border: none;
   border-radius: 12px;
   cursor: pointer;
   transition: background 0.3s ease, transform 0.3s ease;
 }
 
-/* Default hover (only when enabled) */
+/* Hover effect only if enabled */
 button:hover:not(:disabled) {
   transform: scale(1.03);
   background: linear-gradient(135deg, #2a3a4f, #4a607e);
 }
 
-/* Disabled button state (no hover color change) */
-button:disabled,
-button:disabled:hover {
+/* Disabled buttons */
+button:disabled {
   background: #94a3b8 !important;
   cursor: not-allowed;
   opacity: 0.7;
@@ -201,6 +200,7 @@ button:disabled:hover {
   width: 80px;
   height: 80px;
   cursor: pointer;
+  font-size: 12px;
   transition: background 0.3s ease, transform 0.2s ease;
 }
 
@@ -209,26 +209,21 @@ button:disabled:hover {
   transform: scale(1.05);
 }
 
-/* Disabled state fix for icon buttons */
-.icon-btn:disabled,
-.icon-btn:disabled:hover,
-.icon-btn:disabled:focus {
+/* Disabled icon buttons */
+.icon-btn:disabled {
   background-color: #94a3b8 !important;
   transform: none;
   cursor: not-allowed;
   opacity: 0.7;
 }
 
-/* ==== ✅ New Entry Button Enable State ==== */
+/* ==== ✅ New Entry Button Enabled ==== */
 #newEntryBtn:enabled {
-  background-color: #22c55e !important; /* Green */
-  color: white;
-  cursor: pointer;
-  opacity: 1;
+  background-color: #22c55e !important;
 }
 
 #newEntryBtn:enabled:hover {
-  background-color: #16a34a !important; /* Darker green */
+  background-color: #16a34a !important;
 }
 
 /* ==== Splash Overlay Loader ==== */
@@ -298,12 +293,12 @@ button:disabled:hover {
   100% { content: ""; }
 }
 
-/* ==== Hidden Utility Class ==== */
+/* ==== Utility ==== */
 .hidden {
   display: none !important;
 }
 
-/* ==== Footer Branding ==== */
+/* ==== Footer ==== */
 footer {
   text-align: center;
   margin-top: 40px;
@@ -317,13 +312,11 @@ footer strong {
   font-style: italic;
 }
 
-/* ==== Responsiveness ==== */
+/* ==== Responsive ==== */
 @media (max-width: 480px) {
   body { font-size: 16px; }
   header h1 { font-size: 22px; }
   h2 { font-size: 20px; }
   label { font-size: 15px; }
-  button { font-size: 14px; padding: 12px; }
+  button { font-size: 13px; padding: 12px; }
 }
-
-
