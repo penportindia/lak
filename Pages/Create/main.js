@@ -335,7 +335,7 @@ function uploadImageToImgBB(enroll, dbPath) {
 
   const base64 = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
   const formData = new FormData();
-  formData.append("key", "403847857c5df16d7db901c4017519c7");
+  formData.append("key", "011e81139fd279b28a3b55c414b241b7");
   formData.append("image", base64);
   formData.append("name", enroll);
 
@@ -611,5 +611,6 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 
 window.generateBarcodeImage = generateBarcodeImage;
+
 
 
