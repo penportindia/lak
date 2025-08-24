@@ -6,9 +6,7 @@
       "background": "#ffffff",
       "padding": "10px",
       "boxSizing": "border-box",
-      "borderWidth": "1px",
-      "borderStyle": "solid",
-      "borderColor": "#ccc",
+      "border": "1px solid #ccc",
       "borderRadius": "10px",
       "boxShadow": "0 2px 6px rgba(0,0,0,0.15)",
       "position": "relative",
@@ -24,9 +22,7 @@
         "width": "90px",
         "height": "110px",
         "borderRadius": "12px",
-        "borderWidth": "2px",
-        "borderStyle": "solid",
-        "borderColor": "#08f738"
+        "border": "2px solid #08f738"
       },
       {
         "type": "text",
