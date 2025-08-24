@@ -6,7 +6,9 @@
       "background": "#ffffff",
       "padding": "10px",
       "boxSizing": "border-box",
-      "border": "1px solid #ccc",
+      "borderWidth": "1px",
+      "borderStyle": "solid",
+      "borderColor": "#ccc",
       "borderRadius": "10px",
       "boxShadow": "0 2px 6px rgba(0,0,0,0.15)",
       "position": "relative",
@@ -22,7 +24,9 @@
         "width": "90px",
         "height": "110px",
         "borderRadius": "12px",
-        "border": "2px solid #0096FF"
+        "borderWidth": "2px",
+        "borderStyle": "solid",
+        "borderColor": "#08f738"
       },
       {
         "type": "text",
@@ -36,29 +40,29 @@
         "color": "#ff3333",
         "textAlign": "center"
       },
-      { "type": "text", "text": "Adm No.:", "top": "195px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF" },
-      { "type": "text", "text": "{{student_adm}}", "top": "195px", "left": "80px", "width": "120px", "fontSize": "11px" },
+      { "type": "text", "text": "Adm No.:", "top": "195px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF", "textAlign": "left" },
+      { "type": "text", "text": "{{student_adm}}", "top": "195px", "left": "80px", "width": "120px", "fontSize": "11px", "textAlign": "left" },
 
-      { "type": "text", "text": "Class/Sec:", "top": "210px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF" },
-      { "type": "text", "text": "{{student_class}} / {{student_section}} / {{student_roll}}", "top": "210px", "left": "80px", "width": "120px", "fontSize": "11px" },
+      { "type": "text", "text": "Class/Sec:", "top": "210px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF", "textAlign": "left" },
+      { "type": "text", "text": "{{student_class}} / {{student_section}} / {{student_roll}}", "top": "210px", "left": "80px", "width": "120px", "fontSize": "11px", "textAlign": "left" },
 
-      { "type": "text", "text": "DOB:", "top": "225px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF" },
-      { "type": "text", "text": "{{student_dob}}", "top": "225px", "left": "80px", "width": "120px", "fontSize": "11px" },
+      { "type": "text", "text": "DOB:", "top": "225px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF", "textAlign": "left" },
+      { "type": "text", "text": "{{student_dob}}", "top": "225px", "left": "80px", "width": "120px", "fontSize": "11px", "textAlign": "left" },
 
-      { "type": "text", "text": "Father:", "top": "240px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF" },
-      { "type": "text", "text": "{{student_father}}", "top": "240px", "left": "80px", "width": "120px", "fontSize": "11px" },
+      { "type": "text", "text": "Father:", "top": "240px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF", "textAlign": "left" },
+      { "type": "text", "text": "{{student_father}}", "top": "240px", "left": "80px", "width": "120px", "fontSize": "11px", "textAlign": "left" },
 
-      { "type": "text", "text": "Mother:", "top": "255px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF" },
-      { "type": "text", "text": "{{student_mother}}", "top": "255px", "left": "80px", "width": "120px", "fontSize": "11px" },
+      { "type": "text", "text": "Mother:", "top": "255px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF", "textAlign": "left" },
+      { "type": "text", "text": "{{student_mother}}", "top": "255px", "left": "80px", "width": "120px", "fontSize": "11px", "textAlign": "left" },
 
-      { "type": "text", "text": "Contact:", "top": "270px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF" },
-      { "type": "text", "text": "{{student_contact}}", "top": "270px", "left": "80px", "width": "120px", "fontSize": "11px" },
+      { "type": "text", "text": "Contact:", "top": "270px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF", "textAlign": "left" },
+      { "type": "text", "text": "{{student_contact}}", "top": "270px", "left": "80px", "width": "120px", "fontSize": "11px", "textAlign": "left" },
 
-      { "type": "text", "text": "Mode:", "top": "285px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF" },
-      { "type": "text", "text": "{{student_transport}}", "top": "285px", "left": "80px", "width": "120px", "fontSize": "11px" },
+      { "type": "text", "text": "Mode:", "top": "285px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF", "textAlign": "left" },
+      { "type": "text", "text": "{{student_transport}}", "top": "285px", "left": "80px", "width": "120px", "fontSize": "11px", "textAlign": "left" },
 
-      { "type": "text", "text": "Address:", "top": "300px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF" },
-      { "type": "text", "text": "{{student_address}}", "top": "300px", "left": "80px", "width": "120px", "fontSize": "8px" }
+      { "type": "text", "text": "Address:", "top": "300px", "left": "10px", "width": "70px", "fontSize": "11px", "fontWeight": "bold", "color": "#0096FF", "textAlign": "left" },
+      { "type": "text", "text": "{{student_address}}", "top": "300px", "left": "80px", "width": "120px", "fontSize": "8px", "textAlign": "left" }
     ]
   }
 }
