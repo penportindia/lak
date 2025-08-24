@@ -9,27 +9,6 @@
     },
     "items": [
       {
-        "type": "text",
-        "bookmark": "",
-        "text": "",
-        "top": "10px",
-        "width": "100%",
-        "fontSize": "18px",
-        "fontWeight": "bold",
-        "color": "#1a237e",
-        "textAlign": "center"
-      },
-      {
-        "type": "text",
-        "bookmark": "",
-        "text": "",
-        "top": "32px",
-        "width": "100%",
-        "fontSize": "12px",
-        "color": "#000",
-        "textAlign": "center"
-      },
-      {
         "type": "image",
         "bookmark": "photo",
         "top": "60px",
@@ -293,3 +272,4 @@
     ]
   }
 }
+
