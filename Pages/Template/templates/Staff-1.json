@@ -6,7 +6,9 @@
       "background": "linear-gradient(135deg, #e0f7fa, #ffffff)",
       "padding": "12px",
       "boxSizing": "border-box",
-      "border": "1px solid #90caf9",
+      "borderWidth": "1px",
+      "borderStyle": "solid",
+      "borderColor": "#90caf9",
       "borderRadius": "14px",
       "boxShadow": "0 4px 12px rgba(0,0,0,0.2)",
       "position": "relative",
@@ -17,21 +19,23 @@
       {
         "type": "image",
         "bookmark": "photo",
-        "top": "50px",
+        "top": "30px",
         "left": "65px",
         "width": "90px",
         "height": "110px",
         "borderRadius": "14px",
-        "border": "2px solid #0077c2",
+        "borderWidth": "3px",
+        "borderStyle": "solid",
+        "borderColor": "#08f738",
         "boxShadow": "0 2px 6px rgba(0,0,0,0.25)"
       },
       {
         "type": "text",
         "bookmark": "staff_name",
         "text": "{{staff_name}}",
-        "top": "170px",
-        "left": "40px",
-        "width": "100%",
+        "top": "150px",
+        "left": "10px",
+        "width": "200px",
         "fontSize": "15px",
         "fontWeight": "bold",
         "color": "#d32f2f",
@@ -40,123 +44,135 @@
       {
         "type": "text",
         "text": "Designation:",
-        "top": "195px",
+        "top": "175px",
         "left": "10px",
         "width": "75px",
         "fontSize": "11px",
         "fontWeight": "bold",
-        "color": "#0288d1"
+        "color": "#0288d1",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "bookmark": "staff_designation",
         "text": "{{staff_designation}}",
-        "top": "195px",
+        "top": "175px",
         "left": "85px",
         "width": "125px",
         "fontSize": "12px",
-        "color": "#000"
+        "color": "#000",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "text": "F/H Name:",
-        "top": "215px",
+        "top": "195px",
         "left": "10px",
         "width": "75px",
         "fontSize": "11px",
         "fontWeight": "bold",
-        "color": "#0288d1"
+        "color": "#0288d1",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "bookmark": "staff_father",
         "text": "{{staff_father}}",
-        "top": "215px",
+        "top": "195px",
         "left": "85px",
         "width": "125px",
         "fontSize": "12px",
-        "color": "#000"
+        "color": "#000",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "text": "DOB:",
-        "top": "235px",
+        "top": "215px",
         "left": "10px",
         "width": "75px",
         "fontSize": "11px",
         "fontWeight": "bold",
-        "color": "#0288d1"
+        "color": "#0288d1",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "bookmark": "staff_dob",
         "text": "{{staff_dob}}",
-        "top": "235px",
+        "top": "215px",
         "left": "85px",
         "width": "125px",
         "fontSize": "12px",
-        "color": "#000"
+        "color": "#000",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "text": "Blood Group:",
-        "top": "255px",
+        "top": "235px",
         "left": "10px",
         "width": "75px",
         "fontSize": "11px",
         "fontWeight": "bold",
-        "color": "#0288d1"
+        "color": "#0288d1",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "bookmark": "staff_blood",
         "text": "{{staff_blood}}",
-        "top": "255px",
+        "top": "235px",
         "left": "85px",
         "width": "125px",
         "fontSize": "12px",
-        "color": "#000"
+        "color": "#000",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "text": "Contact:",
-        "top": "275px",
+        "top": "255px",
         "left": "10px",
         "width": "75px",
         "fontSize": "11px",
         "fontWeight": "bold",
-        "color": "#0288d1"
+        "color": "#0288d1",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "bookmark": "staff_contact",
         "text": "{{staff_contact}}",
-        "top": "275px",
+        "top": "255px",
         "left": "85px",
         "width": "125px",
         "fontSize": "12px",
-        "color": "#000"
+        "color": "#000",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "text": "Address:",
-        "top": "295px",
+        "top": "275px",
         "left": "10px",
         "width": "75px",
         "fontSize": "11px",
         "fontWeight": "bold",
-        "color": "#0288d1"
+        "color": "#0288d1",
+        "textAlign": "left"
       },
       {
         "type": "text",
         "bookmark": "staff_address",
         "text": "{{staff_address}}",
-        "top": "295px",
+        "top": "275px",
         "left": "85px",
         "width": "125px",
         "fontSize": "10px",
         "lineHeight": "12px",
-        "color": "#000"
+        "color": "#000",
+        "textAlign": "left"
       }
     ]
   }
