@@ -25,9 +25,10 @@ let schoolCode = '';
 let schoolName = ''; 
 let entryData = {};
 
+// ✅ Login Function
 window.verifyLogin = async function () {
-  const uidOrPhone = document.getElementById("loginUser").value.trim(); // userid या phone
-  const pwd = document.getElementById("loginPass").value.trim();        // password
+  const uidOrPhone = document.getElementById("loginUser").value.trim();
+  const pwd = document.getElementById("loginPass").value.trim();
 
   if (!uidOrPhone || !pwd) {
     showOrAlert("Please enter both User ID or Phone Number and Password.", "error");
@@ -38,10 +39,8 @@ window.verifyLogin = async function () {
     const snapshot = await get(child(dbRef(database), `schools`));
     if (snapshot.exists()) {
       const schools = snapshot.val();
-
       let matchedUser = null;
 
-      // 🔍 Loop through all schools to find matching userid or phone
       for (let key in schools) {
         const data = schools[key];
         if ((data.userid === uidOrPhone || data.phone === uidOrPhone) && data.password === pwd) {
@@ -51,12 +50,25 @@ window.verifyLogin = async function () {
       }
 
       if (matchedUser) {
-        // ✅ Login success
+        // Clean school name
+        let rawSchoolName = matchedUser.name || '';
+        let cleanSchoolName = rawSchoolName
+          .replace(/[^a-zA-Z ]/g, '') // remove non-letters
+          .replace(/\s+/g, ' ')       // replace multiple spaces
+          .trim();
+
+        if (!cleanSchoolName) {
+          showOrAlert("School name is invalid in database!", "error");
+          return;
+        }
+
         document.getElementById("loginPage").classList.add("hidden");
         document.getElementById("homePage").classList.remove("hidden");
-        document.getElementById("schoolName").innerHTML = `<option selected>${matchedUser.name}</option>`;
+        document.getElementById("schoolName").innerHTML = `<option selected>${cleanSchoolName}</option>`;
+
         schoolCode = matchedUser.userid || 'SCHOOL';
-        schoolName = matchedUser.name;
+        schoolName = cleanSchoolName;
+
         showOrAlert("Login Successful!", "success");
       } else {
         showOrAlert("Invalid User ID / Phone or Password", "error");
@@ -69,23 +81,61 @@ window.verifyLogin = async function () {
   }
 };
 
-// ✅ Generate Unique Enrollment
+// ✅ Generate Unique Enrollment - Full Proof Version (No Prefix)
 async function generateUniqueEnrollment(type) {
+  if (!type || typeof type !== 'string') {
+    throw new Error("Invalid 'type' parameter");
+  }
+
+  if (!schoolName || !schoolName.trim()) {
+    throw new Error("School name is empty! Cannot generate enrollment.");
+  }
+
   const dbRoot = dbRef(database);
-  const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+
+  // Clean school name
+  const words = schoolName
+    .replace(/[^a-zA-Z ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .filter(Boolean);
+
+  if (words.length === 0) {
+    throw new Error("School name has no valid letters!");
+  }
+
+  // Generate initials
+  let initials = '';
+  if (words.length === 1) {
+    initials = words[0].toUpperCase();
+  } else {
+    initials = words.map(word => word[0].toUpperCase()).join('');
+  }
+
+  // Ensure exactly 4 letters
+  initials = (initials + "XXXX").slice(0, 4); // pad or cut
+
+  // Date
   const now = new Date();
   const dd = String(now.getDate()).padStart(2, '0');
   const mmm = monthNames[now.getMonth()];
-  const yy = String(now.getFullYear()).slice(-2);
 
   let unique = false;
   let enrollNo = "";
 
   while (!unique) {
-    const serial = String(Math.floor(1000 + Math.random() * 9000));
-    enrollNo = `INR${dd}${mmm}${yy}${serial}`;
-    const snapshot = await get(child(dbRoot, `${type}/${enrollNo}`));
-    if (!snapshot.exists()) unique = true;
+    const serial = String(Math.floor(1000 + Math.random() * 9000)); // 4-digit random
+    enrollNo = `${initials}${dd}${mmm}${serial}`;
+
+    try {
+      const snapshot = await get(child(dbRoot, `${type}/${enrollNo}`));
+      if (!snapshot.exists()) unique = true;
+    } catch (error) {
+      console.error("Database error while generating enrollment:", error);
+      throw new Error("Unable to generate enrollment number");
+    }
   }
 
   return enrollNo;
@@ -611,6 +661,7 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 
 window.generateBarcodeImage = generateBarcodeImage;
+
 
 
 
