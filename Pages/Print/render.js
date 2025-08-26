@@ -153,6 +153,8 @@ function createCardElement(template, record = {}) {
   return container;
 }
 
+// ------------------------- Render Card -------------------------------
+
 function renderCard(template, container, record = {}) {
   container.innerHTML = "";
   container.templateData = template;
@@ -170,6 +172,7 @@ function renderCard(template, container, record = {}) {
     backgroundImage: template.pageStyle?.backgroundImage || "",
     backgroundSize: template.pageStyle?.backgroundSize || "cover",
     backgroundPosition: template.pageStyle?.backgroundPosition || "center",
+    boxSizing: "border-box"
   });
 
   template.items.forEach(item => {
@@ -179,12 +182,31 @@ function renderCard(template, container, record = {}) {
       position: "absolute",
       left: item.left || "0px",
       top: item.top || "0px",
+      width: item.width || "auto",
+      height: item.height || "auto",
       fontSize: item.fontSize || "14px",
       color: item.color || "#000",
-      textAlign: item.textAlign || "left",
       fontWeight: item.fontWeight || "normal",
+      lineHeight: item.lineHeight || "normal",
+      border: item.borderWidth
+        ? `${item.borderWidth}px ${item.borderStyle || "solid"} ${item.borderColor || "#000"}`
+        : "none",
+      borderRadius: item.borderRadius || "0",
+      boxShadow: item.boxShadow || "none",
+      boxSizing: "border-box",
+      overflow: "hidden",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: item.textAlign === "center"
+        ? "center"
+        : item.textAlign === "right"
+          ? "flex-end"
+          : "flex-start",
+      textAlign: item.textAlign || "left",
+      padding: "2px"
     });
 
+    // ---------- Placeholder Replace ----------
     let rawText = item.text || "";
     rawText = rawText.replace(/{{(.*?)}}/g, (_, key) => {
       const cleanKey = key.trim().toLowerCase();
@@ -194,6 +216,7 @@ function renderCard(template, container, record = {}) {
     const key = item.bookmark?.toLowerCase()?.trim();
     const value = key && record[key] !== undefined ? record[key] : rawText;
 
+    // ---------- Render ----------
     if (item.type === "image") {
       const img = document.createElement("img");
       img.src = value.startsWith("http") || value.startsWith("data:image") ? value : "";
@@ -210,7 +233,7 @@ function renderCard(template, container, record = {}) {
     container.appendChild(el);
   });
 
-  // ✅ ✅ ✅ Important Logic: QR केवल तभी दोनों पेज पर लगाओ जब front + back दोनों मौजूद हों
+  // ✅ केवल तभी QR Code लगाना है जब front + back दोनों मौजूद हों
   if (templateData?.front && templateData?.back) {
     appendQRCode(container, record);
   }
