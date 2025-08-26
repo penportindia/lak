@@ -3,110 +3,111 @@
     "pageStyle": {
       "width": "220px",
       "height": "340px",
-      "background": "#cfd8dc",
-      "padding": "10px",
-      "boxSizing": "border-box"
+      "background": "linear-gradient(135deg, #e0f7fa, #ffffff)",
+      "padding": "12px",
+      "boxSizing": "border-box",
+      "border": "1px solid #90caf9",
+      "borderRadius": "14px",
+      "boxShadow": "0 4px 12px rgba(0,0,0,0.2)",
+      "position": "relative",
+      "overflow": "hidden",
+      "fontFamily": "\"Segoe UI\", sans-serif"
     },
     "items": [
       {
         "type": "image",
         "bookmark": "photo",
-        "top": "60px",
+        "top": "65px",
         "left": "60px",
         "width": "100px",
         "height": "120px",
-        "borderRadius": "10px"
+        "borderRadius": "10px",
+        "border": "2px solid #0288d1"
       },
       {
         "type": "text",
         "bookmark": "label_name",
         "text": "Name:",
-        "left": "12px",
-        "top": "185px",
+        "left": "15px",
+        "top": "190px",
         "width": "196px",
         "fontSize": "12px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_name",
         "text": "",
-        "left": "12px",
-        "top": "200px",
+        "left": "15px",
+        "top": "205px",
         "width": "196px",
-        "fontSize": "15px",
+        "fontSize": "14px",
         "fontWeight": "bold",
-        "color": "#006400",
-        "textAlign": "center"
+        "color": "#d32f2f"
       },
       {
         "type": "text",
         "bookmark": "label_adm",
         "text": "Admission No.:",
-        "left": "12px",
+        "left": "15px",
         "top": "227px",
         "width": "196px",
         "fontSize": "12px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_adm",
         "text": "",
-        "left": "12px",
+        "left": "15px",
         "top": "242px",
         "width": "196px",
         "fontSize": "13px",
-        "fontWeight": "bold",
-        "color": "#000",
-        "textAlign": "center"
+        "color": "#000000"
       },
       {
         "type": "text",
         "bookmark": "label_classinfo",
         "text": "Class / Section / Roll No.:",
-        "left": "12px",
+        "left": "15px",
         "top": "262px",
         "width": "196px",
-        "fontSize": "8px",
+        "fontSize": "9px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_classinfo",
         "text": "{{student_class}} / {{student_section}} / {{student_roll}}",
-        "left": "12px",
-        "top": "278px",
+        "left": "15px",
+        "top": "276px",
         "width": "196px",
-        "fontSize": "14px",
-        "fontWeight": "bold",
-        "color": "#000",
-        "textAlign": "center"
+        "fontSize": "13px",
+        "color": "#000000"
       },
       {
         "type": "text",
         "bookmark": "label_dob",
         "text": "Date of Birth:",
-        "left": "12px",
-        "top": "300px",
+        "left": "15px",
+        "top": "295px",
         "width": "196px",
         "fontSize": "12px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_dob",
         "text": "",
-        "left": "12px",
-        "top": "315px",
+        "left": "15px",
+        "top": "310px",
         "width": "196px",
         "fontSize": "13px",
-        "color": "#000",
-        "textAlign": "center"
+        "color": "#000000"
       }
     ]
   },
@@ -114,162 +115,166 @@
     "pageStyle": {
       "width": "220px",
       "height": "340px",
-      "background": "#eceff1",
-      "padding": "10px",
-      "boxSizing": "border-box"
+      "background": "linear-gradient(135deg, #e0f7fa, #ffffff)",
+      "padding": "12px",
+      "boxSizing": "border-box",
+      "border": "1px solid #90caf9",
+      "borderRadius": "14px",
+      "boxShadow": "0 4px 12px rgba(0,0,0,0.2)",
+      "position": "relative",
+      "overflow": "hidden",
+      "fontFamily": "\"Segoe UI\", sans-serif"
     },
     "items": [
       {
         "type": "text",
         "bookmark": "label_father",
         "text": "Father's Name:",
-        "left": "12px",
+        "left": "15px",
         "top": "20px",
         "width": "196px",
         "fontSize": "12px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_father",
         "text": "",
-        "left": "12px",
-        "top": "35px",
+        "left": "15px",
+        "top": "33px",
         "width": "196px",
-        "fontSize": "13px",
-        "color": "#000"
+        "fontSize": "12px",
+        "color": "#000000"
       },
       {
         "type": "text",
         "bookmark": "label_mother",
         "text": "Mother's Name:",
-        "left": "12px",
-        "top": "60px",
+        "left": "15px",
+        "top": "53px",
         "width": "196px",
         "fontSize": "12px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_mother",
         "text": "",
-        "left": "12px",
-        "top": "75px",
+        "left": "15px",
+        "top": "66px",
         "width": "196px",
-        "fontSize": "13px",
-        "color": "#000"
+        "fontSize": "12px",
+        "color": "#000000"
       },
       {
         "type": "text",
         "bookmark": "label_blood",
         "text": "Blood Group:",
-        "left": "12px",
-        "top": "100px",
+        "left": "15px",
+        "top": "86px",
         "width": "196px",
         "fontSize": "12px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_blood",
         "text": "",
-        "left": "12px",
-        "top": "115px",
+        "left": "15px",
+        "top": "101px",
         "width": "196px",
         "fontSize": "13px",
-        "color": "#000"
+        "color": "#000000"
       },
       {
         "type": "text",
         "bookmark": "label_contact",
         "text": "Contact No.:",
-        "left": "12px",
-        "top": "137px",
+        "left": "15px",
+        "top": "123px",
         "width": "196px",
         "fontSize": "12px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_contact",
         "text": "",
-        "left": "12px",
-        "top": "152px",
+        "left": "15px",
+        "top": "138px",
         "width": "196px",
         "fontSize": "13px",
-        "color": "#000"
+        "color": "#000000"
       },
       {
         "type": "text",
         "bookmark": "label_address",
         "text": "Address:",
-        "left": "12px",
-        "top": "170px",
+        "left": "15px",
+        "top": "160px",
         "width": "196px",
         "fontSize": "12px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_address",
         "text": "",
-        "left": "12px",
-        "top": "188px",
+        "left": "15px",
+        "top": "176px",
         "width": "196px",
-        "fontSize": "12px",
-        "color": "#000",
-        "lineHeight": "16px"
+        "fontSize": "10px",
+        "color": "#000000",
+        "lineHeight": "16px",
+        "maxLines": 3
       },
       {
         "type": "text",
         "bookmark": "label_transport",
         "text": "Mode:",
-        "left": "12px",
-        "top": "234px",
+        "left": "15px",
+        "top": "225px",
         "width": "196px",
         "fontSize": "11px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_transport",
         "text": "",
-        "left": "12px",
-        "top": "245px",
+        "left": "15px",
+        "top": "238px",
         "width": "196px",
         "fontSize": "12px",
-        "color": "#000",
-        "textAlign": "center"
+        "color": "#000000"
       },
       {
         "type": "text",
         "bookmark": "label_enroll",
         "text": "ID No.:",
-        "left": "12px",
-        "top": "261px",
+        "left": "15px",
+        "top": "258px",
         "width": "196px",
         "fontSize": "11px",
         "fontWeight": "bold",
-        "color": "#000"
+        "color": "#0288d1"
       },
       {
         "type": "text",
         "bookmark": "student_enroll",
         "text": "",
-        "left": "12px",
-        "top": "276px",
+        "left": "15px",
+        "top": "271px",
         "width": "196px",
-        "fontSize": "8px",
-        "color": "#000",
-        "textAlign": "center"
+        "fontSize": "9px",
+        "color": "#000000"
       }
     ]
   }
 }
-
