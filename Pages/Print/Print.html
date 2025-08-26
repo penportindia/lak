@@ -6,17 +6,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
+  
+  <!-- Cropper.js CSS -->
+  <link href="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.css" rel="stylesheet"/>
+  
   <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
 
   <!-- Page 1: Data Table View -->
   <section id="page-1" class="section active">
-
-    <!-- Filters -->
     <div class="filters">
-
-      <!-- ID Type -->
       <div class="filter-group">
         <select id="dataType">
           <option value="">ID TYPE</option>
@@ -25,15 +25,12 @@
         </select>
       </div>
 
-      <!-- School -->
       <div class="filter-group">
         <select id="schoolFilter">
           <option value="">SCHOOLS</option>
         </select>
       </div>
 
-
-      <!-- Reset Button -->
       <div class="filter-group align-end">
         <button id="resetBtn">
           <i data-lucide="rotate-ccw"></i>
@@ -41,7 +38,6 @@
         </button>
       </div>
 
-      <!-- Generate Button -->
       <div class="filter-group align-end">
         <button id="generateBtn">
           <i data-lucide="scan-face"></i>
@@ -49,14 +45,11 @@
         </button>
       </div>
 
-      <!-- Record Count -->
       <div class="record-group align-end">
         <span id="recordCount">0 Records</span>
       </div>
-      
     </div>
 
-    <!-- Data Table -->
     <div class="table-wrapper">
       <table id="data-table">
         <thead id="tableHead"></thead>
@@ -67,11 +60,7 @@
 
   <!-- Page 2: ID Card Generator View -->
   <section id="page-2" class="section">
-
-    <!-- Controls -->
     <div class="controls">
-
-      <!-- Upload -->
       <div class="control-group">
         <label for="templateUpload" class="label-flex">
           <i data-lucide="upload-cloud"></i>
@@ -80,7 +69,6 @@
         <input type="file" id="templateUpload" accept=".json" hidden />
       </div>
 
-      <!-- Render -->
       <div class="control-group align-end">
         <button id="renderBtn">
           <i data-lucide="layout-template"></i>
@@ -88,7 +76,6 @@
         </button>
       </div>
 
-      <!-- Go to Data Button (added) -->
       <div class="control-group align-end">
         <button id="goToDataBtn">
           <i data-lucide="arrow-left-circle"></i>
@@ -96,28 +83,88 @@
         </button>
       </div>
 
-      <!-- Print -->
       <div class="control-group align-end">
         <button id="printBtn">
           <i data-lucide="printer"></i>
           <span>Print</span>
         </button>
       </div>
-
     </div>
 
-    <!-- Rendered Cards -->
-    <div class="slides" id="slidesWrapper">
-      <!-- Cards will be injected here -->
-    </div>
+    <div class="slides" id="slidesWrapper"></div>
   </section>
 
-  <!-- Scripts -->
+  <!-- Crop Modal for Image Cropping -->
+  <div id="cropContainer" style="
+      display: none; 
+      position: fixed; 
+      top: 0; 
+      left: 0; 
+      width: 100%; 
+      height: 100%; 
+      background: rgba(0, 0, 0, 0.7); 
+      justify-content: center; 
+      align-items: center; 
+      z-index: 1000;
+  ">
+    <div style="
+        background: #fff; 
+        padding: 20px; 
+        border-radius: 10px; 
+        display: flex; 
+        flex-direction: column; 
+        align-items: center; 
+        max-width: 90%; 
+        max-height: 90%; 
+        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+    ">
+      <img id="cropImage" style="
+          max-width: 500px; 
+          max-height: 400px; 
+          width: 100%; 
+          height: auto; 
+          border-radius: 5px; 
+          margin-bottom: 15px;
+      " />
+
+      <div style="
+          display: flex; 
+          justify-content: flex-end; 
+          gap: 10px; 
+          width: 100%;
+      ">
+        <button id="cropConfirm" style="
+            padding: 8px 16px; 
+            background-color: #4CAF50; 
+            color: #fff; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer;
+            font-weight: bold;
+        ">Crop</button>
+        <button id="cropCancel" style="
+            padding: 8px 16px; 
+            background-color: #f44336; 
+            color: #fff; 
+            border: none; 
+            border-radius: 5px; 
+            cursor: pointer;
+            font-weight: bold;
+        ">Cancel</button>
+      </div>
+
+      <!-- Rotate buttons removed -->
+    </div>
+  </div>
+
+  <!-- External Scripts -->
   <script type="module" src="firebase.js"></script>
   <script type="module" src="render.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/cropperjs@1.5.13/dist/cropper.min.js"></script>
   <script>
     lucide.createIcons();
   </script>
+
 </body>
 </html>
