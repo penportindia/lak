@@ -115,7 +115,7 @@
     "pageStyle": {
       "width": "220px",
       "height": "340px",
-      "background": "linear-gradient(135deg, #e0f7fa, #ffffff)",
+      "background": "transparent",
       "padding": "12px",
       "boxSizing": "border-box",
       "border": "1px solid #90caf9",
@@ -278,4 +278,5 @@
     ]
   }
 }
+
 
