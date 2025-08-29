@@ -288,157 +288,164 @@ function retakePicture() {
   cameraBtn.onclick = startCamera;
 }
 
-// 🔗 Grab the New Entry Button
-const newEntryBtn = document.getElementById("newEntryBtn"); // 🧠 Button ID must be 'newEntryBtn'
-
-// ✅ Submit Handler
 function handleSubmit(e) {
-  e.preventDefault();
+  try {
+    e.preventDefault();
 
-  // 🔒 Disable the New Entry Button
-  if (newEntryBtn) newEntryBtn.disabled = true;
+    if (newEntryBtn) newEntryBtn.disabled = true;
 
-  const formFields = document.querySelectorAll("#formFields input, #formFields select, #formFields textarea");
-  const rawData = {};
+    const formFields = document.querySelectorAll("#formFields input, #formFields select, #formFields textarea");
+    if (!formFields) throw new Error("Form fields not found");
 
-  formFields.forEach(field => {
-    let value = field.value.trim();
-    const isUpperCase = (field.type === "text" || field.tagName === "TEXTAREA" || field.tagName === "SELECT") &&
-      !['email', 'ifsc'].includes(field.name?.toLowerCase());
+    const rawData = {};
+    formFields.forEach(field => {
+      let value = field.value?.trim() || "";
+      const isUpperCase = (field.type === "text" || field.tagName === "TEXTAREA" || field.tagName === "SELECT") &&
+        !['email', 'ifsc'].includes(field.name?.toLowerCase());
 
-    if (isUpperCase) value = value.toUpperCase();
-    rawData[field.name] = value;
-  });
+      if (isUpperCase) value = value.toUpperCase();
+      rawData[field.name || `field_${Math.random()}`] = value;
+    });
 
-  const enrollKey = `${lastType}_enroll`;
-  const nameKey = `${lastType}_name`;
-  const dobKey = `${lastType}_dob`;
-  const enroll = rawData[enrollKey];
-  const dbPath = `${lastType}/${enroll}`;
+    const enrollKey = `${lastType || 'default'}_enroll`;
+    const nameKey = `${lastType || 'default'}_name`;
+    const dobKey = `${lastType || 'default'}_dob`;
+    const enroll = rawData[enrollKey];
+    const dbPath = `${lastType || 'default'}/${enroll || 'unknown'}`;
 
-  // ❌ Validation: Enrollment Number
-  if (!enroll) {
-    showOrAlert("❌ Enrollment number is missing!", "error");
-    if (newEntryBtn) newEntryBtn.disabled = false;
-    return;
-  }
-
-  // ❌ Validation: Photo
-  if (!imageData) {
-    showOrAlert("📸 Please capture or select a photo!", "error");
-    if (newEntryBtn) newEntryBtn.disabled = false;
-    return;
-  }
-
-  // ✅ Format DOB
-  if (rawData[dobKey]) {
-    const dobDate = new Date(rawData[dobKey]);
-    if (!isNaN(dobDate)) {
-      const day = String(dobDate.getDate()).padStart(2, '0');
-      const month = dobDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-      const year = dobDate.getFullYear();
-      rawData[dobKey] = `${day}-${month}-${year}`;
-    } else {
-      showOrAlert("❌ Please enter a valid Date of Birth!", "error");
+    // ✅ Simplified error messages
+    if (!enroll || !imageData) {
+      showOrAlert("❌ Submit failed!", "error");
+      setTimeout(goHomeSafe, 2000);
       if (newEntryBtn) newEntryBtn.disabled = false;
       return;
     }
-  }
 
-  rawData.schoolName = schoolName?.toUpperCase?.() || "SCHOOL NAME";
-
-  const data = {
-    [enrollKey]: enroll,
-    [nameKey]: rawData[nameKey],
-    schoolName: rawData.schoolName,
-    photo: "" // Placeholder for photo URL
-  };
-
-  // ✅ Add all other fields to data object
-  Object.keys(rawData).forEach(key => {
-    if (!["photo", "schoolName", nameKey, enrollKey].includes(key)) {
-      data[key] = rawData[key];
-    }
-  });
-
-  entryData = data;
-
-  // ✅ Show local preview
-  showPreview(imageData, enroll);
-
-  // ✅ Save data to Firebase
-  set(dbRef(database, dbPath), data)
-    .then(() => uploadImageToImgBB(enroll, dbPath))
-    .catch(() => {
-      showOrAlert("❌ Failed to save data. Please try again.", "error");
-      if (newEntryBtn) newEntryBtn.disabled = false;
-    });
-}
-
-// ✅ Upload Image to ImgBB
-function uploadImageToImgBB(enroll, dbPath) {
-  if (!imageData) {
-    showOrAlert("📸 Please capture or select an image!", "error");
-    if (newEntryBtn) newEntryBtn.disabled = false;
-    return;
-  }
-
-  const base64 = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
-  const formData = new FormData();
-  formData.append("key", "011e81139fd279b28a3b55c414b241b7");
-  formData.append("image", base64);
-  formData.append("name", enroll);
-
-  updateProgressBar(0); // Start at 0%
-
-  const xhr = new XMLHttpRequest();
-  xhr.open("POST", "https://api.imgbb.com/1/upload");
-
-  xhr.upload.onprogress = function (e) {
-    if (e.lengthComputable) {
-      const percent = Math.round((e.loaded / e.total) * 100);
-      updateProgressBar(percent);
-    }
-  };
-
-  xhr.onload = function () {
-    if (xhr.status === 200) {
-      const result = JSON.parse(xhr.responseText);
-      if (result.success) {
-        const photoURL = result.data.display_url;
-        update(dbRef(database, dbPath), { photo: photoURL }).then(() => {
-          updateProgressBar(100);
-          showOrAlert("✅ Submitted Successfully!", "success");
-          if (newEntryBtn) newEntryBtn.disabled = false; // ✅ Enable Button
-        });
+    // DOB formatting
+    if (rawData[dobKey]) {
+      const dobDate = new Date(rawData[dobKey]);
+      if (!isNaN(dobDate)) {
+        const day = String(dobDate.getDate()).padStart(2, '0');
+        const month = dobDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+        const year = dobDate.getFullYear();
+        rawData[dobKey] = `${day}-${month}-${year}`;
       } else {
-        showOrAlert("❌ Image upload failed!", "error");
-        updateProgressBar(0);
-        if (newEntryBtn) newEntryBtn.disabled = false;
+        showOrAlert("❌ Submit failed!", "error");
+        setTimeout(goHomeSafe, 2000);
+        return;
       }
-    } else {
-      showOrAlert(`❌ Upload error: ${xhr.status}`, "error");
-      updateProgressBar(0);
-      if (newEntryBtn) newEntryBtn.disabled = false;
     }
-  };
 
-  xhr.onerror = function () {
-    showOrAlert("❌ Network error during upload.", "error");
-    updateProgressBar(0);
-    if (newEntryBtn) newEntryBtn.disabled = false;
-  };
+    rawData.schoolName = schoolName?.toUpperCase?.() || "SCHOOL NAME";
 
-  xhr.send(formData);
+    const data = {
+      [enrollKey]: enroll,
+      [nameKey]: rawData[nameKey],
+      schoolName: rawData.schoolName,
+      photo: ""
+    };
+
+    Object.keys(rawData).forEach(key => {
+      if (!["photo", "schoolName", nameKey, enrollKey].includes(key)) data[key] = rawData[key];
+    });
+
+    entryData = data;
+    showPreviewSafe(imageData, enroll);
+
+    // Firebase save with safe handling
+    setSafe(dbRef(database, dbPath), data)
+      .then(() => uploadImageToImgBBSafe(enroll, dbPath))
+      .catch(() => showSubmitFailedAndGoHomeSafe(dbPath));
+
+  } catch (err) {
+    console.error("Unexpected error:", err);
+    showSubmitFailedAndGoHomeSafe();
+  }
 }
 
-// ✅ Upload Progress UI
-function updateProgressBar(percent) {
-  const el = document.getElementById("uploadProgress");
-  if (el) {
-    el.style.width = percent + "%";
-    el.textContent = percent + "%";
+// ✅ Safe goHome
+function goHomeSafe() {
+  try { goHome(); } catch(e) { console.warn("goHome failed", e); }
+}
+
+// ✅ Safe preview
+function showPreviewSafe(img, enroll) {
+  try { showPreview(img, enroll); } catch(e) { console.warn("Preview failed", e); }
+}
+
+// ✅ Safe Firebase set
+function setSafe(ref, data) {
+  try { return set(ref, data); } catch(e) { return Promise.reject(e); }
+}
+
+// ✅ Safe ImgBB upload
+function uploadImageToImgBBSafe(enroll, dbPath) {
+  try {
+    if (!imageData) return Promise.reject("No image data");
+
+    const base64 = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
+    const formData = new FormData();
+    formData.append("key", "011e81139fd279b28a3b55c414b241b7");
+    formData.append("image", base64);
+    formData.append("name", enroll);
+
+    updateProgressBarSafe(0);
+
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open("POST", "https://api.imgbb.com/1/upload");
+
+      xhr.upload.onprogress = e => {
+        if (e.lengthComputable) {
+          const percent = Math.round((e.loaded / e.total) * 100);
+          updateProgressBarSafe(percent);
+        }
+      };
+
+      xhr.onload = function () {
+        try {
+          if (xhr.status === 200) {
+            const result = JSON.parse(xhr.responseText);
+            if (result.success) {
+              const photoURL = result.data.display_url;
+              update(dbRef(database, dbPath), { photo: photoURL })
+                .then(() => {
+                  updateProgressBarSafe(100);
+                  showOrAlert("✅ Submitted Successfully!", "success");
+                  if (newEntryBtn) newEntryBtn.disabled = false;
+                  resolve();
+                }).catch(() => showSubmitFailedAndGoHomeSafe(dbPath));
+            } else showSubmitFailedAndGoHomeSafe(dbPath);
+          } else showSubmitFailedAndGoHomeSafe(dbPath);
+        } catch (e) {
+          showSubmitFailedAndGoHomeSafe(dbPath);
+        }
+      };
+
+      xhr.onerror = () => showSubmitFailedAndGoHomeSafe(dbPath);
+      xhr.send(formData);
+    });
+
+  } catch(e) {
+    return Promise.reject(e);
   }
+}
+
+// ✅ Safe progress bar update
+function updateProgressBarSafe(percent) {
+  try {
+    const el = document.getElementById("uploadProgress");
+    if (el) { el.style.width = percent + "%"; el.textContent = percent + "%"; }
+  } catch(e) {}
+}
+
+// ✅ Safe submit failed handler
+function showSubmitFailedAndGoHomeSafe(dbPath) {
+  try {
+    showOrAlert("❌ Submit failed!", "error");
+    if (dbPath) remove(dbRef(database, dbPath)).finally(() => setTimeout(goHomeSafe, 2000));
+    else setTimeout(goHomeSafe, 2000);
+  } catch(e) { setTimeout(goHomeSafe, 2000); }
 }
 
 // ✅ Show Preview using provided image source
@@ -661,6 +668,7 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 
 window.generateBarcodeImage = generateBarcodeImage;
+
 
 
 
