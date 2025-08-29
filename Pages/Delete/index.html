@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cloudinary Gallery</title>
+<style>
+  .gallery { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
+  .photo { position: relative; display: inline-block; }
+  .photo img { width: 200px; height: 200px; object-fit: cover; }
+  .delete-btn {
+    position: absolute; top: 5px; right: 5px;
+    background: red; color: white; border: none; cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h2>Photo Gallery</h2>
+<input type="file" id="fileInput" multiple />
+<button onclick="uploadFiles()">Upload</button>
+
+<div class="gallery" id="gallery"></div>
+
+<script>
+const cloudName = "dlugbxmkm";           // Cloudinary Cloud Name
+const uploadPreset = "photo_uplode";     // Unsigned upload preset
+const deleteFunctionURL = "https://YOUR_PROJECT.vercel.app/api/delete";  // Vercel serverless function URL
+
+let photos = [];
+
+function uploadFiles() {
+    const files = document.getElementById("fileInput").files;
+    for (let file of files) {
+        const formData = new FormData();
+        formData.append("file", file);
+        formData.append("upload_preset", uploadPreset);
+
+        fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+            method: "POST",
+            body: formData
+        })
+        .then(res => res.json())
+        .then(data => {
+            photos.push({url: data.secure_url, public_id: data.public_id});
+            renderGallery();
+        })
+        .catch(err => console.error(err));
+    }
+}
+
+function renderGallery() {
+    const gallery = document.getElementById("gallery");
+    gallery.innerHTML = "";
+    photos.forEach((photo, index) => {
+        const div = document.createElement("div");
+        div.className = "photo";
+        div.innerHTML = `
+            <img src="${photo.url}" />
+            <button class="delete-btn" onclick="deletePhoto(${index})">Delete</button>
+        `;
+        gallery.appendChild(div);
+    });
+}
+
+function deletePhoto(index) {
+    const photo = photos[index];
+    fetch(`${deleteFunctionURL}?public_id=${photo.public_id}`)
+    .then(res => res.json())
+    .then(data => {
+        if(data.success){
+            photos.splice(index, 1);
+            renderGallery();
+        } else {
+            alert("Delete failed");
+        }
+    })
+    .catch(err => console.error(err));
+}
+</script>
+
+</body>
+</html>
