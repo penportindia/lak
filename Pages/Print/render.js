@@ -262,12 +262,21 @@ function renderCard(template, container, record = {}) {
   }
 }
 
-// ------------------------- Draggable Helper -------------------------------
+let isEnabled = false;
+
+// Enable Checkbox check
+const enableBtn = document.getElementById("enableBtn");
+enableBtn.addEventListener("change", (e) => {
+  isEnabled = e.target.checked;
+});
+
+// ------------------------- Draggable -------------------------------
 function makeElementDraggable(el, record, key) {
   let isDragging = false;
   let startX, startY, origX, origY;
 
   el.addEventListener("mousedown", (e) => {
+    if(!isEnabled) return; // CHECK
     isDragging = true;
     startX = e.clientX;
     startY = e.clientY;
@@ -289,6 +298,9 @@ function makeElementDraggable(el, record, key) {
     if (!isDragging) return;
     isDragging = false;
     el.style.cursor = "pointer";
+
+    if(!isEnabled) return; // CHECK
+
     if (key) {
       record[key + "_left"] = el.style.left;
       record[key + "_top"] = el.style.top;
@@ -300,31 +312,30 @@ function makeElementDraggable(el, record, key) {
   });
 }
 
-// ------------------------- Cropper Function  -------------------------------
+// ------------------------- Cropper Function -------------------------------
 let cropper;
 
 function openCropModal(imgElement) {
+  if(!isEnabled) return; // CHECK
+
   const cropContainer = document.getElementById("cropContainer");
   const cropImage = document.getElementById("cropImage");
 
-  // Modal दिखाएं
   cropContainer.style.display = "flex";
   cropImage.src = imgElement.src;
 
-  // पुराना cropper destroy
   if (cropper) { cropper.destroy(); cropper = null; }
 
-  // Cropper initialize
   cropImage.onload = () => {
     cropper = new Cropper(cropImage, { 
       aspectRatio: NaN, 
       viewMode: 1, 
       autoCropArea: 1, 
-      responsive: true 
+      responsive: true,
+      background: false
     });
   };
 
-  // Buttons को reset करें (class को preserve करते हुए)
   const cropConfirmOld = document.getElementById("cropConfirm");
   const cropCancelOld = document.getElementById("cropCancel");
 
@@ -338,15 +349,20 @@ function openCropModal(imgElement) {
 
   // Confirm Crop Event
   cropConfirm.addEventListener("click", () => {
-    const croppedCanvas = cropper?.getCroppedCanvas({
-      width: cropper.getData().width + 2,  // extra width for border
-      height: cropper.getData().height
+    if(!isEnabled) return; // CHECK
+
+    const cropData = cropper.getData();
+    const imageData = cropper.getImageData();
+
+    const croppedCanvas = cropper.getCroppedCanvas({
+      width: cropData.width * (imageData.naturalWidth / imageData.width),
+      height: cropData.height * (imageData.naturalHeight / imageData.height),
+      imageSmoothingEnabled: true,
+      imageSmoothingQuality: 'high'
     });
 
     if (croppedCanvas) {
       imgElement.src = croppedCanvas.toDataURL();
-
-      // Image load होने के बाद original size maintain करें
       imgElement.onload = () => {
         imgElement.style.width = "100%";
         imgElement.style.height = "auto";
@@ -365,6 +381,7 @@ function openCropModal(imgElement) {
     cropper = null;
   });
 }
+
 
 
 // ------------------------- QR Code Section -------------------------------
@@ -446,4 +463,5 @@ function handleA4Print() {
   printWindow.document.write(html);
   printWindow.document.close();
 }
+
 
