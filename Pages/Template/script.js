@@ -91,15 +91,25 @@ backBgInput.addEventListener('change', (e) => uploadBackground(e, 'back'));
   applyZoom();
 })();
 
+
 /* -----------------------------
-   4) Template load
+   4) Template load (updated for Own templates)
    ----------------------------- */
 function loadTemplate() {
-  const idType = idTypeSelect.value;
-  const pageType = templateTypeSelect.value;
-  const baseURL = 'https://raw.githubusercontent.com/penportindia/lak/main/Pages/Template/templates';
-  const fileName = `${idType.charAt(0).toUpperCase() + idType.slice(1)}-${pageType}.json`;
-  const fileURL = `${baseURL}/${fileName}`;
+  const idType = idTypeSelect.value.toLowerCase();
+  const pageType = templateTypeSelect.value.toLowerCase();
+  let fileURL = '';
+
+  if (pageType === 'own') {
+    // Own templates URLs
+    if (idType === 'student') fileURL = 'https://penportindia.github.io/lak/Pages/Template/templates/Studentown.json';
+    else if (idType === 'staff') fileURL = 'https://penportindia.github.io/lak/Pages/Template/templates/Staffown.json';
+    else return alert('⚠️ Invalid ID Type for Own template.');
+  } else {
+    const baseURL = 'https://raw.githubusercontent.com/penportindia/lak/main/Pages/Template/templates';
+    const fileName = `${idType.charAt(0).toUpperCase() + idType.slice(1)}-${pageType}.json`;
+    fileURL = `${baseURL}/${fileName}`;
+  }
 
   fetch(fileURL)
     .then((res) => {
@@ -124,6 +134,7 @@ function loadTemplate() {
     })
     .catch((err) => alert('⚠️ Error loading template: ' + err.message));
 }
+
 
 /* -----------------------------
    5) Helpers
@@ -478,3 +489,4 @@ function downloadTemplate() {
    12) Boot
    ----------------------------- */
 loadTemplate();
+
