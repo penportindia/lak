@@ -300,39 +300,72 @@ function makeElementDraggable(el, record, key) {
   });
 }
 
-// ------------------------- Cropper Function (rotate removed) -------------------------------
+// ------------------------- Cropper Function  -------------------------------
 let cropper;
+
 function openCropModal(imgElement) {
   const cropContainer = document.getElementById("cropContainer");
   const cropImage = document.getElementById("cropImage");
 
+  // Modal दिखाएं
   cropContainer.style.display = "flex";
   cropImage.src = imgElement.src;
 
+  // पुराना cropper destroy
   if (cropper) { cropper.destroy(); cropper = null; }
 
+  // Cropper initialize
   cropImage.onload = () => {
-    cropper = new Cropper(cropImage, { aspectRatio: NaN, viewMode: 1, autoCropArea: 1, responsive: true });
+    cropper = new Cropper(cropImage, { 
+      aspectRatio: NaN, 
+      viewMode: 1, 
+      autoCropArea: 1, 
+      responsive: true 
+    });
   };
 
-  const cropConfirm = document.getElementById("cropConfirm");
-  const cropCancel = document.getElementById("cropCancel");
+  // Buttons को reset करें (class को preserve करते हुए)
+  const cropConfirmOld = document.getElementById("cropConfirm");
+  const cropCancelOld = document.getElementById("cropCancel");
 
-  [cropConfirm, cropCancel].forEach(el => el.replaceWith(el.cloneNode(true)));
+  const cropConfirm = cropConfirmOld.cloneNode(true);
+  cropConfirm.className = cropConfirmOld.className;
+  cropConfirmOld.replaceWith(cropConfirm);
 
-  document.getElementById("cropConfirm").addEventListener("click", () => {
-    const croppedCanvas = cropper?.getCroppedCanvas();
-    if (croppedCanvas) imgElement.src = croppedCanvas.toDataURL();
+  const cropCancel = cropCancelOld.cloneNode(true);
+  cropCancel.className = cropCancelOld.className;
+  cropCancelOld.replaceWith(cropCancel);
+
+  // Confirm Crop Event
+  cropConfirm.addEventListener("click", () => {
+    const croppedCanvas = cropper?.getCroppedCanvas({
+      width: cropper.getData().width + 2,  // extra width for border
+      height: cropper.getData().height
+    });
+
+    if (croppedCanvas) {
+      imgElement.src = croppedCanvas.toDataURL();
+
+      // Image load होने के बाद original size maintain करें
+      imgElement.onload = () => {
+        imgElement.style.width = "100%";
+        imgElement.style.height = "auto";
+      };
+    }
+
     cropContainer.style.display = "none";
     cropper?.destroy();
     cropper = null;
   });
-  document.getElementById("cropCancel").addEventListener("click", () => {
+
+  // Cancel Event
+  cropCancel.addEventListener("click", () => {
     cropContainer.style.display = "none";
     cropper?.destroy();
     cropper = null;
   });
 }
+
 
 // ------------------------- QR Code Section -------------------------------
 function capitalize(str) {
@@ -413,3 +446,4 @@ function handleA4Print() {
   printWindow.document.write(html);
   printWindow.document.close();
 }
+
