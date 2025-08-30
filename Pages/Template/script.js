@@ -101,7 +101,6 @@ function loadTemplate() {
   let fileURL = '';
 
   if (pageType === 'own') {
-    // Own templates URLs
     if (idType === 'student') fileURL = 'https://penportindia.github.io/lak/Pages/Template/templates/Studentown.json';
     else if (idType === 'staff') fileURL = 'https://penportindia.github.io/lak/Pages/Template/templates/Staffown.json';
     else return alert('⚠️ Invalid ID Type for Own template.');
@@ -124,6 +123,10 @@ function loadTemplate() {
       if (backPreviewBox) backPreviewBox.style.display = isTwoPage ? 'flex' : 'none';
       if (frontPreviewBox) frontPreviewBox.style.display = 'flex';
 
+      // Reset file inputs so same file can be re-uploaded
+      if (frontBgInput) frontBgInput.value = '';
+      if (backBgInput) backBgInput.value = '';
+
       // Ensure default selection = all visible items
       selection.front = new Set((currentTemplate.front?.items || []).map((it) => it._id));
       selection.back = isTwoPage
@@ -133,6 +136,29 @@ function loadTemplate() {
       renderAll();
     })
     .catch((err) => alert('⚠️ Error loading template: ' + err.message));
+}
+
+/* -----------------------------
+   9) Background upload
+   ----------------------------- */
+function uploadBackground(event, side) {
+  const fileInput = event.target;
+  const file = fileInput.files && fileInput.files[0];
+  if (!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function (e) {
+    currentTemplate[side].pageStyle = currentTemplate[side].pageStyle || {};
+    currentTemplate[side].pageStyle.backgroundImage = `url(${e.target.result})`;
+    currentTemplate[side].pageStyle.backgroundSize = 'cover';
+    currentTemplate[side].pageStyle.backgroundRepeat = 'no-repeat';
+    currentTemplate[side].pageStyle.backgroundPosition = 'center';
+    renderCard(side);
+
+    // Reset file input so same file can be re-uploaded if needed
+    fileInput.value = '';
+  };
+  reader.readAsDataURL(file);
 }
 
 
@@ -413,24 +439,6 @@ function renderSideFieldList(side, title) {
 }
 
 /* -----------------------------
-   9) Background upload
-   ----------------------------- */
-function uploadBackground(event, side) {
-  const file = event.target.files && event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = function (e) {
-    currentTemplate[side].pageStyle = currentTemplate[side].pageStyle || {};
-    currentTemplate[side].pageStyle.backgroundImage = `url(${e.target.result})`;
-    currentTemplate[side].pageStyle.backgroundSize = 'cover';
-    currentTemplate[side].pageStyle.backgroundRepeat = 'no-repeat';
-    currentTemplate[side].pageStyle.backgroundPosition = 'center';
-    renderCard(side);
-  };
-  reader.readAsDataURL(file);
-}
-
-/* -----------------------------
    10) Selection utilities
    ----------------------------- */
 function setAllSelection(checked) {
@@ -489,4 +497,5 @@ function downloadTemplate() {
    12) Boot
    ----------------------------- */
 loadTemplate();
+
 
