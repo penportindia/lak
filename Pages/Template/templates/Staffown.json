@@ -1,0 +1,128 @@
+{
+  "front": {
+    "pageStyle": {
+      "width": "208px",
+      "height": "321px",
+      "background": "transparent",
+      "padding": "6px",
+      "boxSizing": "border-box",
+      "border": "1px solid #ccc",
+      "borderRadius": "8px",
+      "boxShadow": "0 2px 5px rgba(0,0,0,0.15)",
+      "position": "relative",
+      "overflow": "hidden",
+      "fontFamily": "\"Segoe UI\", sans-serif"
+    },
+    "items": [
+      {
+        "type": "image",
+        "name": "Photo",
+        "bookmark": "photo",
+        "top": "70px",
+        "left": "62px",
+        "width": "80px",
+        "height": "95px",
+        "borderRadius": "10px",
+        "border": "2px solid #0288d1"
+      },
+      {
+        "type": "text",
+        "name": "Staff Name",
+        "bookmark": "staff_name",
+        "text": "{{staff_name}}",
+        "top": "175px",
+        "left": "0px",
+        "width": "100%",
+        "fontSize": "11px",
+        "fontWeight": "bold",
+        "color": "#ff3333",
+        "textAlign": "center"
+      },
+      {
+        "type": "text",
+        "name": "Designation",
+        "bookmark": "staff_designation",
+        "text": "{{staff_designation}}",
+        "top": "190px",
+        "left": "0px",
+        "width": "100%",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#000000",
+        "textAlign": "center"
+      },
+      {
+        "type": "text",
+        "name": "Employee ID",
+        "bookmark": "staff_empid",
+        "text": "{{staff_empid}}",
+        "top": "208px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "7px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Date of Birth",
+        "bookmark": "staff_dob",
+        "text": "{{staff_dob}}",
+        "top": "220px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "7px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Father Name",
+        "bookmark": "staff_father",
+        "text": "{{staff_father}}",
+        "top": "232px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "6px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Blood Group",
+        "bookmark": "staff_blood",
+        "text": "{{staff_blood}}",
+        "top": "244px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "7px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Contact",
+        "bookmark": "staff_contact",
+        "text": "{{staff_contact}}",
+        "top": "256px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "6px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Address",
+        "bookmark": "staff_address",
+        "text": "{{staff_address}}",
+        "top": "268px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "6px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      }
+    ]
+  }
+}

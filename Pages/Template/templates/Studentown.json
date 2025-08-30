@@ -1,0 +1,163 @@
+{
+  "front": {
+    "pageStyle": {
+      "width": "208px",
+      "height": "321px",
+      "background": "transparent",
+      "padding": "6px",
+      "boxSizing": "border-box",
+      "border": "1px solid #ccc",
+      "borderRadius": "8px",
+      "boxShadow": "0 2px 5px rgba(0,0,0,0.15)",
+      "position": "relative",
+      "overflow": "hidden",
+      "fontFamily": "\"Segoe UI\", sans-serif"
+    },
+    "items": [
+      {
+        "type": "image",
+        "name": "Photo",
+        "bookmark": "photo",
+        "top": "65px",
+        "left": "62px",
+        "width": "80px",
+        "height": "95px",
+        "borderRadius": "10px",
+        "border": "2px solid #0288d1"
+      },
+      {
+        "type": "text",
+        "name": "Student Name",
+        "bookmark": "student_name",
+        "text": "{{student_name}}",
+        "top": "170px",
+        "left": "0px",
+        "width": "100%",
+        "fontSize": "11px",
+        "fontWeight": "bold",
+        "color": "#ff3333",
+        "textAlign": "center"
+      },
+      {
+        "type": "text",
+        "name": "Admission No",
+        "bookmark": "student_adm",
+        "text": "{{student_adm}}",
+        "top": "193px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "7px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Class / Section / Roll",
+        "bookmark": "student_class",
+        "text": "{{student_class}} / {{student_section}} / {{student_roll}}",
+        "top": "205px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "7px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Date of Birth",
+        "bookmark": "student_dob",
+        "text": "{{student_dob}}",
+        "top": "217px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "7px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Father Name",
+        "bookmark": "student_father",
+        "text": "{{student_father}}",
+        "top": "229px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "6px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Mother Name",
+        "bookmark": "student_mother",
+        "text": "{{student_mother}}",
+        "top": "241px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "6px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Blood Group",
+        "bookmark": "student_blood",
+        "text": "{{student_blood}}",
+        "top": "253px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "7px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "House",
+        "bookmark": "student_house",
+        "text": "{{student_house}}",
+        "top": "265px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "7px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Transport",
+        "bookmark": "student_transport",
+        "text": "{{student_transport}}",
+        "top": "277px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "7px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Contact",
+        "bookmark": "student_contact",
+        "text": "{{student_contact}}",
+        "top": "289px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "6px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "name": "Address",
+        "bookmark": "student_address",
+        "text": "{{student_address}}",
+        "top": "303px",
+        "left": "80px",
+        "width": "115px",
+        "fontSize": "6px",
+        "fontWeight": "bold",
+        "textAlign": "left"
+      }
+    ]
+  }
+}
