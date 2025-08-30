@@ -94,69 +94,76 @@
     <div class="slides" id="slidesWrapper"></div>
   </section>
 
-  <!-- Crop Modal for Image Cropping -->
-  <div id="cropContainer" style="
-      display: none; 
-      position: fixed; 
-      top: 0; 
-      left: 0; 
-      width: 100%; 
-      height: 100%; 
-      background: rgba(0, 0, 0, 0.7); 
-      justify-content: center; 
-      align-items: center; 
-      z-index: 1000;
-  ">
-    <div style="
-        background: #fff; 
-        padding: 20px; 
-        border-radius: 10px; 
-        display: flex; 
-        flex-direction: column; 
-        align-items: center; 
-        max-width: 90%; 
-        max-height: 90%; 
-        box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  <!-- Wrapper for Image (Border Wrapper Fix) -->
+    <div class="image-wrapper" style="
+        border: 2px solid #000;
+        display: inline-block;
+        border-radius: 8px;
     ">
-      <img id="cropImage" style="
-          max-width: 500px; 
-          max-height: 400px; 
-          width: 100%; 
-          height: auto; 
-          border-radius: 5px; 
-          margin-bottom: 15px;
-      " />
-
-      <div style="
-          display: flex; 
-          justify-content: flex-end; 
-          gap: 10px; 
-          width: 100%;
-      ">
-        <button id="cropConfirm" style="
-            padding: 8px 16px; 
-            background-color: #4CAF50; 
-            color: #fff; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer;
-            font-weight: bold;
-        ">Crop</button>
-        <button id="cropCancel" style="
-            padding: 8px 16px; 
-            background-color: #f44336; 
-            color: #fff; 
-            border: none; 
-            border-radius: 5px; 
-            cursor: pointer;
-            font-weight: bold;
-        ">Cancel</button>
-      </div>
-
-      <!-- Rotate buttons removed -->
+      <img id="myImage" style="width: 100%; height: auto; border-radius: 6px;" />
     </div>
-  </div>
-
+    
+    <!-- Crop Modal for Image Cropping -->
+    <div id="cropContainer" style="
+        display: none; 
+        position: fixed; 
+        top: 0; 
+        left: 0; 
+        width: 100%; 
+        height: 100%; 
+        background: rgba(0, 0, 0, 0.7); 
+        justify-content: center; 
+        align-items: center; 
+        z-index: 1000;
+    ">
+      <div style="
+          background: #fff; 
+          padding: 20px; 
+          border-radius: 10px; 
+          display: flex; 
+          flex-direction: column; 
+          align-items: center; 
+          max-width: 90%; 
+          max-height: 90%; 
+          box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      ">
+        <img id="cropImage" style="
+            max-width: 500px; 
+            max-height: 400px; 
+            width: 100%; 
+            height: auto; 
+            border-radius: 5px; 
+            margin-bottom: 15px;
+        " />
+    
+        <div style="
+            display: flex; 
+            justify-content: flex-end; 
+            gap: 10px; 
+            width: 100%;
+        ">
+          <button id="cropConfirm" style="
+              padding: 8px 16px; 
+              background-color: #4CAF50; 
+              color: #fff; 
+              border: none; 
+              border-radius: 5px; 
+              cursor: pointer;
+              font-weight: bold;
+          ">Crop</button>
+          <button id="cropCancel" style="
+              padding: 8px 16px; 
+              background-color: #f44336; 
+              color: #fff; 
+              border: none; 
+              border-radius: 5px; 
+              cursor: pointer;
+              font-weight: bold;
+          ">Cancel</button>
+        </div>
+      </div>
+    </div>
+  
   <!-- External Scripts -->
   <script type="module" src="firebase.js"></script>
   <script type="module" src="render.js"></script>
@@ -168,3 +175,4 @@
 
 </body>
 </html>
+
