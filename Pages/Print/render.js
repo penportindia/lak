@@ -270,119 +270,126 @@ enableBtn.addEventListener("change", (e) => {
   isEnabled = e.target.checked;
 });
 
-// ------------------------- Draggable -------------------------------
+// ------------------------- Draggable Function -------------------------------
+
 function makeElementDraggable(el, record, key) {
-  let isDragging = false;
-  let startX, startY, origX, origY;
+    let isDragging = false;
+    let startX, startY, origX, origY;
 
-  el.addEventListener("mousedown", (e) => {
-    if(!isEnabled) return; // CHECK
-    isDragging = true;
-    startX = e.clientX;
-    startY = e.clientY;
-    origX = parseInt(el.style.left || 0);
-    origY = parseInt(el.style.top || 0);
-    el.style.cursor = "grabbing";
-    e.preventDefault();
-  });
+    // Mouse press karte hi drag start
+    el.addEventListener("mousedown", (e) => {
+        isDragging = true;
+        startX = e.clientX;
+        startY = e.clientY;
+        origX = parseInt(el.style.left || 0);
+        origY = parseInt(el.style.top || 0);
+        el.style.cursor = "grabbing";
+        e.preventDefault(); // Text selection prevent karne ke liye
+    });
 
-  document.addEventListener("mousemove", (e) => {
-    if (!isDragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    el.style.left = origX + dx + "px";
-    el.style.top = origY + dy + "px";
-  });
+    // Mouse move event - element ko move karna
+    document.addEventListener("mousemove", (e) => {
+        if (!isDragging) return;
+        const dx = e.clientX - startX;
+        const dy = e.clientY - startY;
+        el.style.left = origX + dx + "px";
+        el.style.top = origY + dy + "px";
+    });
 
-  document.addEventListener("mouseup", () => {
-    if (!isDragging) return;
-    isDragging = false;
-    el.style.cursor = "pointer";
+    // Mouse release - drag stop
+    document.addEventListener("mouseup", () => {
+        if (!isDragging) return;
+        isDragging = false;
+        el.style.cursor = "pointer";
 
-    if(!isEnabled) return; // CHECK
+        // Position ko record me save karna
+        if (key) {
+            record[key + "_left"] = el.style.left;
+            record[key + "_top"] = el.style.top;
+        }
 
-    if (key) {
-      record[key + "_left"] = el.style.left;
-      record[key + "_top"] = el.style.top;
-    }
-
-    const selectedData = JSON.parse(localStorage.getItem("selectedRecords") || "[]");
-    const updatedData = selectedData.map(r => r.id === record.id ? record : r);
-    localStorage.setItem("selectedRecords", JSON.stringify(updatedData));
-  });
+        // LocalStorage me update karna
+        const selectedData = JSON.parse(localStorage.getItem("selectedRecords") || "[]");
+        const updatedData = selectedData.map(r => r.id === record.id ? record : r);
+        localStorage.setItem("selectedRecords", JSON.stringify(updatedData));
+    });
 }
 
 // ------------------------- Cropper Function -------------------------------
-let cropper;
+
+let cropper; // Cropper instance globally track karne ke liye
 
 function openCropModal(imgElement) {
-  if(!isEnabled) return; // CHECK
+    const cropContainer = document.getElementById("cropContainer");
+    const cropImage = document.getElementById("cropImage");
 
-  const cropContainer = document.getElementById("cropContainer");
-  const cropImage = document.getElementById("cropImage");
+    // Modal display karna
+    cropContainer.style.display = "flex";
+    cropImage.src = imgElement.src;
 
-  cropContainer.style.display = "flex";
-  cropImage.src = imgElement.src;
-
-  if (cropper) { cropper.destroy(); cropper = null; }
-
-  cropImage.onload = () => {
-    cropper = new Cropper(cropImage, { 
-      aspectRatio: NaN, 
-      viewMode: 1, 
-      autoCropArea: 1, 
-      responsive: true,
-      background: false
-    });
-  };
-
-  const cropConfirmOld = document.getElementById("cropConfirm");
-  const cropCancelOld = document.getElementById("cropCancel");
-
-  const cropConfirm = cropConfirmOld.cloneNode(true);
-  cropConfirm.className = cropConfirmOld.className;
-  cropConfirmOld.replaceWith(cropConfirm);
-
-  const cropCancel = cropCancelOld.cloneNode(true);
-  cropCancel.className = cropCancelOld.className;
-  cropCancelOld.replaceWith(cropCancel);
-
-  // Confirm Crop Event
-  cropConfirm.addEventListener("click", () => {
-    if(!isEnabled) return; // CHECK
-
-    const cropData = cropper.getData();
-    const imageData = cropper.getImageData();
-
-    const croppedCanvas = cropper.getCroppedCanvas({
-      width: cropData.width * (imageData.naturalWidth / imageData.width),
-      height: cropData.height * (imageData.naturalHeight / imageData.height),
-      imageSmoothingEnabled: true,
-      imageSmoothingQuality: 'high'
-    });
-
-    if (croppedCanvas) {
-      imgElement.src = croppedCanvas.toDataURL();
-      imgElement.onload = () => {
-        imgElement.style.width = "100%";
-        imgElement.style.height = "auto";
-      };
+    // Agar pehle se cropper exist karta hai to destroy kar do
+    if (cropper) {
+        cropper.destroy();
+        cropper = null;
     }
 
-    cropContainer.style.display = "none";
-    cropper?.destroy();
-    cropper = null;
-  });
+    // Cropper initialize after image load
+    cropImage.onload = () => {
+        cropper = new Cropper(cropImage, {
+            aspectRatio: NaN,       // Free crop
+            viewMode: 1,            // Canvas bounding box restrict
+            autoCropArea: 1,        // Full image initially
+            responsive: true,       // Window resize ke liye responsive
+            background: false       // Background overlay nahi
+        });
+    };
 
-  // Cancel Event
-  cropCancel.addEventListener("click", () => {
-    cropContainer.style.display = "none";
-    cropper?.destroy();
-    cropper = null;
-  });
+    // Buttons ko reset karna (clone + replace) to avoid multiple listeners
+    const cropConfirmOld = document.getElementById("cropConfirm");
+    const cropCancelOld = document.getElementById("cropCancel");
+
+    const cropConfirm = cropConfirmOld.cloneNode(true);
+    cropConfirm.className = cropConfirmOld.className;
+    cropConfirmOld.replaceWith(cropConfirm);
+
+    const cropCancel = cropCancelOld.cloneNode(true);
+    cropCancel.className = cropCancelOld.className;
+    cropCancelOld.replaceWith(cropCancel);
+
+    // Confirm button click
+    cropConfirm.addEventListener("click", () => {
+        const cropData = cropper.getData();       // Crop area details
+        const imageData = cropper.getImageData(); // Original image details
+
+        // Canvas create karte time original resolution maintain karna
+        const croppedCanvas = cropper.getCroppedCanvas({
+            width: cropData.width * (imageData.naturalWidth / imageData.width),
+            height: cropData.height * (imageData.naturalHeight / imageData.height),
+            imageSmoothingEnabled: true,
+            imageSmoothingQuality: 'high'
+        });
+
+        if (croppedCanvas) {
+            imgElement.src = croppedCanvas.toDataURL();
+            imgElement.onload = () => {
+                imgElement.style.width = "100%";
+                imgElement.style.height = "auto";
+            };
+        }
+
+        // Modal close
+        cropContainer.style.display = "none";
+        cropper?.destroy();
+        cropper = null;
+    });
+
+    // Cancel button click
+    cropCancel.addEventListener("click", () => {
+        cropContainer.style.display = "none";
+        cropper?.destroy();
+        cropper = null;
+    });
 }
-
-
 
 // ------------------------- QR Code Section -------------------------------
 function capitalize(str) {
@@ -463,5 +470,6 @@ function handleA4Print() {
   printWindow.document.write(html);
   printWindow.document.close();
 }
+
 
 
