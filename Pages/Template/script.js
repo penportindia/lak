@@ -217,15 +217,10 @@ function renderCard(side) {
 
   // Page style background (safe)
   const ps = page.pageStyle || {};
-  // fallback background to transparent panel so dark UI looks good
   container.style.background = safe(ps.background, 'transparent');
 
   Object.keys(ps).forEach((k) => {
-    try {
-      container.style[k] = ps[k];
-    } catch {
-      /* ignore invalid style keys */
-    }
+    try { container.style[k] = ps[k]; } catch {}
   });
 
   // Render only selected/checked items
@@ -245,7 +240,7 @@ function renderCard(side) {
       const bColor = safe(item.borderColor, '#000000');
       el.style.border = `${bw}px ${bStyle} ${bColor}`;
       el.style.borderRadius = px(item.borderRadius, 0);
-      el.draggable = false; // prevent drag ghost image
+      el.draggable = false;
     } else {
       el.textContent = safe(item.text, '');
       el.style.color = safe(item.color, '#e5e7eb');
@@ -258,6 +253,47 @@ function renderCard(side) {
     el.style.position = 'absolute';
     el.style.left = px(item.left, 0);
     el.style.top = px(item.top, 0);
+    el.style.cursor = 'move';
+
+    // -------------------------------
+    // Drag functionality with live sidebar update
+    // -------------------------------
+    let offsetX, offsetY;
+
+    el.addEventListener('mousedown', (e) => {
+      e.preventDefault();
+      offsetX = e.clientX - el.offsetLeft;
+      offsetY = e.clientY - el.offsetTop;
+
+      function onMouseMove(eMove) {
+        const newLeft = eMove.clientX - offsetX;
+        const newTop = eMove.clientY - offsetY;
+
+        el.style.left = newLeft + 'px';
+        el.style.top = newTop + 'px';
+
+        // Update currentTemplate
+        const itm = currentTemplate[side].items.find(it => it._id === item._id);
+        if (itm) {
+          itm.left = newLeft + 'px';
+          itm.top = newTop + 'px';
+        }
+
+        // Update sidebar inputs dynamically
+        const inputLeft = fieldListEl.querySelector(`input[data-id="${item._id}"][data-prop="left"]`);
+        const inputTop  = fieldListEl.querySelector(`input[data-id="${item._id}"][data-prop="top"]`);
+        if (inputLeft) inputLeft.value = newLeft;
+        if (inputTop)  inputTop.value  = newTop;
+      }
+
+      function onMouseUp() {
+        document.removeEventListener('mousemove', onMouseMove);
+        document.removeEventListener('mouseup', onMouseUp);
+      }
+
+      document.addEventListener('mousemove', onMouseMove);
+      document.addEventListener('mouseup', onMouseUp);
+    });
 
     container.appendChild(el);
   });
@@ -339,7 +375,7 @@ function renderSideFieldList(side, title) {
     `;
     wrap.appendChild(row2);
 
-    // Type-specific controls
+    // Type-specific controls (image/text)
     if (item.type === 'image') {
       const rowImg = document.createElement('div');
       rowImg.className = 'row';
@@ -377,7 +413,6 @@ function renderSideFieldList(side, title) {
       `;
       wrap.appendChild(rowSwatch);
     } else {
-      // text item
       const rowText = document.createElement('div');
       rowText.className = 'row';
       rowText.innerHTML = `
@@ -399,7 +434,6 @@ function renderSideFieldList(side, title) {
         let val = e.target.value;
 
         if (['left', 'top', 'width', 'height', 'borderRadius', 'fontSize', 'borderWidth'].includes(prop)) {
-          // Keep raw value number, but store with px in rendering
           itm[prop] = px(val, 0);
         } else if (prop === 'borderColor' || prop === 'color') {
           itm[prop] = val;
@@ -465,13 +499,9 @@ function downloadTemplate() {
     tplCopy[side].items = (tplCopy[side].items || []).filter((it) =>
       selection[side].has(it._id)
     );
-    // remove _id before export
-    tplCopy[side].items.forEach((it) => {
-      delete it._id;
-    });
+    tplCopy[side].items.forEach((it) => delete it._id);
   });
 
-  // Drop side not included
   ['front', 'back'].forEach((side) => {
     if (!sidesToInclude.includes(side)) delete tplCopy[side];
   });
