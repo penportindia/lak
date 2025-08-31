@@ -9,14 +9,14 @@ import {
 } from './firebase.js';
 
 let templateData = null;
-let renderedData = []; // store rendered data for reset
+let renderedData = [];
 
+// -------------------- DOM READY -------------------- //
 document.addEventListener("DOMContentLoaded", () => {
-  // Event Listeners for filters
+  // Filter Events
   dataTypeSelect.addEventListener("change", () => {
     fetchData(dataTypeSelect.value);
   });
-
   schoolFilter.addEventListener("change", applyFilters);
   resetBtn.addEventListener("click", resetFilters);
 
@@ -27,18 +27,13 @@ document.addEventListener("DOMContentLoaded", () => {
   const printBtn = document.getElementById("printBtn");
   const goToDataBtn = document.getElementById("goToDataBtn");
 
-  // Generate button click: save selected records and switch to page 2
   if (generateBtn) {
     generateBtn.addEventListener("click", () => {
       const selected = getSelectedData();
-      if (!selected.length) {
-        alert("Please select at least one record.");
-        return;
-      }
+      if (!selected.length) return alert("Please select at least one record.");
 
       const type = dataTypeSelect.value?.toLowerCase();
       const selectedWithType = selected.map(r => ({ ...r, type }));
-
       localStorage.setItem("selectedRecords", JSON.stringify(selectedWithType));
       alert(`${selectedWithType.length} record(s) saved.`);
 
@@ -46,72 +41,48 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Go to Data Button: reset page 2 content but keep selected rows
   if (goToDataBtn) {
     goToDataBtn.addEventListener("click", () => {
-      // Clear rendered cards
       const wrapper = document.getElementById("slidesWrapper");
       if (wrapper) wrapper.innerHTML = "";
 
-      // Clear preview container if any
       const previewContainer = document.getElementById("previewContainer");
       if (previewContainer) previewContainer.innerHTML = "";
 
-      // Reset uploaded template input
       if (templateUpload) templateUpload.value = "";
       templateData = null;
-
-      // Clear renderedData array
       renderedData = [];
 
-      // Remove any dynamically added images/cards by class
       document.querySelectorAll(".uploaded-template, .rendered-card").forEach(el => el.remove());
-
-      // Switch back to page 1
       togglePages("page-2", "page-1");
     });
   }
 
-  // Template upload handler
-  if (templateUpload) {
-    templateUpload.addEventListener("change", handleTemplateUpload);
-  }
+  if (templateUpload) templateUpload.addEventListener("change", handleTemplateUpload);
+  if (renderBtn) renderBtn.addEventListener("click", handleRenderClick);
+  if (printBtn) printBtn.addEventListener("click", handleA4Print);
 
-  // Render and Print buttons
-  if (renderBtn) {
-    renderBtn.addEventListener("click", handleRenderClick);
-  }
-
-  if (printBtn) {
-    printBtn.addEventListener("click", handleA4Print);
-  }
-
-  // Initial data fetch on page load
   fetchData(dataTypeSelect.value);
 });
 
-// Utility function to toggle between pages by controlling display styles
+// -------------------- Page Toggle -------------------- //
 function togglePages(hideId, showId) {
   const hideElem = document.getElementById(hideId);
   const showElem = document.getElementById(showId);
-
   if (hideElem) hideElem.style.display = "none";
   if (showElem) showElem.style.display = "flex";
 }
 
-// Template upload file reading and parsing
+// -------------------- Template Upload -------------------- //
 function handleTemplateUpload(event) {
   const file = event.target.files[0];
-  if (!file) {
-    alert("No JSON file selected.");
-    return;
-  }
+  if (!file) return alert("No JSON file selected.");
 
   const reader = new FileReader();
   reader.onload = (e) => {
     try {
       templateData = JSON.parse(e.target.result);
-      alert("Template uploaded successfully. Click the Render button to continue.");
+      alert("Template uploaded successfully. Click Render to continue.");
     } catch (err) {
       alert("Invalid JSON format.");
       console.error("Template JSON Parse Error:", err);
@@ -120,34 +91,23 @@ function handleTemplateUpload(event) {
   reader.readAsText(file);
 }
 
-// ------------------------- Rendering Cards -------------------------------
-
+// -------------------- Rendering -------------------- //
 function handleRenderClick() {
-  if (!templateData?.front) {
-    return alert("Please upload a valid template JSON with at least a 'front' page.");
-  }
-
+  if (!templateData?.front) return alert("Please upload a valid template JSON with at least a 'front' page.");
   const selectedData = JSON.parse(localStorage.getItem("selectedRecords")) || [];
-  if (!selectedData.length) {
-    return alert("No selected record found. Please select records on Page-1.");
-  }
+  if (!selectedData.length) return alert("No selected record found. Please select records on Page-1.");
 
   const wrapper = document.getElementById("slidesWrapper");
   if (!wrapper) return alert("Target container not found (slidesWrapper).");
 
-  // Reset wrapper & store rendered data
   wrapper.innerHTML = "";
   renderedData = selectedData;
-
   const slide = document.createElement("div");
   slide.className = "slide";
 
   selectedData.forEach((record) => {
-    // Always render front
     const front = createCardElement(templateData.front, record);
     slide.appendChild(front);
-
-    // Render back if exists
     if (templateData.back) {
       const back = createCardElement(templateData.back, record);
       slide.appendChild(back);
@@ -158,8 +118,7 @@ function handleRenderClick() {
   alert(`${selectedData.length} card(s) rendered successfully.`);
 }
 
-// ------------------------- Create Card Element -------------------------------
-
+// -------------------- Create Card -------------------- //
 function createCardElement(template, record = {}) {
   const container = document.createElement("div");
   container.className = "editor";
@@ -175,8 +134,7 @@ function createCardElement(template, record = {}) {
   return container;
 }
 
-// ------------------------- Render Card with Draggable Items -------------------------------
-
+// -------------------- Render Card -------------------- //
 function renderCard(template, container, record = {}) {
   container.innerHTML = "";
   container.templateData = template;
@@ -246,14 +204,12 @@ function renderCard(template, container, record = {}) {
       img.style.border = item.border || "none";
 
       img.addEventListener("click", () => openCropModal(img));
-
       el.appendChild(img);
     } else {
       el.innerText = value;
     }
 
     makeElementDraggable(el, record, key);
-
     container.appendChild(el);
   });
 
@@ -262,140 +218,95 @@ function renderCard(template, container, record = {}) {
   }
 }
 
-let isEnabled = false;
-
-// Enable Checkbox check
-const enableBtn = document.getElementById("enableBtn");
-enableBtn.addEventListener("change", (e) => {
-  isEnabled = e.target.checked;
-});
-
-// ------------------------- Draggable Function -------------------------------
-
+// -------------------- Draggable -------------------- //
 function makeElementDraggable(el, record, key) {
-    let isDragging = false;
-    let startX, startY, origX, origY;
+  let isDragging = false;
+  let startX, startY, origX, origY;
 
-    // Mouse press karte hi drag start
-    el.addEventListener("mousedown", (e) => {
-        isDragging = true;
-        startX = e.clientX;
-        startY = e.clientY;
-        origX = parseInt(el.style.left || 0);
-        origY = parseInt(el.style.top || 0);
-        el.style.cursor = "grabbing";
-        e.preventDefault(); // Text selection prevent karne ke liye
-    });
+  el.addEventListener("mousedown", (e) => {
+    isDragging = true;
+    startX = e.clientX;
+    startY = e.clientY;
+    origX = parseInt(el.style.left || 0);
+    origY = parseInt(el.style.top || 0);
+    el.style.cursor = "grabbing";
+    e.preventDefault();
+  });
 
-    // Mouse move event - element ko move karna
-    document.addEventListener("mousemove", (e) => {
-        if (!isDragging) return;
-        const dx = e.clientX - startX;
-        const dy = e.clientY - startY;
-        el.style.left = origX + dx + "px";
-        el.style.top = origY + dy + "px";
-    });
+  document.addEventListener("mousemove", (e) => {
+    if (!isDragging) return;
+    const dx = e.clientX - startX;
+    const dy = e.clientY - startY;
+    el.style.left = origX + dx + "px";
+    el.style.top = origY + dy + "px";
+  });
 
-    // Mouse release - drag stop
-    document.addEventListener("mouseup", () => {
-        if (!isDragging) return;
-        isDragging = false;
-        el.style.cursor = "pointer";
-
-        // Position ko record me save karna
-        if (key) {
-            record[key + "_left"] = el.style.left;
-            record[key + "_top"] = el.style.top;
-        }
-
-        // LocalStorage me update karna
-        const selectedData = JSON.parse(localStorage.getItem("selectedRecords") || "[]");
-        const updatedData = selectedData.map(r => r.id === record.id ? record : r);
-        localStorage.setItem("selectedRecords", JSON.stringify(updatedData));
-    });
+  document.addEventListener("mouseup", () => {
+    if (!isDragging) return;
+    isDragging = false;
+    el.style.cursor = "pointer";
+    if (key) {
+      record[key + "_left"] = el.style.left;
+      record[key + "_top"] = el.style.top;
+    }
+    const selectedData = JSON.parse(localStorage.getItem("selectedRecords") || "[]");
+    const updatedData = selectedData.map(r => r.id === record.id ? record : r);
+    localStorage.setItem("selectedRecords", JSON.stringify(updatedData));
+  });
 }
 
-// ------------------------- Cropper Function -------------------------------
-
-let cropper; // Cropper instance globally track karne ke liye
+// -------------------- Cropper -------------------- //
+let cropper;
 
 function openCropModal(imgElement) {
-    const cropContainer = document.getElementById("cropContainer");
-    const cropImage = document.getElementById("cropImage");
+  const cropContainer = document.getElementById("cropContainer");
+  const cropImage = document.getElementById("cropImage");
 
-    // Modal display karna
-    cropContainer.style.display = "flex";
-    cropImage.src = imgElement.src;
+  cropContainer.style.display = "flex";
+  cropImage.src = imgElement.src;
 
-    // Agar pehle se cropper exist karta hai to destroy kar do
-    if (cropper) {
-        cropper.destroy();
-        cropper = null;
+  if (cropper) {
+    cropper.destroy();
+    cropper = null;
+  }
+
+  cropImage.onload = () => {
+    cropper = new Cropper(cropImage, {
+      aspectRatio: imgElement.naturalWidth / imgElement.naturalHeight,
+      viewMode: 1,
+      autoCropArea: 1,
+      responsive: true,
+      background: false
+    });
+  };
+
+  const cropConfirm = document.getElementById("cropConfirm").cloneNode(true);
+  const cropCancel = document.getElementById("cropCancel").cloneNode(true);
+  document.getElementById("cropConfirm").replaceWith(cropConfirm);
+  document.getElementById("cropCancel").replaceWith(cropCancel);
+
+  cropConfirm.addEventListener("click", () => {
+    const croppedCanvas = cropper.getCroppedCanvas();
+    if (croppedCanvas) {
+      imgElement.src = croppedCanvas.toDataURL();
+      imgElement.style.objectFit = "cover";
     }
+    cropContainer.style.display = "none";
+    cropper?.destroy();
+    cropper = null;
+  });
 
-    // Cropper initialize after image load
-    cropImage.onload = () => {
-        cropper = new Cropper(cropImage, {
-            aspectRatio: NaN,       // Free crop
-            viewMode: 1,            // Canvas bounding box restrict
-            autoCropArea: 1,        // Full image initially
-            responsive: true,       // Window resize ke liye responsive
-            background: false       // Background overlay nahi
-        });
-    };
-
-    // Buttons ko reset karna (clone + replace) to avoid multiple listeners
-    const cropConfirmOld = document.getElementById("cropConfirm");
-    const cropCancelOld = document.getElementById("cropCancel");
-
-    const cropConfirm = cropConfirmOld.cloneNode(true);
-    cropConfirm.className = cropConfirmOld.className;
-    cropConfirmOld.replaceWith(cropConfirm);
-
-    const cropCancel = cropCancelOld.cloneNode(true);
-    cropCancel.className = cropCancelOld.className;
-    cropCancelOld.replaceWith(cropCancel);
-
-    // Confirm button click
-    cropConfirm.addEventListener("click", () => {
-        const cropData = cropper.getData();       // Crop area details
-        const imageData = cropper.getImageData(); // Original image details
-
-        // Canvas create karte time original resolution maintain karna
-        const croppedCanvas = cropper.getCroppedCanvas({
-            width: cropData.width * (imageData.naturalWidth / imageData.width),
-            height: cropData.height * (imageData.naturalHeight / imageData.height),
-            imageSmoothingEnabled: true,
-            imageSmoothingQuality: 'high'
-        });
-
-        if (croppedCanvas) {
-            imgElement.src = croppedCanvas.toDataURL();
-            imgElement.onload = () => {
-                imgElement.style.width = "100%";
-                imgElement.style.height = "auto";
-            };
-        }
-
-        // Modal close
-        cropContainer.style.display = "none";
-        cropper?.destroy();
-        cropper = null;
-    });
-
-    // Cancel button click
-    cropCancel.addEventListener("click", () => {
-        cropContainer.style.display = "none";
-        cropper?.destroy();
-        cropper = null;
-    });
+  cropCancel.addEventListener("click", () => {
+    cropContainer.style.display = "none";
+    cropper?.destroy();
+    cropper = null;
+  });
 }
 
-// ------------------------- QR Code Section -------------------------------
+// -------------------- QR Code -------------------- //
 function capitalize(str) {
   return str.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
-
 function appendQRCode(container, record) {
   if (!record || typeof record !== 'object') return;
 
@@ -435,7 +346,7 @@ function appendQRCode(container, record) {
   }
 }
 
-// ------------------------- Print Function -------------------------------
+// -------------------- Print -------------------- //
 function handleA4Print() {
   const renderedCards = document.querySelectorAll("#slidesWrapper .editor");
   if (!renderedCards.length) return alert("No rendered cards to print.");
@@ -465,11 +376,7 @@ function handleA4Print() {
   }
 
   const html = `<html><head><title>Print ID Cards</title>${style}</head><body onload="setTimeout(()=>{window.print();},100);">${allPagesHTML}</body></html>`;
-
   printWindow.document.open();
   printWindow.document.write(html);
   printWindow.document.close();
 }
-
-
-
