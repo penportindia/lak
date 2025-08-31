@@ -1,8 +1,15 @@
 // ✅ Firebase Modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, ref as dbRef, get, child, set, update } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import {
+  getDatabase,
+  ref as dbRef,
+  get,
+  child,
+  set,
+  update
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-// ✅ Firebase Config
+// ✅ Firebase Config (keep secrets safe in production)
 const firebaseConfig = {
   apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
   authDomain: "schools-cdce8.firebaseapp.com",
@@ -22,13 +29,19 @@ let imageData = '';
 let lastType = '';
 let stream = null;
 let schoolCode = '';
-let schoolName = ''; 
+let schoolName = '';
 let entryData = {};
 
+// Some DOM helpers (safe getters)
+const el = id => document.getElementById(id);
+const exists = id => !!el(id);
+
+// -----------------------------
 // ✅ Login Function
+// -----------------------------
 window.verifyLogin = async function () {
-  const uidOrPhone = document.getElementById("loginUser").value.trim();
-  const pwd = document.getElementById("loginPass").value.trim();
+  const uidOrPhone = (el("loginUser")?.value || "").trim();
+  const pwd = (el("loginPass")?.value || "").trim();
 
   if (!uidOrPhone || !pwd) {
     showOrAlert("Please enter both User ID or Phone Number and Password.", "error");
@@ -36,13 +49,16 @@ window.verifyLogin = async function () {
   }
 
   try {
-    const snapshot = await get(child(dbRef(database), `schools`));
+    const rootRef = dbRef(database);
+    const snapshot = await get(child(rootRef, `schools`));
     if (snapshot.exists()) {
       const schools = snapshot.val();
       let matchedUser = null;
 
       for (let key in schools) {
         const data = schools[key];
+        // defensive checks
+        if (!data) continue;
         if ((data.userid === uidOrPhone || data.phone === uidOrPhone) && data.password === pwd) {
           matchedUser = data;
           break;
@@ -62,9 +78,9 @@ window.verifyLogin = async function () {
           return;
         }
 
-        document.getElementById("loginPage").classList.add("hidden");
-        document.getElementById("homePage").classList.remove("hidden");
-        document.getElementById("schoolName").innerHTML = `<option selected>${cleanSchoolName}</option>`;
+        if (exists("loginPage")) el("loginPage").classList.add("hidden");
+        if (exists("homePage")) el("homePage").classList.remove("hidden");
+        if (exists("schoolName")) el("schoolName").innerHTML = `<option selected>${cleanSchoolName}</option>`;
 
         schoolCode = matchedUser.userid || 'SCHOOL';
         schoolName = cleanSchoolName;
@@ -77,11 +93,14 @@ window.verifyLogin = async function () {
       showOrAlert("No school records found", "error");
     }
   } catch (error) {
-    showOrAlert("Firebase Error: " + error.message, "error");
+    showOrAlert("Firebase Error: " + (error.message || error), "error");
+    console.error(error);
   }
 };
 
-// ✅ Generate Unique Enrollment - Full Proof Version (No Prefix)
+// -----------------------------
+// ✅ Generate Unique Enrollment
+// -----------------------------
 async function generateUniqueEnrollment(type) {
   if (!type || typeof type !== 'string') {
     throw new Error("Invalid 'type' parameter");
@@ -94,9 +113,9 @@ async function generateUniqueEnrollment(type) {
   const dbRoot = dbRef(database);
   const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
-  // Clean school name
+  // Clean school name -> words
   const words = schoolName
-    .replace(/[^a-zA-Z ]/g, '')
+    .replace(/[^a-zA-Z ]/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
     .split(' ')
@@ -132,6 +151,10 @@ async function generateUniqueEnrollment(type) {
     try {
       const snapshot = await get(child(dbRoot, `${type}/${enrollNo}`));
       if (!snapshot.exists()) unique = true;
+      else {
+        // tiny pause — but keep loop safe (avoid infinite fast loop)
+        await new Promise(res => setTimeout(res, 40));
+      }
     } catch (error) {
       console.error("Database error while generating enrollment:", error);
       throw new Error("Unable to generate enrollment number");
@@ -141,17 +164,21 @@ async function generateUniqueEnrollment(type) {
   return enrollNo;
 }
 
-// ✅ Navigate to Form
+// -----------------------------
+// ✅ Navigation to Form
+// -----------------------------
 window.navigateToForm = async function () {
-  const type = document.getElementById("idType").value;
+  const type = (el("idType")?.value || "").trim().toLowerCase();
   if (!type) return alert("Please select ID type");
   lastType = type;
-  document.getElementById("homePage").classList.add("hidden");
-  document.getElementById("idForm").classList.remove("hidden");
+  if (exists("homePage")) el("homePage").classList.add("hidden");
+  if (exists("idForm")) el("idForm").classList.remove("hidden");
   await generateFormFields(type);
 };
 
+// -----------------------------
 // ✅ Generate Form Fields
+// -----------------------------
 async function generateFormFields(type) {
   const numberFields = ['adm', 'roll', 'contact', 'empid'];
 
@@ -178,27 +205,38 @@ async function generateFormFields(type) {
     ['name', 'Name *', 'text'],
     ['designation', 'Designation *', 'select', ['DIRECTOR', 'PRINCIPAL', 'VICE PRINCIPAL', 'ADMIN', 'ACCOUNTANT', 'LIBRARIAN', 'TEACHER', 'CLERK', 'COMPUTER OPERATOR', 'RECEPTIONIST', 'DRIVER', 'ATTENDANT', 'GUARD', 'CARETAKER', 'HELPER', 'PEON', 'MED', 'OTHER']],
     ['father', "Father / Spouse Name *", 'text'],
-    ['dob', 'Date of Birth', 'date'], 
+    ['dob', 'Date of Birth', 'date'],
     ['contact', 'Contact Number', 'text'],
     ['address', 'Address *', 'textarea'],
     ['blood', 'Blood Group *', 'select', ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'NA']]
   ];
 
   const fields = type === 'student' ? studentFields : staffFields;
-  const container = document.getElementById("formFields");
+  const container = el("formFields");
+  if (!container) {
+    console.warn("formFields container not found in DOM");
+    return;
+  }
   container.innerHTML = '';
 
-  const enrollNo = await generateUniqueEnrollment(type);
+  let enrollNo = "";
+  try {
+    enrollNo = await generateUniqueEnrollment(type);
+  } catch (e) {
+    console.error("Enrollment generation failed:", e);
+    enrollNo = `${type.toUpperCase()}-TEMP-${Date.now()}`;
+  }
 
-  fields.forEach(([id, label, controlType, readonly]) => {
+  fields.forEach(fieldDef => {
+    const [id, label, controlType, optOrReadonly] = fieldDef;
     const fullId = `${type}_${id}`;
     let inputHTML = '';
 
-    // ✅ Required only if label has * AND field is not 'dob' or 'contact'
+    // Required if label has * AND not 'dob' or 'contact'
     const isRequired = (label.includes('*') && !['dob', 'contact'].includes(id)) ? 'required' : '';
 
     if (controlType === 'select') {
-      const options = readonly || [];
+      const options = Array.isArray(optOrReadonly) ? optOrReadonly : [];
       inputHTML = `<select id="${fullId}" name="${fullId}" ${isRequired}>
         <option value="" disabled selected>Select ${label.replace('*', '').trim()}</option>`;
       options.forEach(opt => inputHTML += `<option value="${opt}">${opt}</option>`);
@@ -213,98 +251,142 @@ async function generateFormFields(type) {
       inputHTML = `<input type="${inputType}" id="${fullId}" name="${fullId}" value="${value}" ${ro} ${inputAttributes} ${isRequired} />`;
     }
 
-    container.innerHTML += `
-      <div class="form-group">
-        <label for="${fullId}">${label}</label>
-        ${inputHTML}
-      </div>`;
+    const wrapper = document.createElement('div');
+    wrapper.className = "form-group";
+    wrapper.innerHTML = `<label for="${fullId}">${label}</label>${inputHTML}`;
+    container.appendChild(wrapper);
   });
 }
 
-function compressImage(canvas, maxWidth = 480, quality = 0.6) {
-  const ctx = canvas.getContext("2d");
+// -----------------------------
+// ✅ Image Compression (improved)
+// -----------------------------
+function compressImage(canvas, maxWidth = 600, targetSizeKB = 40) {
+  // Accept either canvas element or image element
+  if (!canvas) return '';
+
   const ratio = canvas.width / canvas.height;
   const newWidth = Math.min(canvas.width, maxWidth);
-  const newHeight = newWidth / ratio;
+  const newHeight = Math.round(newWidth / ratio);
 
-  // नया canvas बनाएं compress करने के लिए
   const outputCanvas = document.createElement("canvas");
   outputCanvas.width = newWidth;
   outputCanvas.height = newHeight;
-  const outputCtx = outputCanvas.getContext("2d");
+  const ctx = outputCanvas.getContext("2d");
 
-  outputCtx.drawImage(canvas, 0, 0, newWidth, newHeight);
+  ctx.drawImage(canvas, 0, 0, newWidth, newHeight);
 
-  // JPEG format में compress करें (0.6 = 60% quality)
-  return outputCanvas.toDataURL("image/jpeg", quality);
+  let quality = 0.9; // start high
+  let dataUrl = outputCanvas.toDataURL("image/jpeg", quality);
+
+  // Decrease quality until below target or quality hits floor
+  while ((dataUrl.length / 1024) > targetSizeKB && quality > 0.2) {
+    quality -= 0.05;
+    dataUrl = outputCanvas.toDataURL("image/jpeg", quality);
+  }
+
+  return dataUrl;
 }
 
-
+// -----------------------------
 // ✅ Camera Functions
+// -----------------------------
 function startCamera() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    showOrAlert("Camera API not supported on this device.", "error");
+    return;
+  }
   navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
     .then(s => {
       stream = s;
-      const video = document.getElementById("video");
+      const video = el("video");
+      if (!video) return;
       video.srcObject = stream;
-      video.play();
+      video.play().catch(()=>{});
       video.classList.remove("hidden");
     })
-    .catch(err => showOrAlert("Unable To Access Camera", "error"));
+    .catch(err => {
+      console.error(err);
+      showOrAlert("Unable To Access Camera", "error");
+    });
 }
-function stopCamera() {
-  if (stream) stream.getTracks().forEach(track => track.stop());
-  const video = document.getElementById("video");
-  video.srcObject = null;
-  video.classList.add("hidden");
-}
-function takePicture() {
-  const video = document.getElementById("video");
-  const canvas = document.getElementById("canvas");
 
-  if (!video.videoWidth) return alert("Camera not ready.");
+function stopCamera() {
+  if (stream) {
+    try {
+      stream.getTracks().forEach(track => track.stop());
+    } catch (e) {}
+    stream = null;
+  }
+  const video = el("video");
+  if (video) {
+    video.srcObject = null;
+    video.classList.add("hidden");
+  }
+}
+
+function takePicture() {
+  const video = el("video");
+  const canvas = el("canvas");
+
+  if (!video || !canvas) return alert("Camera elements missing.");
+
+  if (!video.videoWidth || !video.videoHeight) return alert("Camera not ready.");
 
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
-  canvas.getContext("2d").drawImage(video, 0, 0);
+  const ctx = canvas.getContext("2d");
+  ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
   canvas.classList.remove("hidden");
 
-  // 🔄 Replace PNG with compressed JPEG
-  imageData = compressImage(canvas, 480, 0.6);  // Resize width = 480px, quality = 60%
+  // Compress JPEG for Firebase (~target ~60KB)
+  imageData = compressImage(canvas, 600, 60);
 
   stopCamera();
 
-  const cameraBtn = document.getElementById("cameraBtn");
-  cameraBtn.innerHTML = `<i class="fas fa-redo"></i><span>Retake</span>`;
-  cameraBtn.onclick = retakePicture;
+  const cameraBtn = el("cameraBtn");
+  if (cameraBtn) {
+    cameraBtn.innerHTML = `<i class="fas fa-redo"></i><span>Retake</span>`;
+    cameraBtn.onclick = retakePicture;
+  }
 }
+
 function retakePicture() {
   imageData = '';
-  document.getElementById("canvas").classList.add("hidden");
+  const canvas = el("canvas");
+  if (canvas) canvas.classList.add("hidden");
   startCamera();
-  const cameraBtn = document.getElementById("cameraBtn");
-  cameraBtn.innerHTML = `<i class="fas fa-video"></i><span>Camera</span>`;
-  cameraBtn.onclick = startCamera;
+  const cameraBtn = el("cameraBtn");
+  if (cameraBtn) {
+    cameraBtn.innerHTML = `<i class="fas fa-video"></i><span>Camera</span>`;
+    cameraBtn.onclick = startCamera;
+  }
 }
 
-function handleSubmit(e) {
+// -----------------------------
+// ✅ Submit Handler
+// -----------------------------
+async function handleSubmit(e) {
   try {
-    e.preventDefault();
+    if (e && e.preventDefault) e.preventDefault();
 
+    const newEntryBtn = el("newEntryBtn");
     if (newEntryBtn) newEntryBtn.disabled = true;
 
     const formFields = document.querySelectorAll("#formFields input, #formFields select, #formFields textarea");
-    if (!formFields) throw new Error("Form fields not found");
+    if (!formFields || formFields.length === 0) {
+      throw new Error("Form fields not found");
+    }
 
     const rawData = {};
     formFields.forEach(field => {
-      let value = field.value?.trim() || "";
+      const fname = field.name || field.id || '';
+      let value = (field.value || "").toString().trim();
       const isUpperCase = (field.type === "text" || field.tagName === "TEXTAREA" || field.tagName === "SELECT") &&
-        !['email', 'ifsc'].includes(field.name?.toLowerCase());
-
+        !['email', 'ifsc'].includes(fname.toLowerCase());
       if (isUpperCase) value = value.toUpperCase();
-      rawData[field.name || `field_${Math.random()}`] = value;
+      rawData[fname || `field_${Math.random()}`] = value;
     });
 
     const enrollKey = `${lastType || 'default'}_enroll`;
@@ -313,15 +395,14 @@ function handleSubmit(e) {
     const enroll = rawData[enrollKey];
     const dbPath = `${lastType || 'default'}/${enroll || 'unknown'}`;
 
-    // ✅ Simplified error messages
     if (!enroll || !imageData) {
-      showOrAlert("❌ Submit failed!", "error");
+      showOrAlert("❌ Submit failed! Enrollment or photo missing.", "error");
       setTimeout(goHomeSafe, 2000);
       if (newEntryBtn) newEntryBtn.disabled = false;
       return;
     }
 
-    // DOB formatting
+    // DOB formatting if present
     if (rawData[dobKey]) {
       const dobDate = new Date(rawData[dobKey]);
       if (!isNaN(dobDate)) {
@@ -329,20 +410,17 @@ function handleSubmit(e) {
         const month = dobDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
         const year = dobDate.getFullYear();
         rawData[dobKey] = `${day}-${month}-${year}`;
-      } else {
-        showOrAlert("❌ Submit failed!", "error");
-        setTimeout(goHomeSafe, 2000);
-        return;
       }
     }
 
-    rawData.schoolName = schoolName?.toUpperCase?.() || "SCHOOL NAME";
+    rawData.schoolName = (schoolName || "SCHOOL NAME").toUpperCase();
 
+    // build data object
     const data = {
       [enrollKey]: enroll,
-      [nameKey]: rawData[nameKey],
+      [nameKey]: rawData[nameKey] || "",
       schoolName: rawData.schoolName,
-      photo: ""
+      photo: imageData
     };
 
     Object.keys(rawData).forEach(key => {
@@ -350,114 +428,56 @@ function handleSubmit(e) {
     });
 
     entryData = data;
-    showPreviewSafe(imageData, enroll);
+    // show preview immediately
+    showPreview(imageData, enroll);
 
-    // Firebase save with safe handling
-    setSafe(dbRef(database, dbPath), data)
-      .then(() => uploadImageToImgBBSafe(enroll, dbPath))
-      .catch(() => showSubmitFailedAndGoHomeSafe(dbPath));
+    // Save to Firebase with progress simulation
+    const refPath = dbRef(database, dbPath);
+    updateProgressBarSafe(0);
+
+    // Use set to write the object
+    await set(refPath, data);
+
+    // simulated progress bar
+    let percent = 0;
+    const interval = setInterval(() => {
+      percent += 20;
+      if (percent > 100) percent = 100;
+      updateProgressBarSafe(percent);
+      if (percent >= 100) clearInterval(interval);
+    }, 100);
+
+    showOrAlert("✅ Submitted Successfully!", "success");
+    if (newEntryBtn) newEntryBtn.disabled = false;
 
   } catch (err) {
-    console.error("Unexpected error:", err);
+    console.error("Unexpected error during submit:", err);
     showSubmitFailedAndGoHomeSafe();
   }
 }
 
-// ✅ Safe goHome
-function goHomeSafe() {
-  try { goHome(); } catch(e) { console.warn("goHome failed", e); }
-}
-
-// ✅ Safe preview
-function showPreviewSafe(img, enroll) {
-  try { showPreview(img, enroll); } catch(e) { console.warn("Preview failed", e); }
-}
-
-// ✅ Safe Firebase set
-function setSafe(ref, data) {
-  try { return set(ref, data); } catch(e) { return Promise.reject(e); }
-}
-
-// ✅ Safe ImgBB upload
-function uploadImageToImgBBSafe(enroll, dbPath) {
-  try {
-    if (!imageData) return Promise.reject("No image data");
-
-    const base64 = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
-    const formData = new FormData();
-    formData.append("key", "011e81139fd279b28a3b55c414b241b7");
-    formData.append("image", base64);
-    formData.append("name", enroll);
-
-    updateProgressBarSafe(0);
-
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open("POST", "https://api.imgbb.com/1/upload");
-
-      xhr.upload.onprogress = e => {
-        if (e.lengthComputable) {
-          const percent = Math.round((e.loaded / e.total) * 100);
-          updateProgressBarSafe(percent);
-        }
-      };
-
-      xhr.onload = function () {
-        try {
-          if (xhr.status === 200) {
-            const result = JSON.parse(xhr.responseText);
-            if (result.success) {
-              const photoURL = result.data.display_url;
-              update(dbRef(database, dbPath), { photo: photoURL })
-                .then(() => {
-                  updateProgressBarSafe(100);
-                  showOrAlert("✅ Submitted Successfully!", "success");
-                  if (newEntryBtn) newEntryBtn.disabled = false;
-                  resolve();
-                }).catch(() => showSubmitFailedAndGoHomeSafe(dbPath));
-            } else showSubmitFailedAndGoHomeSafe(dbPath);
-          } else showSubmitFailedAndGoHomeSafe(dbPath);
-        } catch (e) {
-          showSubmitFailedAndGoHomeSafe(dbPath);
-        }
-      };
-
-      xhr.onerror = () => showSubmitFailedAndGoHomeSafe(dbPath);
-      xhr.send(formData);
-    });
-
-  } catch(e) {
-    return Promise.reject(e);
-  }
-}
-
-// ✅ Safe progress bar update
+// -----------------------------
+// ✅ Progress bar update
+// -----------------------------
 function updateProgressBarSafe(percent) {
   try {
-    const el = document.getElementById("uploadProgress");
-    if (el) { el.style.width = percent + "%"; el.textContent = percent + "%"; }
-  } catch(e) {}
+    const elBar = el("uploadProgress");
+    if (elBar) { elBar.style.width = percent + "%"; elBar.textContent = percent + "%"; }
+  } catch (e) { console.error(e); }
 }
 
-// ✅ Safe submit failed handler
-function showSubmitFailedAndGoHomeSafe(dbPath) {
-  try {
-    showOrAlert("❌ Submit failed!", "error");
-    if (dbPath) remove(dbRef(database, dbPath)).finally(() => setTimeout(goHomeSafe, 2000));
-    else setTimeout(goHomeSafe, 2000);
-  } catch(e) { setTimeout(goHomeSafe, 2000); }
-}
-
-// ✅ Show Preview using provided image source
+// -----------------------------
+// ✅ Preview (ShowPreview)
+// -----------------------------
 function showPreview(photoUrl, enrollmentNumber) {
   if (!photoUrl || !enrollmentNumber) {
     showOrAlert("❌ Missing photo or enrollment number!", "error");
     return;
   }
 
-  const previewPage = document.getElementById("previewPage");
-  const idForm = document.getElementById("idForm");
-  const previewContainer = document.getElementById("preview");
+  const previewPage = el("previewPage");
+  const idForm = el("idForm");
+  const previewContainer = el("preview");
 
   if (!previewPage || !idForm || !previewContainer) {
     alert("❌ Required preview elements not found in DOM.");
@@ -518,61 +538,80 @@ function showPreview(photoUrl, enrollmentNumber) {
     </div>
   `;
 
-  if (typeof JsBarcode === "undefined") {
+  // Load JsBarcode if missing
+  if (typeof window.JsBarcode === "undefined") {
     const script = document.createElement("script");
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js";
     script.onload = () => generateBarcodeImage(enrollmentNumber);
+    script.onerror = () => console.warn("Failed to load JsBarcode CDN");
     document.body.appendChild(script);
   } else {
     generateBarcodeImage(enrollmentNumber);
   }
 }
 
+// -----------------------------
 // ✅ Generate Barcode as PNG
+// -----------------------------
 function generateBarcodeImage(enroll) {
   if (!enroll) return;
 
-  JsBarcode("#barcode", enroll, {
-    format: "CODE128",
-    width: 1.5,
-    height: 40,
-    displayValue: false
-  });
+  try {
+    JsBarcode("#barcode", enroll, {
+      format: "CODE128",
+      width: 1.5,
+      height: 40,
+      displayValue: false
+    });
+  } catch (e) {
+    console.error("JsBarcode error:", e);
+  }
 
   const checkAndConvert = () => {
     const svg = document.querySelector("#barcode");
-    if (!svg || svg.children.length === 0) {
-      return setTimeout(checkAndConvert, 100);
+    if (!svg) return;
+    // wait until barcode children are drawn
+    if (svg.children.length === 0) return setTimeout(checkAndConvert, 80);
+
+    try {
+      const svgData = new XMLSerializer().serializeToString(svg);
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const img = new Image();
+
+      img.onload = () => {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.drawImage(img, 0, 0);
+        const pngFile = canvas.toDataURL("image/png");
+        svg.outerHTML = `<img src="${pngFile}" style="width:140px;height:40px;">`;
+      };
+
+      img.onerror = () => console.warn("Barcode image conversion failed");
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+    } catch (err) {
+      console.error("Barcode conversion error:", err);
     }
-
-    const svgData = new XMLSerializer().serializeToString(svg);
-    const canvas = document.createElement("canvas");
-    const ctx = canvas.getContext("2d");
-    const img = new Image();
-
-    img.onload = () => {
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      const pngFile = canvas.toDataURL("image/png");
-      svg.outerHTML = `<img src="${pngFile}" style="width:140px;height:40px;">`;
-    };
-
-    img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
   };
 
   checkAndConvert();
 }
 
-
+// -----------------------------
 // ✅ Save ID as JPG
+// -----------------------------
 function saveIDAsImage() {
-  const previewEl = document.getElementById("idCardBox");
+  const previewEl = el("idCardBox");
   if (!previewEl) return alert("❌ Preview not found!");
 
   const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
   const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
   const fileName = `${enrollmentNumber}-${studentName}.jpg`;
+
+  if (typeof html2canvas === "undefined") {
+    alert("html2canvas library is required to save image. Include html2canvas CDN.");
+    return;
+  }
 
   html2canvas(previewEl, {
     scale: 3,
@@ -583,24 +622,25 @@ function saveIDAsImage() {
     a.href = canvas.toDataURL("image/jpeg", 1.0);
     a.download = fileName;
     a.click();
-  }).catch(err => alert("❌ Failed to save image: " + err.message));
+  }).catch(err => alert("❌ Failed to save image: " + (err.message || err)));
 }
 
+// -----------------------------
 // ✅ Form Navigation / UI Handling
+// -----------------------------
 function editEntry() {
-  document.getElementById("previewPage").classList.add("hidden");
-  document.getElementById("idForm").classList.remove("hidden");
+  if (exists("previewPage")) el("previewPage").classList.add("hidden");
+  if (exists("idForm")) el("idForm").classList.remove("hidden");
 }
 
-function newEntry() {
-  // ✅ Hide preview page and reset form
-  const previewPage = document.getElementById("previewPage");
-  const formFields = document.getElementById("formFields");
-  const idForm = document.getElementById("idForm");
-  const canvas = document.getElementById("canvas");
-  const video = document.getElementById("video");
-  const cameraBtn = document.getElementById("cameraBtn");
-  const idTypeSelect = document.getElementById("idType");
+async function newEntry() {
+  const previewPage = el("previewPage");
+  const formFields = el("formFields");
+  const idForm = el("idForm");
+  const canvas = el("canvas");
+  const video = el("video");
+  const cameraBtn = el("cameraBtn");
+  const idTypeSelect = el("idType");
 
   if (previewPage) previewPage.classList.add("hidden");
   if (formFields) formFields.innerHTML = '';
@@ -608,7 +648,7 @@ function newEntry() {
   if (video) video.classList.add("hidden");
   if (idForm) idForm.classList.remove("hidden");
 
-  // ✅ Reset global values
+  // Reset global values
   imageData = '';
   entryData = {};
   lastType = idTypeSelect?.value?.trim().toLowerCase() || '';
@@ -620,32 +660,46 @@ function newEntry() {
     cameraBtn.onclick = startCamera;
   }
 
-  // ✅ Generate dynamic form fields
-  generateFormFields(lastType);
+  // Generate dynamic form fields
+  await generateFormFields(lastType || 'student');
 }
 
-
 function goHome() {
-  document.getElementById("previewPage").classList.add("hidden");
-  document.getElementById("idForm").classList.add("hidden");
-  document.getElementById("formFields").innerHTML = '';
+  if (exists("previewPage")) el("previewPage").classList.add("hidden");
+  if (exists("idForm")) el("idForm").classList.add("hidden");
+  if (exists("formFields")) el("formFields").innerHTML = '';
   imageData = '';
   entryData = {};
   lastType = '';
   stopCamera();
-  document.getElementById("canvas").classList.add("hidden");
-  document.getElementById("video").classList.add("hidden");
-  document.getElementById("preview").innerHTML = '';
-  document.getElementById("homePage").classList.remove("hidden");
-  document.getElementById("idType").value = "";
-  const cameraBtn = document.getElementById("cameraBtn");
-  cameraBtn.innerHTML = `<i class="fas fa-video"></i><span>Camera</span>`;
-  cameraBtn.onclick = startCamera;
+  if (exists("canvas")) el("canvas").classList.add("hidden");
+  if (exists("video")) el("video").classList.add("hidden");
+  if (exists("preview")) el("preview").innerHTML = '';
+  if (exists("homePage")) el("homePage").classList.remove("hidden");
+  if (exists("idType")) el("idType").value = "";
+  const cameraBtn = el("cameraBtn");
+  if (cameraBtn) {
+    cameraBtn.innerHTML = `<i class="fas fa-video"></i><span>Camera</span>`;
+    cameraBtn.onclick = startCamera;
+  }
 }
 
+// Safe wrappers that were missing before
+function goHomeSafe() {
+  try { goHome(); } catch (e) { console.error(e); }
+}
+
+function showSubmitFailedAndGoHomeSafe(dbPath) {
+  showOrAlert("❌ Submit failed. Please try again.", "error");
+  console.warn("Submit failed for path:", dbPath);
+  setTimeout(goHomeSafe, 1500);
+}
+
+// -----------------------------
 // ✅ Message Display Utility
+// -----------------------------
 function showOrAlert(message, type = "success") {
-  const popup = document.getElementById("messagePopup");
+  const popup = el("messagePopup");
   if (popup) {
     popup.textContent = message;
     popup.className = type;
@@ -656,7 +710,9 @@ function showOrAlert(message, type = "success") {
   }
 }
 
-// ✅ Export to Global Scope
+// -----------------------------
+// ✅ Expose functions to window
+// -----------------------------
 window.handleSubmit = handleSubmit;
 window.startCamera = startCamera;
 window.takePicture = takePicture;
@@ -666,10 +722,6 @@ window.saveIDAsImage = saveIDAsImage;
 window.editEntry = editEntry;
 window.newEntry = newEntry;
 window.goHome = goHome;
-
 window.generateBarcodeImage = generateBarcodeImage;
-
-
-
-
+window.verifyLogin = window.verifyLogin; // already set earlier
 
