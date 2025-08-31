@@ -18,7 +18,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ✅ DOM Elements
-const dataTypeSelect = document.getElementById("dataType"); // ID सही किया गया
+const dataTypeSelect = document.getElementById("dataType");
 const schoolFilter = document.getElementById("schoolFilter");
 const resetBtn = document.getElementById("resetBtn");
 const tableHead = document.getElementById("tableHead");
@@ -28,6 +28,7 @@ const recordCount = document.getElementById("recordCount");
 
 let fullDataArray = [];
 
+// ✅ Notification Toast
 function showToast(message, type = "success") {
   notification.textContent = message;
   notification.className = `notification-${type}`;
@@ -35,7 +36,9 @@ function showToast(message, type = "success") {
   setTimeout(() => notification.style.display = "none", 3000);
 }
 
+// ✅ Fetch Data from Firebase
 function fetchData(type) {
+  if (!tableHead || !tableBody || !recordCount) return;
   tableHead.innerHTML = "";
   tableBody.innerHTML = "";
   recordCount.textContent = "Loading...";
@@ -49,7 +52,8 @@ function fetchData(type) {
       Object.entries(dataObj).forEach(([key, item]) => {
         if (item && typeof item === "object") {
           const photo = item.photo || "";
-          if (!photo.toLowerCase().includes("deleted") && photo.startsWith("http")) {
+          // Deleted images को छोड़ो
+          if (!(typeof photo === "string" && photo.toLowerCase().includes("deleted"))) {
             item.__key = key;
             fullDataArray.push(item);
           }
@@ -59,9 +63,13 @@ function fetchData(type) {
 
     populateSchoolFilter(fullDataArray);
     renderTable(fullDataArray);
+  }, (error) => {
+    console.error(error);
+    showToast("Error fetching data!", "error");
   });
 }
 
+// ✅ Populate School Filter
 function populateSchoolFilter(data) {
   const schools = [...new Set(data.map(item => item.school || Object.values(item)[1]))]
     .filter(Boolean).sort();
@@ -75,6 +83,7 @@ function populateSchoolFilter(data) {
   });
 }
 
+// ✅ Render Table with URL + Base64 + Blob Image Support
 function renderTable(dataArray) {
   tableHead.innerHTML = "";
   tableBody.innerHTML = "";
@@ -88,6 +97,7 @@ function renderTable(dataArray) {
   const keys = Object.keys(dataArray[0]).filter(k => k !== "__key");
   const headerRow = document.createElement("tr");
 
+  // Select All Checkbox
   const selectAllTh = document.createElement("th");
   const selectAllCheckbox = document.createElement("input");
   selectAllCheckbox.type = "checkbox";
@@ -106,6 +116,7 @@ function renderTable(dataArray) {
 
   tableHead.appendChild(headerRow);
 
+  // Rows
   dataArray.forEach(item => {
     const tr = document.createElement("tr");
     tr.dataset.key = item.__key;
@@ -122,7 +133,21 @@ function renderTable(dataArray) {
       td.setAttribute("data-field", key);
 
       if (key.toLowerCase() === "photo" && item[key]) {
-        td.innerHTML = `<img src="${item[key]}" alt="photo" class="w-12 h-12 rounded-full">`;
+        let photoSrc = item[key];
+
+        if (photoSrc instanceof Blob) {
+          photoSrc = URL.createObjectURL(photoSrc);
+        } else if (typeof photoSrc === "string" && photoSrc.startsWith("data:")) {
+          photoSrc = photoSrc; // Base64 Image
+        } else if (typeof photoSrc === "string" && photoSrc.startsWith("http")) {
+          photoSrc = photoSrc; // URL Image
+        } else {
+          photoSrc = "";
+        }
+
+        td.innerHTML = photoSrc
+          ? `<img src="${photoSrc}" alt="photo" class="w-12 h-12 rounded-full">`
+          : "";
       } else {
         td.textContent = item[key] || "";
       }
@@ -136,6 +161,7 @@ function renderTable(dataArray) {
   recordCount.textContent = `Total Records: ${dataArray.length}`;
 }
 
+// ✅ Apply Filter
 function applyFilters() {
   const schoolVal = schoolFilter.value.trim().toLowerCase();
   const filtered = fullDataArray.filter(item => {
@@ -145,6 +171,7 @@ function applyFilters() {
   renderTable(filtered);
 }
 
+// ✅ Reset Filters
 function resetFilters() {
   schoolFilter.value = "";
   const selectAll = tableHead.querySelector("input[type='checkbox']");
@@ -152,12 +179,12 @@ function resetFilters() {
   renderTable(fullDataArray);
 }
 
+// ✅ Get Selected Data
 function getSelectedData() {
   const table = document.getElementById("data-table") || document.querySelector("table");
   const rows = table.querySelectorAll("tbody tr");
   const selected = [];
 
-  // ✅ ID Type Fix - यह अब हमेशा सही वैल्यू देगा
   const type = dataTypeSelect?.value?.toLowerCase() || "unknown";
 
   rows.forEach(row => {
@@ -175,9 +202,7 @@ function getSelectedData() {
         }
       });
 
-      // ✅ सही टाइप जोड़ें
       record.type = type;
-
       selected.push(record);
     }
   });
