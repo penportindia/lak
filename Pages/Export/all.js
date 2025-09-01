@@ -1,6 +1,6 @@
 // ✅ 1. Import Firebase Modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
-import { getDatabase, ref, onValue, remove } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+import { getDatabase, ref, onValue, remove, set } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 // ✅ 2. Firebase Configuration
 const firebaseConfig = {
@@ -51,7 +51,7 @@ function fetchData(type) {
     if (dataObj) {
       Object.entries(dataObj).forEach(([key, item]) => {
         if (item && typeof item === "object") {
-          item.__key = key; // store Firebase key for later use
+          item.__key = key; // store Firebase key
           fullDataArray.push(item);
         }
       });
@@ -65,7 +65,8 @@ function fetchData(type) {
 // ✅ 8. Populate School Dropdown with Unique School Names
 function populateSchoolFilter(data) {
   const schools = [...new Set(data.map(item => item.school || Object.values(item)[1]))]
-    .filter(Boolean).sort();
+    .filter(Boolean)
+    .sort();
 
   schoolFilter.innerHTML = `<option value="">All Schools</option>`;
   schools.forEach(school => {
@@ -81,7 +82,6 @@ function renderTable(dataArray) {
   tableHead.innerHTML = "";
   tableBody.innerHTML = "";
 
-  // Update count display
   dataCount.textContent = `Total: ${dataArray.length}`;
 
   if (dataArray.length === 0) {
@@ -154,7 +154,7 @@ function resetFilters() {
   renderTable(fullDataArray);
 }
 
-// ✅ 12. Delete Selected Records from Firebase
+// ✅ 12. Delete Selected Records with Workdone Log
 function deleteSelectedData() {
   const rows = Array.from(document.querySelectorAll("#tableBody tr"));
   const selectedRows = rows.filter(row => row.querySelector("input[type='checkbox']").checked);
@@ -167,25 +167,37 @@ function deleteSelectedData() {
   const confirmDelete = confirm(`Are you sure you want to delete ${selectedRows.length} record(s)?`);
   if (!confirmDelete) return;
 
-  const type = dataTypeSelect.value;
+  const type = dataTypeSelect.value; // staff or student
   const deletePromises = [];
 
   selectedRows.forEach(row => {
     const key = row.getAttribute("data-key");
     if (key) {
       const recordRef = ref(db, `${type}/${key}`);
-      deletePromises.push(remove(recordRef));
+      const recordData = fullDataArray.find(item => item.__key === key);
+
+      if (recordData) {
+        const schoolName = recordData.school || Object.values(recordData)[1] || "UnknownSchool";
+        const timestamp = new Date().toISOString();
+
+        // Log deletion in workdone before removing original record
+        const workdoneRef = ref(db, `workdone/${schoolName}/${type}/${key}`);
+        deletePromises.push(
+          set(workdoneRef, timestamp)
+            .then(() => remove(recordRef)) // completely remove original record
+        );
+      }
     }
   });
 
   Promise.all(deletePromises)
     .then(() => {
-      showToast(`${selectedRows.length} record(s) deleted successfully.`, "success");
+      showToast(`${selectedRows.length} record(s) deleted and logged in workdone.`, "success");
       fetchData(type);
     })
     .catch(error => {
-      console.error("Error deleting records:", error);
-      showToast("Some records could not be deleted.", "error");
+      console.error("Error deleting/logging records:", error);
+      showToast("Some records could not be deleted/logged.", "error");
     });
 }
 
@@ -240,7 +252,7 @@ async function exportSelectedData() {
     const values = headers.map(h => {
       let val = (row[h] || "").replace(/"/g, '""');
       if (h.toLowerCase().includes("dob")) {
-        return `"=""${val}"""`; // force Excel to treat as text
+        return `"=""${val}"""`;
       } else {
         return `"${val}"`;
       }
