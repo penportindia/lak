@@ -5,19 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data Viewer</title>
 
-  <!-- ❌ Tailwind हट गया -->
-  <!-- ✅ Custom CSS -->
-  <link rel="stylesheet" href="style.css" />
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="./style.css" />
 
   <!-- Lucide Icons -->
-  <script src="https://unpkg.com/lucide@latest"></script>
+  <script src="https://unpkg.com/lucide@latest/dist/lucide.min.js"></script>
 
   <!-- XLSX + FileSaver + JSZip -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.0/jszip.min.js"></script>
 </head>
-
 <body>
   <div class="main-container">
 
@@ -60,9 +58,13 @@
     </div>
   </div>
 
-  <script type="module" src="all.js"></script>
+  <!-- All JS -->
+  <script type="module" src="./all.js"></script>
   <script>
-    lucide.createIcons();
+    // Initialize Lucide icons after DOM load
+    document.addEventListener("DOMContentLoaded", () => {
+      lucide.createIcons();
+    });
   </script>
 </body>
 </html>
