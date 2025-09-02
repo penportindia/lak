@@ -51,52 +51,87 @@ window.verifyLogin = async function () {
   try {
     const rootRef = dbRef(database);
     const snapshot = await get(child(rootRef, `schools`));
-    if (snapshot.exists()) {
-      const schools = snapshot.val();
-      let matchedUser = null;
 
-      for (let key in schools) {
-        const data = schools[key];
-        // defensive checks
-        if (!data) continue;
-        if ((data.userid === uidOrPhone || data.phone === uidOrPhone) && data.password === pwd) {
-          matchedUser = data;
-          break;
-        }
-      }
-
-      if (matchedUser) {
-        // Clean school name
-        let rawSchoolName = matchedUser.name || '';
-        let cleanSchoolName = rawSchoolName
-          .replace(/[^a-zA-Z ]/g, '') // remove non-letters
-          .replace(/\s+/g, ' ')       // replace multiple spaces
-          .trim();
-
-        if (!cleanSchoolName) {
-          showOrAlert("School name is invalid in database!", "error");
-          return;
-        }
-
-        if (exists("loginPage")) el("loginPage").classList.add("hidden");
-        if (exists("homePage")) el("homePage").classList.remove("hidden");
-        if (exists("schoolName")) el("schoolName").innerHTML = `<option selected>${cleanSchoolName}</option>`;
-
-        schoolCode = matchedUser.userid || 'SCHOOL';
-        schoolName = cleanSchoolName;
-
-        showOrAlert("Login Successful!", "success");
-      } else {
-        showOrAlert("Invalid User ID / Phone or Password", "error");
-      }
-    } else {
+    if (!snapshot.exists()) {
       showOrAlert("No school records found", "error");
+      return;
     }
+
+    const schools = snapshot.val();
+    let matchedUser = null;
+
+    // loop schools to find match
+    for (let key in schools) {
+      const data = schools[key];
+      if (!data) continue;
+
+      // Normalize inputs
+      const inputDigits = uidOrPhone.replace(/\D/g, ""); // only digits (phone case)
+      const dbPhoneDigits = String(data.phone || "").replace(/\D/g, "");
+      const inputUserId = uidOrPhone.startsWith("+") ? uidOrPhone : "+" + uidOrPhone;
+
+      // ✅ Case 1: UserID + Password
+      const uidMatch = (data.userid === uidOrPhone || data.userid === inputUserId) && data.password === pwd;
+
+      // ✅ Case 2: Phone + Password
+      const phoneMatch = dbPhoneDigits && dbPhoneDigits === inputDigits && data.password === pwd;
+
+      if (uidMatch || phoneMatch) {
+        matchedUser = data;
+        break;
+      }
+    }
+
+    if (!matchedUser) {
+      showOrAlert("Invalid User ID / Phone or Password", "error");
+      return;
+    }
+
+    // ✅ Clean school name (letters, numbers, spaces, commas allowed)
+    let rawSchoolName = matchedUser.name || '';
+    let cleanSchoolName = rawSchoolName
+      .replace(/[^a-zA-Z0-9 ,]/g, '') 
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!cleanSchoolName) {
+      showOrAlert("School name is invalid in database!", "error");
+      return;
+    }
+
+    // ✅ Update UI
+    if (exists("loginPage")) el("loginPage").classList.add("hidden");
+    if (exists("homePage")) el("homePage").classList.remove("hidden");
+    if (exists("schoolName")) el("schoolName").innerHTML = `<option selected>${cleanSchoolName}</option>`;
+
+    schoolCode = matchedUser.userid || 'SCHOOL';
+    schoolName = cleanSchoolName;
+
+    // ✅ Mark school as active
+    await set(dbRef(database, `activeSchools/${schoolCode}`), {
+      name: schoolName,
+      status: "online",
+      ts: Date.now()
+    });
+
+    showOrAlert("Login Successful!", "success");
   } catch (error) {
     showOrAlert("Firebase Error: " + (error.message || error), "error");
     console.error(error);
   }
 };
+
+// -----------------------------
+// ✅ Auto Logout (page close/refresh)
+// -----------------------------
+window.addEventListener("beforeunload", () => {
+  if (schoolCode) {
+    try {
+      set(dbRef(database, `activeSchools/${schoolCode}`), null);
+    } catch (_) {}
+  }
+});
+
 
 // -----------------------------
 // ✅ Generate Unique Enrollment
@@ -724,4 +759,3 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.generateBarcodeImage = generateBarcodeImage;
 window.verifyLogin = window.verifyLogin; // already set earlier
-
