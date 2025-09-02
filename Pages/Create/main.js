@@ -1,4 +1,6 @@
+// ============================
 // ✅ Firebase Modules
+// ============================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 import {
   getDatabase,
@@ -9,7 +11,9 @@ import {
   update
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-// ✅ Firebase Config (keep secrets safe in production)
+// ============================
+// ✅ Firebase Config
+// ============================
 const firebaseConfig = {
   apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
   authDomain: "schools-cdce8.firebaseapp.com",
@@ -20,25 +24,77 @@ const firebaseConfig = {
   appId: "1:772712220138:web:381c173dccf1a6513fde93"
 };
 
+// ============================
 // ✅ Initialize Firebase
+// ============================
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
 
+// ============================
 // ✅ Global Variables
+// ============================
 let imageData = '';
 let lastType = '';
 let stream = null;
 let schoolCode = '';
 let schoolName = '';
 let entryData = {};
+let sessionTimeout = null; // Timer for inactivity-based auto-logout
+const MAX_IDLE = 10 * 60 * 1000; // 10 minutes in milliseconds
 
-// Some DOM helpers (safe getters)
+// ============================
+// ✅ DOM Helpers
+// ============================
 const el = id => document.getElementById(id);
 const exists = id => !!el(id);
 
-// -----------------------------
+// ============================
+// ✅ Auto Logout / Inactivity Functions
+// ============================
+
+// Reset session timer on any user activity
+function resetSessionTimer() {
+  if (sessionTimeout) clearTimeout(sessionTimeout);
+
+  sessionTimeout = setTimeout(async () => {
+    await logoutUser();
+  }, MAX_IDLE);
+}
+
+// Listen to common activity events to reset timer
+['click', 'keydown', 'input', 'change'].forEach(evt => {
+  document.addEventListener(evt, resetSessionTimer);
+});
+
+// Logout user function
+async function logoutUser() {
+  if (!schoolCode) return;
+
+  try {
+    // Remove user from activeSchools
+    await set(dbRef(database, `activeSchools/${schoolCode}`), null);
+
+    // Remove user's activity logs if any
+    await set(dbRef(database, `activityLogs/${schoolCode}`), null);
+
+    alert("Session expired due to inactivity. You have been logged out.");
+
+    // Update UI
+    if (exists("loginPage")) el("loginPage").classList.remove("hidden");
+    if (exists("homePage")) el("homePage").classList.add("hidden");
+
+    // Reset variables
+    schoolCode = '';
+    schoolName = '';
+    entryData = {};
+  } catch (error) {
+    console.error("Error during logout:", error);
+  }
+}
+
+// ============================
 // ✅ Login Function
-// -----------------------------
+// ============================
 window.verifyLogin = async function () {
   const uidOrPhone = (el("loginUser")?.value || "").trim();
   const pwd = (el("loginPass")?.value || "").trim();
@@ -60,20 +116,19 @@ window.verifyLogin = async function () {
     const schools = snapshot.val();
     let matchedUser = null;
 
-    // loop schools to find match
+    // Loop through schools to find match
     for (let key in schools) {
       const data = schools[key];
       if (!data) continue;
 
-      // Normalize inputs
-      const inputDigits = uidOrPhone.replace(/\D/g, ""); // only digits (phone case)
+      const inputDigits = uidOrPhone.replace(/\D/g, ""); // Only digits
       const dbPhoneDigits = String(data.phone || "").replace(/\D/g, "");
       const inputUserId = uidOrPhone.startsWith("+") ? uidOrPhone : "+" + uidOrPhone;
 
-      // ✅ Case 1: UserID + Password
+      // Case 1: UserID + Password
       const uidMatch = (data.userid === uidOrPhone || data.userid === inputUserId) && data.password === pwd;
 
-      // ✅ Case 2: Phone + Password
+      // Case 2: Phone + Password
       const phoneMatch = dbPhoneDigits && dbPhoneDigits === inputDigits && data.password === pwd;
 
       if (uidMatch || phoneMatch) {
@@ -87,10 +142,10 @@ window.verifyLogin = async function () {
       return;
     }
 
-    // ✅ Clean school name (letters, numbers, spaces, commas allowed)
+    // Clean school name (letters, numbers, spaces, commas allowed)
     let rawSchoolName = matchedUser.name || '';
     let cleanSchoolName = rawSchoolName
-      .replace(/[^a-zA-Z0-9 ,]/g, '') 
+      .replace(/[^a-zA-Z0-9 ,]/g, '')
       .replace(/\s+/g, ' ')
       .trim();
 
@@ -99,7 +154,7 @@ window.verifyLogin = async function () {
       return;
     }
 
-    // ✅ Update UI
+    // Update UI
     if (exists("loginPage")) el("loginPage").classList.add("hidden");
     if (exists("homePage")) el("homePage").classList.remove("hidden");
     if (exists("schoolName")) el("schoolName").innerHTML = `<option selected>${cleanSchoolName}</option>`;
@@ -107,12 +162,15 @@ window.verifyLogin = async function () {
     schoolCode = matchedUser.userid || 'SCHOOL';
     schoolName = cleanSchoolName;
 
-    // ✅ Mark school as active
+    // Mark school as active in Firebase
     await set(dbRef(database, `activeSchools/${schoolCode}`), {
       name: schoolName,
       status: "online",
-      ts: Date.now()
+      loginAt: Date.now()
     });
+
+    // Start/reset inactivity session timer
+    resetSessionTimer();
 
     showOrAlert("Login Successful!", "success");
   } catch (error) {
@@ -121,9 +179,9 @@ window.verifyLogin = async function () {
   }
 };
 
-// -----------------------------
-// ✅ Auto Logout (page close/refresh)
-// -----------------------------
+// ============================
+// ✅ Auto Logout on Page Close / Refresh
+// ============================
 window.addEventListener("beforeunload", () => {
   if (schoolCode) {
     try {
