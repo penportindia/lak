@@ -1,15 +1,28 @@
 // ----------------------------------------------------
-// Active Schools Dashboard - Fully updated
+// Active Schools Dashboard - Optimized to minimize downloads
+// Functions 1 to 12, line-by-line, production-ready
 // ----------------------------------------------------
 
 // ----------------------------------------------------
-// 1. Import Firebase Modules
+// 1) Import Firebase Modules (add query helpers)
 // ----------------------------------------------------
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import { getDatabase, ref, get, onValue } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
+import {
+  getDatabase,
+  ref,
+  get,
+  onValue,
+  query,
+  orderByChild,
+  equalTo,
+  limitToFirst,
+  limitToLast,
+  startAt,
+  endAt
+} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 // ----------------------------------------------------
-// 2. Firebase Configuration
+// 2) Firebase Configuration (unchanged)
 // ----------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
@@ -22,13 +35,13 @@ const firebaseConfig = {
 };
 
 // ----------------------------------------------------
-// 3. Init Firebase
+// 3) Init Firebase (unchanged)
 // ----------------------------------------------------
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ----------------------------------------------------
-// 4. DOM Elements
+// 4) DOM Elements (unchanged)
 // ----------------------------------------------------
 const studentCountEl = document.getElementById("studentCount");
 const staffCountEl = document.getElementById("staffCount");
@@ -38,16 +51,42 @@ const schoolListEl = document.getElementById("schoolList");
 const searchBox = document.getElementById("searchBox");
 const sortType = document.getElementById("sortType");
 const dateWiseListEl = document.getElementById("dateWiseList");
-const totalOnlineEl = document.getElementById("totalOnlineUsers"); 
+const totalOnlineEl = document.getElementById("totalOnlineUsers");
 
 // ----------------------------------------------------
-// 5. Global State
+// 5) Global State + Lightweight Cache
 // ----------------------------------------------------
-let schoolsData = [];     
-let activeSchools = {};   
+let schoolsData = [];
+let activeSchools = {};
+
+// Session cache: stores only processed/aggregated data (very small)
+const CACHE_KEY = "dashboard:v2:aggregates";
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+
+function readCache() {
+  try {
+    const raw = sessionStorage.getItem(CACHE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (!parsed || !parsed.timestamp) return null;
+    if (Date.now() - parsed.timestamp > CACHE_TTL_MS) return null;
+    return parsed.payload;
+  } catch {
+    return null;
+  }
+}
+
+function writeCache(payload) {
+  try {
+    const item = { timestamp: Date.now(), payload };
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify(item));
+  } catch {
+    // ignore quota errors
+  }
+}
 
 // ----------------------------------------------------
-// 6. Helpers
+// 6) Helpers (unchanged + small utils)
 // ----------------------------------------------------
 function normalizeName(name) {
   if (!name) return "";
@@ -67,35 +106,40 @@ function parseEnrollmentDate(enrollmentId) {
   return new Date(year, month, day);
 }
 
+function setText(el, val) {
+  if (el) el.textContent = String(val);
+}
+
 // ----------------------------------------------------
-// 7. Load Dashboard Data (Students + Staff + Dates)
+// 7) Load Dashboard Data (students + staff) – optimized
+//    - Avoids root fetch; fetches only required nodes
+//    - Uses session cache to prevent repeat downloads
 // ----------------------------------------------------
 async function loadDashboardData() {
   try {
-    const rootRef = ref(db);
-    const snapshot = await get(rootRef);
-
-    let studentCount = 0;
-    let staffCount = 0;
-    let schoolMap = {};
-    let dateMap = {};
-
-    if (!snapshot.exists()) {
-      studentCountEl && (studentCountEl.textContent = 0);
-      staffCountEl && (staffCountEl.textContent = 0);
-      totalEnrollmentEl && (totalEnrollmentEl.textContent = 0);
-      uniqueSchoolsEl && (uniqueSchoolsEl.textContent = 0);
-      totalOnlineEl && (totalOnlineEl.textContent = 0); 
-      schoolsData = [];
-      renderSchools();
-      renderDateWise({});
-      return;
+    // 7a) Try cache first (fast, zero network)
+    const cached = readCache();
+    if (cached) {
+      applyAggregatesToUI(cached);
+      return; // prevent extra downloads
     }
 
-    const data = snapshot.val();
-    const students = data.student || {};
-    const staff = data.staff || {};
+    // 7b) Minimal network: fetch only required branches
+    const [studentsSnap, staffSnap] = await Promise.all([
+      get(ref(db, "student")),
+      get(ref(db, "staff"))
+    ]);
 
+    const students = studentsSnap.exists() ? studentsSnap.val() : {};
+    const staff = staffSnap.exists() ? staffSnap.val() : {};
+
+    // 7c) Compute aggregates only (tiny memory; no heavy copies)
+    let studentCount = 0;
+    let staffCount = 0;
+    const schoolMap = Object.create(null);
+    const dateMap = Object.create(null);
+
+    // Process Students
     for (const key in students) {
       const s = students[key];
       studentCount++;
@@ -105,14 +149,15 @@ async function loadDashboardData() {
         if (!dateMap[d]) dateMap[d] = { students: 0, staff: 0 };
         dateMap[d].students++;
       }
-      if (s.schoolName) {
-        const raw = s.schoolName.toString();
+      const raw = s && s.schoolName ? String(s.schoolName) : "";
+      if (raw) {
         const norm = normalizeName(raw);
         if (!schoolMap[norm]) schoolMap[norm] = { displayName: raw.trim(), students: 0, staff: 0 };
         schoolMap[norm].students++;
       }
     }
 
+    // Process Staff
     for (const key in staff) {
       const st = staff[key];
       staffCount++;
@@ -122,36 +167,58 @@ async function loadDashboardData() {
         if (!dateMap[d]) dateMap[d] = { students: 0, staff: 0 };
         dateMap[d].staff++;
       }
-      if (st.schoolName) {
-        const raw = st.schoolName.toString();
+      const raw = st && st.schoolName ? String(st.schoolName) : "";
+      if (raw) {
         const norm = normalizeName(raw);
         if (!schoolMap[norm]) schoolMap[norm] = { displayName: raw.trim(), students: 0, staff: 0 };
         schoolMap[norm].staff++;
       }
     }
 
-    studentCountEl && (studentCountEl.textContent = studentCount);
-    staffCountEl && (staffCountEl.textContent = staffCount);
-    totalEnrollmentEl && (totalEnrollmentEl.textContent = studentCount + staffCount);
-    uniqueSchoolsEl && (uniqueSchoolsEl.textContent = Object.keys(schoolMap).length);
+    const aggregates = {
+      studentCount,
+      staffCount,
+      totalEnrollment: studentCount + staffCount,
+      uniqueSchools: Object.keys(schoolMap).length,
+      schoolsData: Object.keys(schoolMap).map(norm => ({
+        name: schoolMap[norm].displayName,
+        normalized: norm,
+        students: schoolMap[norm].students,
+        staff: schoolMap[norm].staff,
+        total: schoolMap[norm].students + schoolMap[norm].staff
+      })),
+      dateMap
+    };
 
-    schoolsData = Object.keys(schoolMap).map(norm => ({
-      name: schoolMap[norm].displayName,
-      normalized: norm,
-      students: schoolMap[norm].students,
-      staff: schoolMap[norm].staff,
-      total: schoolMap[norm].students + schoolMap[norm].staff
-    }));
-
-    renderSchools();
-    renderDateWise(dateMap);
+    // 7d) Apply + cache aggregates (small footprint)
+    applyAggregatesToUI(aggregates);
+    writeCache(aggregates);
   } catch (err) {
     console.error("loadDashboardData error:", err);
+    // Graceful fallback UI
+    setText(studentCountEl, 0);
+    setText(staffCountEl, 0);
+    setText(totalEnrollmentEl, 0);
+    setText(uniqueSchoolsEl, 0);
+    if (totalOnlineEl) totalOnlineEl.textContent = 0;
+    schoolsData = [];
+    renderSchools();
+    renderDateWise({});
   }
 }
 
+function applyAggregatesToUI({ studentCount, staffCount, totalEnrollment, uniqueSchools, schoolsData: sd, dateMap }) {
+  setText(studentCountEl, studentCount || 0);
+  setText(staffCountEl, staffCount || 0);
+  setText(totalEnrollmentEl, totalEnrollment || 0);
+  setText(uniqueSchoolsEl, uniqueSchools || 0);
+  schoolsData = Array.isArray(sd) ? sd : [];
+  renderSchools();
+  renderDateWise(dateMap || {});
+}
+
 // ----------------------------------------------------
-// 8. Render Schools (Search + Sort)
+// 8) Render Schools (Search + Sort) (mostly unchanged)
 // ----------------------------------------------------
 function renderSchools() {
   if (!schoolListEl) return;
@@ -206,47 +273,38 @@ function renderSchools() {
 }
 
 // ----------------------------------------------------
-// 8a. Attach Event Listeners for Search & Sort
+// 8a) Attach Event Listeners for Search & Sort (unchanged)
 // ----------------------------------------------------
-if(searchBox) searchBox.addEventListener("input", renderSchools);
-if(sortType) sortType.addEventListener("change", renderSchools);
+if (searchBox) searchBox.addEventListener("input", renderSchools);
+if (sortType) sortType.addEventListener("change", renderSchools);
 
 // ----------------------------------------------------
-// 9. Online dot pulse CSS
+// 9) Online dot pulse CSS (unchanged)
 // ----------------------------------------------------
 (function addOnlineStyles(){
   const style = document.createElement('style');
   style.innerHTML = `
-    .online-dot-pulse {
-      width: 14px;
-      height: 14px;
-      background: #16a34a;
-      border-radius: 50%;
-      display: inline-block;
-      animation: pulse 1.5s infinite;
-      box-shadow: 0 0 10px #16a34a, 0 0 20px #16a34a66;
-    }
-    @keyframes pulse {
-      0% { transform: scale(1); opacity: 0.7; }
-      50% { transform: scale(1.4); opacity: 0.4; }
-      100% { transform: scale(1); opacity: 0.7; }
-    }
+    .online-dot-pulse { width: 14px; height: 14px; background: #16a34a; border-radius: 50%; display: inline-block; animation: pulse 1.5s infinite; box-shadow: 0 0 10px #16a34a, 0 0 20px #16a34a66; }
+    @keyframes pulse { 0% { transform: scale(1); opacity: 0.7; } 50% { transform: scale(1.4); opacity: 0.4; } 100% { transform: scale(1); opacity: 0.7; } }
   `;
   document.head.appendChild(style);
 })();
 
 // ----------------------------------------------------
-// 10. Render Date-Wise (unchanged)
+// 10) Render Date-Wise (unchanged rendering)
 // ----------------------------------------------------
 function renderDateWise(dateMap) {
   if (!dateWiseListEl) return;
   dateWiseListEl.innerHTML = "";
+
   function toKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
   function normalizeDateKey(dateStr){ const d=new Date(dateStr); if(isNaN(d)) return null; d.setDate(d.getDate()+1); return toKey(d); }
   const fixedMap={}; for(const k in dateMap){ const normalized=normalizeDateKey(k); if(normalized) fixedMap[normalized]=dateMap[k]; }
   function formatLabel(key){ const d=new Date(key+"T00:00:00"); return `${String(d.getDate()).padStart(2,"0")} ${d.toLocaleString("default",{month:"short"}).toUpperCase()} ${d.getFullYear()}`; }
+
   const today = new Date(); today.setHours(0,0,0,0);
   const days=[]; for(let i=0;i<7;i++){ const d=new Date(today); d.setDate(today.getDate()-i); days.push(toKey(d)); }
+
   dateWiseListEl.style=`display:grid;grid-template-columns:repeat(7,1fr);gap:14px;width:100%;padding:10px 0;`;
   days.forEach(key=>{
     const val=fixedMap[key]||{students:0,staff:0}, total=val.students+val.staff;
@@ -269,68 +327,95 @@ function renderDateWise(dateMap) {
 }
 
 // ----------------------------------------------------
-// 11. Listen for Active Schools (unchanged)
+// 11) Listen for Active Schools – optimized query
+//     If your data stores status === true for online, this limits bytes.
+//     If status is stored as "online" (string), fallback to full read.
 // ----------------------------------------------------
-      function listenActiveSchools() {
-      try {
-        const activeRef = ref(db, "activeSchools");
-        onValue(activeRef, (snapshot) => {
-          const val = snapshot.exists() ? snapshot.val() : {};
-          const map = {};
-          const onlineNames = [];
+function listenActiveSchools() {
+  try {
+    const baseRef = ref(db, "activeSchools");
 
-          // Process active schools
-          Object.values(val).forEach(item => {
-            if (!item) return;
-            const name = item.name || item.schoolName || "";
-            const status = item.status;
-            const isOnline = (status === true) || (String(status).toLowerCase() === 'online');
-            if (name && isOnline) {
-              const normName = normalizeName(name);
-              map[normName] = true;
-              onlineNames.push(name.trim()); // store original name for display
-            }
-          });
+    // Prefer a filtered query (less download) when possible
+    const filteredRef = query(baseRef, orderByChild("status"), equalTo(true));
 
-          // Update global activeSchools
-          activeSchools = map;
+    onValue(filteredRef, (snapshot) => {
+      let val = snapshot.exists() ? snapshot.val() : {};
 
-          // Refresh school cards
-          renderSchools();
-
-          // Update online count with blinking circle
-          const onlineCount = onlineNames.length || 0;
-          const onlineContainer = document.getElementById("onlineSchoolsCount");
-          if (onlineContainer) {
-            onlineContainer.innerHTML = `
-              <i class="ri-user-line" style="font-size:18px;"></i>
-              <span id="onlineNumber">${onlineCount}</span>
-              <span id="blinkCircle" style="width:12px;height:12px;background-color:green;border-radius:50%;display:inline-block;animation:blink 1s infinite;margin-left:6px;"></span>
-            `;
-          }
-
-          // Render online schools as mini cards
-          const onlineListContainer = document.getElementById("onlineSchoolsList");
-          if (onlineListContainer) {
-            onlineListContainer.innerHTML = ""; // clear previous
-
-            onlineNames.forEach(name => {
-              const card = document.createElement("div");
-              card.className = "online-school-card";
-              card.title = name; // show full name on hover
-              card.innerHTML = `<span class="online-school-dot"></span>${name}`;
-              onlineListContainer.appendChild(card);
-            });
-          }
-
+      // Fallback: if nothing came (e.g., status stored as 'online' string), read once from baseRef
+      if (!snapshot.exists()) {
+        // Note: one extra lightweight read, only if filtered returned nothing
+        // This avoids subscribing to the full node in real-time if not necessary
+        get(baseRef).then((fullSnap) => {
+          processActiveSchools(fullSnap.exists() ? fullSnap.val() : {});
+        }).catch((e)=>{
+          console.warn("activeSchools full read failed:", e);
+          processActiveSchools({});
         });
-      } catch(err){ 
-        console.error("listenActiveSchools error:", err); 
+        return;
       }
+
+      processActiveSchools(val);
+    });
+  } catch(err){ 
+    console.error("listenActiveSchools error:", err); 
+  }
+}
+
+function processActiveSchools(val){
+  const map = {};
+  const onlineNames = [];
+
+  Object.values(val || {}).forEach(item => {
+    if (!item) return;
+    const name = item.name || item.schoolName || "";
+    const status = item.status;
+    const isOnline = (status === true) || (String(status).toLowerCase && String(status).toLowerCase() === 'online');
+    if (name && isOnline) {
+      const normName = normalizeName(name);
+      map[normName] = true;
+      onlineNames.push(String(name).trim());
     }
+  });
+
+  activeSchools = map;
+  renderSchools();
+
+  const onlineContainer = document.getElementById("onlineSchoolsCount");
+  if (onlineContainer) {
+    onlineContainer.innerHTML = `
+      <i class="ri-user-line" style="font-size:18px;"></i>
+      <span id="onlineNumber">${onlineNames.length || 0}</span>
+      <span id="blinkCircle" style="width:12px;height:12px;background-color:green;border-radius:50%;display:inline-block;animation:blink 1s infinite;margin-left:6px;"></span>
+    `;
+  }
+
+  const onlineListContainer = document.getElementById("onlineSchoolsList");
+  if (onlineListContainer) {
+    onlineListContainer.innerHTML = "";
+    onlineNames.forEach(name => {
+      const card = document.createElement("div");
+      card.className = "online-school-card";
+      card.title = name;
+      card.innerHTML = `<span class="online-school-dot"></span>${name}`;
+      onlineListContainer.appendChild(card);
+    });
+  }
+}
 
 // ----------------------------------------------------
-// 12. Init
+// 12) Init (with defensive boot)
 // ----------------------------------------------------
 loadDashboardData();
 listenActiveSchools();
+
+// Optional: clear cache when the page becomes visible after a long time
+// to prevent staleness while still minimizing downloads
+window.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible") {
+    const cached = readCache();
+    if (!cached) {
+      // No fresh cache -> refetch aggregates (small, two reads only)
+      loadDashboardData();
+    }
+  }
+});
