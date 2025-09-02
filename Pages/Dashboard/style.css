@@ -1,4 +1,4 @@
-/* 🌐 Global */
+/* 🌐 Global Styles */
 body {
   font-family: 'Inter', sans-serif;
   background: linear-gradient(135deg, #eef2ff, #f9fafb);
@@ -21,7 +21,7 @@ h2.section-title {
   letter-spacing: -0.3px;
 }
 
-/* 📊 Top Stat Cards – Dhasu Version */
+/* 📊 Top Stat Cards */
 .cards {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -30,12 +30,12 @@ h2.section-title {
 }
 
 .card {
-  background: #ffffff; /* keep white base */
+  background: #ffffff;
   border-radius: 22px;
   padding: 24px 20px;
   text-align: center;
   box-shadow: 0 8px 20px rgba(0,0,0,0.08),
-              0 0 15px rgba(59,130,246,0.2); /* subtle glow */
+              0 0 15px rgba(59,130,246,0.2);
   position: relative;
   overflow: hidden;
   transition: transform 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
@@ -60,7 +60,7 @@ h2.section-title {
   transform: translateY(-8px) scale(1.05);
   box-shadow: 0 20px 40px rgba(37,99,235,0.25),
               0 0 30px rgba(124,58,237,0.15);
-  background: linear-gradient(145deg, #ffffff, #f3f6ff); /* subtle gradient */
+  background: linear-gradient(145deg, #ffffff, #f3f6ff);
 }
 
 .card i {
@@ -149,59 +149,27 @@ h2.section-title {
   color: #374151;
 }
 
-/* Input + Select same size */
-.filters-card .filter-group select {
+.filters-card .filter-group select,
+.input-wrapper input {
   width: 100%;
   padding: 10px 12px;
   border-radius: 12px;
   font-size: 13px;
   background: rgba(255,255,255,0.95);
   box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  border: 1px solid transparent;
+  border: 1px solid #d1d5db;
+  outline: none;
   transition: all 0.3s ease;
   box-sizing: border-box;
 }
 
-.filters-card .filter-group select:focus {
-  outline: none;
-  border-color: #2563eb;
-  box-shadow: 0 0 0 2px rgba(37,99,235,0.25);
-  background: #fff;
-}
-
-/* 🔍 Input with Icon – Fixed */
-.input-wrapper {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-}
-
-.input-wrapper i {
-  font-size: 16px;
-  color: #6b7280;
-  pointer-events: none;
-}
-
-.input-wrapper input {
-  flex: 1;
-  padding: 10px 12px;
-  border-radius: 12px;
-  font-size: 13px;
-  border: 1px solid #d1d5db;
-  background: rgba(255,255,255,0.95);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-  outline: none;
-  transition: all 0.3s ease;
-}
-
+.filters-card .filter-group select:focus,
 .input-wrapper input:focus {
   border-color: #2563eb;
   box-shadow: 0 0 0 2px rgba(37,99,235,0.25);
   background: #fff;
 }
 
-/* Dropdown Arrow */
 .filter-group select {
   appearance: none;
   background-image: url("data:image/svg+xml,%3Csvg fill='none' stroke='%23374151' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' viewBox='0 0 24 24'%3E%3Cpath d='M19 9l-7 7-7-7'/%3E%3C/svg%3E");
@@ -211,13 +179,26 @@ h2.section-title {
   cursor: pointer;
 }
 
-/* Animation */
+/* Input Wrapper Icon */
+.input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.input-wrapper i {
+  font-size: 16px;
+  color: #6b7280;
+  pointer-events: none;
+}
+
+/* Slide-in Animation */
 @keyframes slideIn {
   from { opacity: 0; transform: translateX(40px); }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-/* Right: Date-wise List */
+/* Right: Date-wise Container */
 .date-wise {
   flex: 1;
   min-width: 280px;
@@ -232,28 +213,109 @@ h2.section-title {
   align-self: stretch;
 }
 
-/* 📅 Date-wise Table/List */
+/* Date-wise Header: Left (schools) + Right (users) */
+.date-wise-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+/* Left: Online Schools Wrapper */
+.online-schools-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+}
+
+/* Online Schools Container (single row, no scroll) */
+.online-schools-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap; /* all cards in one row */
+  overflow: hidden;  /* hide any overflow */
+}
+
+/* Compact Online School Card */
+.online-school-card {
+  background: #f0fdf4;
+  border-radius: 12px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #16a34a;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0; /* prevent shrinking */
+  max-width: 140px; /* adjust width for school names */
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.online-school-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Dot indicator */
+.online-school-dot {
+  width: 6px;
+  height: 6px;
+  background: #16a34a;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* School Name inside card */
+.online-school-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Online User Blink Indicator */
+.blink-indicator {
+  width: 12px;
+  height: 12px;
+  background-color: green;
+  border-radius: 50%;
+  display: inline-block;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50%, 100% { opacity: 1; }
+  25%, 75% { opacity: 0; }
+}
+
+/* Date-wise Table/List */
 .date-wise table {
   width: 100%;
   border-collapse: collapse;
 }
+
 .date-wise th, .date-wise td {
   padding: 10px 12px;
   font-size: 13px;
   text-align: left;
 }
+
 .date-wise th {
   background: linear-gradient(90deg, #2563eb, #3b82f6);
   color: #fff;
   font-weight: 600;
   letter-spacing: 0.2px;
 }
+
 .date-wise tr:nth-child(even) { background: #f9fafb; }
 .date-wise td { color: #1f2937; }
-.date-wise tbody tr:hover {
-  background: #eef2ff;
-  transition: background 0.3s;
-}
+.date-wise tbody tr:hover { background: #eef2ff; transition: background 0.3s; }
 
 /* 🏫 School List */
 .school-list {
@@ -262,13 +324,18 @@ h2.section-title {
   gap: 22px;
   margin-bottom: 50px;
 }
+
 .school-card {
   background: #fff;
   border-radius: 20px;
   padding: 18px;
   box-shadow: 0 6px 16px rgba(0,0,0,0.08);
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
+
 .school-card:hover {
   transform: translateY(-5px);
   box-shadow: 0 12px 24px rgba(0,0,0,0.12);
@@ -284,31 +351,49 @@ footer {
   background: linear-gradient(to right, #f9fafb, #eef2ff);
   border-radius: 16px;
 }
+
 .footer-brand {
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:10px;
-  font-size:15px;
-  font-weight:500;
-  color:#374151;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  font-size: 15px;
+  font-weight: 500;
+  color: #374151;
 }
-.footer-brand i { color:#2563eb; font-size:20px; }
+
+.footer-brand i {
+  color: #2563eb;
+  font-size: 20px;
+}
+
 .footer-brand a {
-  color:#2563eb;
-  text-decoration:none;
-  font-weight:600;
+  color: #2563eb;
+  text-decoration: none;
+  font-weight: 600;
 }
+
 .footer-brand a:hover { text-decoration: underline; }
-.footer-tagline { font-size:13px; margin-top:6px; color:#6b7280; }
+
+.footer-tagline {
+  font-size: 13px;
+  margin-top: 6px;
+  color: #6b7280;
+}
 
 /* Mobile Responsive */
 @media (max-width: 900px) {
   .main-row {
     flex-direction: column;
   }
-  .filters-card, .date-wise {
+
+  .filters-card,
+  .date-wise {
     width: 100%;
     align-self: stretch;
+  }
+
+  .online-schools-container {
+    flex-wrap: wrap; /* allow wrapping on mobile */
   }
 }
