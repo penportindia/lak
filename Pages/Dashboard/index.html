@@ -12,36 +12,44 @@
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
-  <!-- 📊 Top Stat Cards -->
-  <div class="cards">
+  
+  <!-- Top Stat Cards -->
+  <section class="cards">
     <div class="card">
       <i class="ri-graduation-cap-line"></i>
-      <h4>Students</h4>
-      <span id="studentCount">0</span>
+      <div class="card-info">
+        <h4>Students</h4>
+        <span id="studentCount">0</span>
+      </div>
     </div>
     <div class="card">
       <i class="ri-user-star-line"></i>
-      <h4>Staff</h4>
-      <span id="staffCount">0</span>
+      <div class="card-info">
+        <h4>Staff</h4>
+        <span id="staffCount">0</span>
+      </div>
     </div>
     <div class="card">
       <i class="ri-pie-chart-2-line"></i>
-      <h4>Total Enrollment</h4>
-      <span id="totalEnrollment">0</span>
+      <div class="card-info">
+        <h4>Total Enrollment</h4>
+        <span id="totalEnrollment">0</span>
+      </div>
     </div>
     <div class="card">
       <i class="ri-community-line"></i>
-      <h4>Schools</h4>
-      <span id="uniqueSchools">0</span>
+      <div class="card-info">
+        <h4>Schools</h4>
+        <span id="uniqueSchools">0</span>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- 📅 Date-wise + Filters Row -->
-  <div class="main-row">
+  <!-- Main Row: Filters + Date-wise Report -->
+  <section class="main-row">
 
-    <!-- 🔍 Filters (Left) -->
-    <div class="filters-card">
+    <!-- Filters Sidebar -->
+    <aside class="filters-card">
       <div class="filters-header">
         <i class="ri-filter-3-line"></i>
         <h3>Filters</h3>
@@ -63,26 +71,50 @@
           <option value="low">Lowest Enrollment</option>
         </select>
       </div>
-    </div>
+    </aside>
 
-    <!-- 📅 Date-wise Enrollment (Right) -->
+    <!-- Date-wise Report -->
     <div class="date-wise">
-      <h2 class="section-title">
-        <i class="ri-calendar-event-line"></i> 7 Days Report
-      </h2>
+      <!-- Header: Online Users + Online Schools -->
+      <div class="date-wise-header">
+
+        <!-- Left: Online Users + Online Schools -->
+        <div class="online-wrapper">
+          <div id="onlineSchoolsCount" class="online-count">
+            <i class="ri-user-line"></i>
+            <span id="onlineNumber">0</span>
+            <span id="blinkCircle" class="blink-indicator"></span>
+          </div>
+          <div id="onlineSchoolsList" class="online-schools-container">
+            <!-- JS will inject full-name mini cards -->
+          </div>
+        </div>
+
+        <!-- Right: 7 Days Report Title -->
+        <h2 class="section-title">
+          <i class="ri-calendar-event-line"></i> 7 Days Report
+        </h2>
+
+      </div>
+
+      <!-- Date-wise Cards/List -->
       <div class="date-wise-list" id="dateWiseList">
-        <!-- JS se cards/list items load honge -->
+        <!-- JS will render date-wise cards here -->
       </div>
     </div>
 
-  </div>
+  </section>
 
-  <!-- 🏫 School List -->
-  <h2 class="section-title"><i class="ri-building-4-line"></i> School List</h2>
-  <div id="schoolList" class="school-list"></div>
+  <!-- School List -->
+  <section class="school-section">
+    <h2 class="section-title"><i class="ri-building-4-line"></i> School List</h2>
+    <div id="schoolList" class="school-list">
+      <!-- JS will render school cards -->
+    </div>
+  </section>
 
-  <!-- ⚡ Footer -->
-  <footer>
+  <!-- Footer -->
+  <footer class="footer">
     <div class="footer-brand">
       <i class="ri-shield-check-line"></i>
       Designed & Developed 
@@ -91,6 +123,7 @@
     <p class="footer-tagline">Simplifying Complexity Through Code</p>
   </footer>  
 
+  <!-- JS -->
   <script type="module" src="app.js"></script>
 </body>
 </html>
