@@ -176,15 +176,6 @@ body {
   transition: background-color 0.3s ease;
 }
 
-/* Image */
-#data-table img {
-  width: 48px;
-  height: 48px;
-  border-radius: 8px;
-  object-fit: cover;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
 /* Checkbox Styling */
 #data-table input[type="checkbox"] {
   width: 16px;
@@ -213,37 +204,4 @@ body {
   #data-table {
     font-size: 13px;
   }
-}
-
-/* --------------------------------------------------
-   🔽 NEW CSS MODIFICATIONS FOR MISSING PHOTOS 🔽
--------------------------------------------------- */
-
-/* Row WITHOUT <img> tag (missing photo completely) */
-#data-table tbody tr:not(:has(img)) {
-  background-color: #fdecea;         /* Light soft red */
-  color: #b91c1c;                    /* Dark red text */
-  font-weight: 500;
-}
-
-/* Row WITH <img src=""> i.e., empty source (photo not loaded) */
-#data-table tbody tr:has(img[src=""]) {
-  background-color: #fdecea;
-  color: #b91c1c;
-  font-weight: 500;
-}
-
-/* Row WITH <img class="no-image"> i.e., marked missing */
-#data-table tbody tr:has(img.no-image) {
-  background-color: #fdecea;
-  color: #b91c1c;
-  font-weight: 500;
-}
-
-/* 🔁 Hover effect for all missing-photo rows */
-#data-table tbody tr:not(:has(img)):hover,
-#data-table tbody tr:has(img[src=""]):hover,
-#data-table tbody tr:has(img.no-image):hover {
-  background-color: #fbd5d5; /* Slightly deeper red on hover */
-  transition: background-color 0.3s ease;
 }
