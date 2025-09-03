@@ -1,29 +1,18 @@
 // ----------------------------------------------------
 // Active Schools Dashboard - Optimized to minimize downloads
-// Functions 1 to 12, line-by-line, production-ready
+// Functions 1 to 12, production-ready (UI unchanged)
 // ----------------------------------------------------
 
-// ----------------------------------------------------
-// 1) Import Firebase Modules (add query helpers)
-// ----------------------------------------------------
+// 1) Import Firebase Modules
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
 import {
   getDatabase,
   ref,
   get,
-  onValue,
-  query,
-  orderByChild,
-  equalTo,
-  limitToFirst,
-  limitToLast,
-  startAt,
-  endAt
+  onValue
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
-// ----------------------------------------------------
-// 2) Firebase Configuration (unchanged)
-// ----------------------------------------------------
+// 2) Firebase Config
 const firebaseConfig = {
   apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
   authDomain: "schools-cdce8.firebaseapp.com",
@@ -34,15 +23,11 @@ const firebaseConfig = {
   appId: "1:772712220138:web:381c173dccf1a6513fde93"
 };
 
-// ----------------------------------------------------
-// 3) Init Firebase (unchanged)
-// ----------------------------------------------------
+// 3) Init
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// ----------------------------------------------------
-// 4) DOM Elements (unchanged)
-// ----------------------------------------------------
+// 4) DOM Elements (UI unchanged)
 const studentCountEl = document.getElementById("studentCount");
 const staffCountEl = document.getElementById("staffCount");
 const totalEnrollmentEl = document.getElementById("totalEnrollment");
@@ -53,78 +38,54 @@ const sortType = document.getElementById("sortType");
 const dateWiseListEl = document.getElementById("dateWiseList");
 const totalOnlineEl = document.getElementById("totalOnlineUsers");
 
-// ----------------------------------------------------
-// 5) Global State + Lightweight Cache
-// ----------------------------------------------------
+// 5) Global State + Cache
 let schoolsData = [];
 let activeSchools = {};
 
-// Session cache: stores only processed/aggregated data (very small)
 const CACHE_KEY = "dashboard:v2:aggregates";
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 minutes
+const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
 
 function readCache() {
   try {
     const raw = sessionStorage.getItem(CACHE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw);
-    if (!parsed || !parsed.timestamp) return null;
+    if (!parsed?.timestamp) return null;
     if (Date.now() - parsed.timestamp > CACHE_TTL_MS) return null;
     return parsed.payload;
-  } catch {
-    return null;
-  }
+  } catch { return null; }
 }
-
 function writeCache(payload) {
   try {
-    const item = { timestamp: Date.now(), payload };
-    sessionStorage.setItem(CACHE_KEY, JSON.stringify(item));
-  } catch {
-    // ignore quota errors
-  }
+    sessionStorage.setItem(CACHE_KEY, JSON.stringify({ timestamp: Date.now(), payload }));
+  } catch {}
 }
 
-// ----------------------------------------------------
-// 6) Helpers (unchanged + small utils)
-// ----------------------------------------------------
+// 6) Helpers (unchanged)
 function normalizeName(name) {
-  if (!name) return "";
-  return name.toString().trim().replace(/\s+/g, " ").toLowerCase();
+  return (name || "").toString().trim().replace(/\s+/g, " ").toLowerCase();
 }
-
 function parseEnrollmentDate(enrollmentId) {
   const match = (enrollmentId || "").match(/\d{2}[A-Z]{3}/);
   if (!match) return null;
   const str = match[0];
   const day = parseInt(str.slice(0, 2));
-  const monthStr = str.slice(2, 5);
-  const months = { JAN:0, FEB:1, MAR:2, APR:3, MAY:4, JUN:5, JUL:6, AUG:7, SEP:8, OCT:9, NOV:10, DEC:11 };
-  const month = months[monthStr];
+  const months = { JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11 };
+  const month = months[str.slice(2, 5)];
   if (month === undefined) return null;
-  const year = new Date().getFullYear();
-  return new Date(year, month, day);
+  return new Date(new Date().getFullYear(), month, day);
 }
+function setText(el, val) { if (el) el.textContent = String(val); }
 
-function setText(el, val) {
-  if (el) el.textContent = String(val);
-}
-
-// ----------------------------------------------------
-// 7) Load Dashboard Data (students + staff) – optimized
-//    - Avoids root fetch; fetches only required nodes
-//    - Uses session cache to prevent repeat downloads
-// ----------------------------------------------------
+// 7) Load Dashboard Data (with cache)
 async function loadDashboardData() {
   try {
-    // 7a) Try cache first (fast, zero network)
     const cached = readCache();
     if (cached) {
       applyAggregatesToUI(cached);
-      return; // prevent extra downloads
+      return;
     }
 
-    // 7b) Minimal network: fetch only required branches
     const [studentsSnap, staffSnap] = await Promise.all([
       get(ref(db, "student")),
       get(ref(db, "staff"))
@@ -133,45 +94,38 @@ async function loadDashboardData() {
     const students = studentsSnap.exists() ? studentsSnap.val() : {};
     const staff = staffSnap.exists() ? staffSnap.val() : {};
 
-    // 7c) Compute aggregates only (tiny memory; no heavy copies)
-    let studentCount = 0;
-    let staffCount = 0;
-    const schoolMap = Object.create(null);
-    const dateMap = Object.create(null);
+    let studentCount = 0, staffCount = 0;
+    const schoolMap = {}, dateMap = {};
 
     // Process Students
     for (const key in students) {
-      const s = students[key];
       studentCount++;
+      const s = students[key];
       const date = parseEnrollmentDate(key);
       if (date) {
         const d = date.toISOString().slice(0, 10);
-        if (!dateMap[d]) dateMap[d] = { students: 0, staff: 0 };
-        dateMap[d].students++;
+        (dateMap[d] ??= { students: 0, staff: 0 }).students++;
       }
-      const raw = s && s.schoolName ? String(s.schoolName) : "";
+      const raw = s?.schoolName || "";
       if (raw) {
         const norm = normalizeName(raw);
-        if (!schoolMap[norm]) schoolMap[norm] = { displayName: raw.trim(), students: 0, staff: 0 };
-        schoolMap[norm].students++;
+        (schoolMap[norm] ??= { displayName: raw.trim(), students: 0, staff: 0 }).students++;
       }
     }
 
     // Process Staff
     for (const key in staff) {
-      const st = staff[key];
       staffCount++;
+      const st = staff[key];
       const date = parseEnrollmentDate(key);
       if (date) {
         const d = date.toISOString().slice(0, 10);
-        if (!dateMap[d]) dateMap[d] = { students: 0, staff: 0 };
-        dateMap[d].staff++;
+        (dateMap[d] ??= { students: 0, staff: 0 }).staff++;
       }
-      const raw = st && st.schoolName ? String(st.schoolName) : "";
+      const raw = st?.schoolName || "";
       if (raw) {
         const norm = normalizeName(raw);
-        if (!schoolMap[norm]) schoolMap[norm] = { displayName: raw.trim(), students: 0, staff: 0 };
-        schoolMap[norm].staff++;
+        (schoolMap[norm] ??= { displayName: raw.trim(), students: 0, staff: 0 }).staff++;
       }
     }
 
@@ -190,23 +144,19 @@ async function loadDashboardData() {
       dateMap
     };
 
-    // 7d) Apply + cache aggregates (small footprint)
     applyAggregatesToUI(aggregates);
     writeCache(aggregates);
   } catch (err) {
     console.error("loadDashboardData error:", err);
-    // Graceful fallback UI
     setText(studentCountEl, 0);
     setText(staffCountEl, 0);
     setText(totalEnrollmentEl, 0);
     setText(uniqueSchoolsEl, 0);
-    if (totalOnlineEl) totalOnlineEl.textContent = 0;
     schoolsData = [];
     renderSchools();
     renderDateWise({});
   }
 }
-
 function applyAggregatesToUI({ studentCount, staffCount, totalEnrollment, uniqueSchools, schoolsData: sd, dateMap }) {
   setText(studentCountEl, studentCount || 0);
   setText(staffCountEl, staffCount || 0);
@@ -217,15 +167,11 @@ function applyAggregatesToUI({ studentCount, staffCount, totalEnrollment, unique
   renderDateWise(dateMap || {});
 }
 
-// ----------------------------------------------------
-// 8) Render Schools (Search + Sort) (mostly unchanged)
-// ----------------------------------------------------
+// 8) Render Schools (UI unchanged)
 function renderSchools() {
   if (!schoolListEl) return;
-
   let filtered = [...schoolsData];
-
-  const searchVal = (searchBox && searchBox.value || "").toLowerCase();
+  const searchVal = (searchBox?.value || "").toLowerCase();
   if (searchVal) filtered = filtered.filter(s => (s.name || "").toLowerCase().includes(searchVal));
 
   if (sortType) {
@@ -235,12 +181,15 @@ function renderSchools() {
     else if (sortType.value === "low") filtered.sort((a,b)=>a.total - b.total);
   }
 
-  const totalOnlineSchools = schoolsData.filter(s => !!activeSchools[s.normalized]).length;
+  const totalOnlineSchools = schoolsData.filter(s => activeSchools[s.normalized]).length;
   if (totalOnlineEl) totalOnlineEl.textContent = `Online Schools: ${totalOnlineSchools}`;
 
   schoolListEl.innerHTML = "";
-  if (filtered.length === 0) {
-    schoolListEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;background:#f9fafb;border-radius:16px;border:2px dashed #d1d5db;color:#6b7280;font-size:15px;"><i class="ri-search-eye-line" style="font-size:32px;color:#9ca3af;margin-bottom:10px;display:block;"></i>No schools found.<br>Try adjusting your search or filters.</div>`;
+  if (!filtered.length) {
+    schoolListEl.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;background:#f9fafb;border-radius:16px;border:2px dashed #d1d5db;color:#6b7280;font-size:15px;">
+      <i class="ri-search-eye-line" style="font-size:32px;color:#9ca3af;margin-bottom:10px;display:block;"></i>
+      No schools found.<br>Try adjusting your search or filters.
+    </div>`;
     return;
   }
 
@@ -271,16 +220,10 @@ function renderSchools() {
     schoolListEl.appendChild(card);
   });
 }
-
-// ----------------------------------------------------
-// 8a) Attach Event Listeners for Search & Sort (unchanged)
-// ----------------------------------------------------
 if (searchBox) searchBox.addEventListener("input", renderSchools);
 if (sortType) sortType.addEventListener("change", renderSchools);
 
-// ----------------------------------------------------
 // 9) Online dot pulse CSS (unchanged)
-// ----------------------------------------------------
 (function addOnlineStyles(){
   const style = document.createElement('style');
   style.innerHTML = `
@@ -290,13 +233,10 @@ if (sortType) sortType.addEventListener("change", renderSchools);
   document.head.appendChild(style);
 })();
 
-// ----------------------------------------------------
-// 10) Render Date-Wise (unchanged rendering)
-// ----------------------------------------------------
+// 10) Render Date-Wise (unchanged)
 function renderDateWise(dateMap) {
   if (!dateWiseListEl) return;
   dateWiseListEl.innerHTML = "";
-
   function toKey(d){ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`; }
   function normalizeDateKey(dateStr){ const d=new Date(dateStr); if(isNaN(d)) return null; d.setDate(d.getDate()+1); return toKey(d); }
   const fixedMap={}; for(const k in dateMap){ const normalized=normalizeDateKey(k); if(normalized) fixedMap[normalized]=dateMap[k]; }
@@ -326,54 +266,48 @@ function renderDateWise(dateMap) {
   });
 }
 
-// ----------------------------------------------------
-// 11) Listen for Active Schools – optimized query
-//     If your data stores status === true for online, this limits bytes.
-//     If status is stored as "online" (string), fallback to full read.
-// ----------------------------------------------------
+// 11) Listen for Active Schools ✅ FIXED
 function listenActiveSchools() {
   try {
     const baseRef = ref(db, "activeSchools");
-
-    // Prefer a filtered query (less download) when possible
-    const filteredRef = query(baseRef, orderByChild("status"), equalTo(true));
-
-    onValue(filteredRef, (snapshot) => {
-      let val = snapshot.exists() ? snapshot.val() : {};
-
-      // Fallback: if nothing came (e.g., status stored as 'online' string), read once from baseRef
-      if (!snapshot.exists()) {
-        // Note: one extra lightweight read, only if filtered returned nothing
-        // This avoids subscribing to the full node in real-time if not necessary
-        get(baseRef).then((fullSnap) => {
-          processActiveSchools(fullSnap.exists() ? fullSnap.val() : {});
-        }).catch((e)=>{
-          console.warn("activeSchools full read failed:", e);
-          processActiveSchools({});
-        });
-        return;
-      }
-
-      processActiveSchools(val);
+    onValue(baseRef, (snapshot) => {
+      processActiveSchools(snapshot.exists() ? snapshot.val() : {});
     });
-  } catch(err){ 
-    console.error("listenActiveSchools error:", err); 
+  } catch (err) {
+    console.error("listenActiveSchools error:", err);
   }
 }
 
-function processActiveSchools(val){
+function processActiveSchools(val) {
   const map = {};
   const onlineNames = [];
 
-  Object.values(val || {}).forEach(item => {
-    if (!item) return;
-    const name = item.name || item.schoolName || "";
-    const status = item.status;
-    const isOnline = (status === true) || (String(status).toLowerCase && String(status).toLowerCase() === 'online');
-    if (name && isOnline) {
-      const normName = normalizeName(name);
+  Object.values(val || {}).forEach(schoolSessions => {
+    if (!schoolSessions) return;
+    let schoolName = "", isOnline = false;
+
+    Object.values(schoolSessions).forEach(session => {
+      if (!session) return;
+
+      // 🔹 FIXED: use "name" field from DB
+      const name = session.name || session.schoolName || "";
+
+      // 🔹 FIXED: status is string "online"
+      const status = session.status;
+
+      // 🔹 FIXED: expiry field is "expiresAt"
+      const expiry = session.expiresAt || 0;
+
+      if (name && status === "online" && Date.now() < expiry) {
+        schoolName = name;
+        isOnline = true;
+      }
+    });
+
+    if (isOnline && schoolName) {
+      const normName = normalizeName(schoolName);
       map[normName] = true;
-      onlineNames.push(String(name).trim());
+      onlineNames.push(String(schoolName).trim());
     }
   });
 
@@ -402,20 +336,6 @@ function processActiveSchools(val){
   }
 }
 
-// ----------------------------------------------------
-// 12) Init (with defensive boot)
-// ----------------------------------------------------
+// 12) Init
 loadDashboardData();
 listenActiveSchools();
-
-// Optional: clear cache when the page becomes visible after a long time
-// to prevent staleness while still minimizing downloads
-window.addEventListener("visibilitychange", () => {
-  if (document.visibilityState === "visible") {
-    const cached = readCache();
-    if (!cached) {
-      // No fresh cache -> refetch aggregates (small, two reads only)
-      loadDashboardData();
-    }
-  }
-});
