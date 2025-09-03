@@ -1,382 +1,322 @@
 // ----------------------------------------------------
-// Active Schools Dashboard - Optimized (Shallow Enrollment Read)
+// ✅ 1. Import Firebase Modules
 // ----------------------------------------------------
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+import { getDatabase, ref, get, remove, set } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
-// 1) Import Firebase Modules
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-app.js";
-import {
-  getDatabase,
-  ref,
-  onValue
-} from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
-
-// 2) Firebase Config
+// ----------------------------------------------------
+// ✅ 2. Firebase Configuration
+// ----------------------------------------------------
 const firebaseConfig = {
   apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
   authDomain: "schools-cdce8.firebaseapp.com",
   databaseURL: "https://schools-cdce8-default-rtdb.firebaseio.com",
   projectId: "schools-cdce8",
-  storageBucket: "schools-cdce8.firebasestorage.app",
+  storageBucket: "schools-cdce8.appspot.com",
   messagingSenderId: "772712220138",
   appId: "1:772712220138:web:381c173dccf1a6513fde93"
 };
 
-// 3) Init
+// ----------------------------------------------------
+// ✅ 3. Initialize Firebase App and Database
+// ----------------------------------------------------
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const BASE_URL = firebaseConfig.databaseURL;
 
-// 4) DOM Elements
-const studentCountEl = document.getElementById("studentCount");
-const staffCountEl = document.getElementById("staffCount");
-const totalEnrollmentEl = document.getElementById("totalEnrollment");
-const uniqueSchoolsEl = document.getElementById("uniqueSchools");
-const schoolListEl = document.getElementById("schoolList");
-const searchBox = document.getElementById("searchBox");
-const sortType = document.getElementById("sortType");
-const dateWiseListEl = document.getElementById("dateWiseList");
-const totalOnlineEl = document.getElementById("totalOnlineUsers");
+// ----------------------------------------------------
+// ✅ 4. DOM Elements
+// ----------------------------------------------------
+const schoolFilter = document.getElementById("schoolFilter");
+const schoolIDSelect = document.getElementById("schoolIDSelect");
+const dataTypeSelect = document.getElementById("dataType");
+const resetBtn = document.getElementById("resetBtn");
+const exportBtn = document.getElementById("exportBtn");
+const deleteBtn = document.getElementById("deleteBtn");
+const tableHead = document.getElementById("tableHead");
+const tableBody = document.getElementById("tableBody");
+const notification = document.getElementById("notification");
+const dataCount = document.getElementById("dataCount");
 
-// 5) Global State + Cache
-let schoolsData = [];
-let activeSchools = Object.create(null);
+let fullDataArray = [];
 
-const CACHE_KEY = "dashboard:v5:aggregates"; 
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
+// ----------------------------------------------------
+// ✅ 5. Show Toast
+// ----------------------------------------------------
+function showToast(message, type = "success") {
+  notification.textContent = message;
+  notification.className = `notification-${type}`;
+  notification.style.display = "block";
+  setTimeout(() => (notification.style.display = "none"), 3000);
+}
 
-function readCache() {
+// ----------------------------------------------------
+// ✅ 6. Fetch School Names from DATA-MASTER
+// ----------------------------------------------------
+async function fetchSchoolNames() {
   try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed?.timestamp) return null;
-    if (Date.now() - parsed.timestamp > CACHE_TTL_MS) return null;
-    return parsed.payload;
-  } catch { return null; }
+    const snapshot = await get(ref(db, "DATA-MASTER"));
+    const schools = snapshot.exists() ? Object.keys(snapshot.val()).sort() : [];
+
+    schoolFilter.innerHTML = `<option value="">Select School</option>`;
+    schools.forEach((schoolName) => {
+      const option = document.createElement("option");
+      option.value = schoolName;
+      option.textContent = schoolName;
+      schoolFilter.appendChild(option);
+    });
+  } catch (err) {
+    console.error("Error fetching school names:", err);
+    showToast("Failed to load schools", "error");
+  }
 }
-function writeCache(payload) {
+
+// ----------------------------------------------------
+// ✅ 7. Fetch School IDs for Selected School
+// ----------------------------------------------------
+async function fetchSchoolIDs(schoolName) {
+  schoolIDSelect.innerHTML = `<option value="">Select School ID</option>`;
+  fullDataArray = [];
+  renderTable([]);
+
+  if (!schoolName) return;
+
   try {
-    sessionStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({ timestamp: Date.now(), payload })
-    );
-  } catch {}
-}
+    const snapshot = await get(ref(db, `DATA-MASTER/${schoolName}`));
+    const ids = snapshot.exists() ? Object.keys(snapshot.val()).sort() : [];
 
-// 6) Helpers
-function normalizeName(name) {
-  return (name || "").toString().trim().replace(/\s+/g, " ").toLowerCase();
-}
-function parseEnrollmentDate(enrollmentId) {
-  if (!enrollmentId || typeof enrollmentId !== "string" || enrollmentId.length < 18) return null;
-  const dateStr = enrollmentId.slice(7, 16); // DDMMMYYYY
-  const day = parseInt(dateStr.slice(0, 2), 10);
-  const monStr = dateStr.slice(2, 5).toUpperCase();
-  const year = parseInt(dateStr.slice(5), 10);
-  const months = { JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11 };
-  const month = months[monStr];
-  if (!Number.isFinite(day) || !Number.isFinite(year) || month === undefined) return null;
-  return new Date(year, month, day);
-}
-function setText(el, val) { if (el) el.textContent = String(val ?? 0); }
-function debounce(fn, wait = 150) {
-  let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), wait); };
-}
-
-// 🔹 Helper: shallow fetch (keys only, no values)
-async function fetchKeys(path) {
-  const url = `${BASE_URL}/${path}.json?shallow=true`;
-  const res = await fetch(url);
-  if (!res.ok) return {};
-  return res.json();
-}
-
-// 7) Load Dashboard Data (with shallow fetch)
-async function loadDashboardData() {
-  try {
-    const cached = readCache();
-    if (cached) { applyAggregatesToUI(cached); return; }
-
-    let studentCount = 0, staffCount = 0;
-    const schoolMap = Object.create(null);
-    const dateMap = Object.create(null);
-
-    // 🔹 Level-1: all SCHOOL_NAME
-    const schoolNames = await fetchKeys("DATA-MASTER");
-    for (const schoolName in schoolNames) {
-      // 🔹 Level-2: all SCHOOL_ID under that school
-      const schoolIds = await fetchKeys(`DATA-MASTER/${schoolName}`);
-      for (const schoolId in schoolIds) {
-        const displayName = schoolName || schoolId;
-        const norm = normalizeName(displayName);
-        if (!schoolMap[norm]) schoolMap[norm] = { displayName, students: 0, staff: 0 };
-
-        // Students enrollment IDs (keys only)
-        const students = await fetchKeys(`DATA-MASTER/${schoolName}/${schoolId}/STUDENT`);
-        for (const enrollId in students || {}) {
-          studentCount++;
-          schoolMap[norm].students++;
-          const d = parseEnrollmentDate(enrollId);
-          if (d) {
-            const key = d.toISOString().slice(0, 10);
-            (dateMap[key] ??= { students: 0, staff: 0 }).students++;
-          }
-        }
-
-        // Staff enrollment IDs (keys only)
-        const staff = await fetchKeys(`DATA-MASTER/${schoolName}/${schoolId}/STAFF`);
-        for (const enrollId in staff || {}) {
-          staffCount++;
-          schoolMap[norm].staff++;
-          const d = parseEnrollmentDate(enrollId);
-          if (d) {
-            const key = d.toISOString().slice(0, 10);
-            (dateMap[key] ??= { students: 0, staff: 0 }).staff++;
-          }
-        }
-      }
-    }
-
-    const schoolsDataArr = Object.keys(schoolMap).map(norm => {
-      const s = schoolMap[norm];
-      return { name: s.displayName, normalized: norm, students: s.students, staff: s.staff, total: s.students+s.staff };
+    ids.forEach((id) => {
+      const option = document.createElement("option");
+      option.value = id;
+      option.textContent = id;
+      schoolIDSelect.appendChild(option);
     });
 
-    const aggregates = {
-      studentCount,
-      staffCount,
-      totalEnrollment: studentCount+staffCount,
-      uniqueSchools: Object.keys(schoolMap).length,
-      schoolsData: schoolsDataArr.sort((a,b)=>b.total-a.total),
-      dateMap
-    };
-
-    applyAggregatesToUI(aggregates);
-    writeCache(aggregates);
+    if (ids.length > 0) {
+      schoolIDSelect.value = ids[0];
+      if (dataTypeSelect.value) fetchDataForSchool();
+    }
   } catch (err) {
-    console.error("loadDashboardData error:", err);
-    setText(studentCountEl,0);setText(staffCountEl,0);setText(totalEnrollmentEl,0);setText(uniqueSchoolsEl,0);
-    schoolsData=[];renderSchools();renderDateWise({});
+    console.error("Error fetching school IDs:", err);
+    showToast("Failed to load School IDs", "error");
   }
 }
 
-function applyAggregatesToUI({ studentCount, staffCount, totalEnrollment, uniqueSchools, schoolsData: sd, dateMap }) {
-  setText(studentCountEl, studentCount||0);
-  setText(staffCountEl, staffCount||0);
-  setText(totalEnrollmentEl, totalEnrollment||0);
-  setText(uniqueSchoolsEl, uniqueSchools||0);
-  schoolsData = Array.isArray(sd)?sd:[];
-  renderSchools();
-  renderDateWise(dateMap||{});
+// ----------------------------------------------------
+// ✅ 8. Fetch Data for Selected SchoolID & Type
+// ----------------------------------------------------
+async function fetchDataForSchool() {
+  const schoolName = schoolFilter.value;
+  const schoolID = schoolIDSelect.value;
+  const type = dataTypeSelect.value;
+
+  if (!schoolName || !schoolID || !type) return;
+
+  try {
+    const snapshot = await get(ref(db, `DATA-MASTER/${schoolName}/${schoolID}/${type}`));
+    const dataObj = snapshot.val();
+    fullDataArray = [];
+
+    if (dataObj) {
+      Object.entries(dataObj).forEach(([enrollID, record]) => {
+        if (record && typeof record === "object") {
+          record.__key = enrollID;
+          record.__schoolName = schoolName;
+          record.__schoolID = schoolID;
+          fullDataArray.push(record);
+        }
+      });
+    }
+
+    renderTable(fullDataArray);
+  } catch (err) {
+    console.error("Error fetching data:", err);
+    showToast("Failed to load data", "error");
+  }
 }
 
 // ----------------------------------------------------
-// 8) Render Schools (optimized with keys only)
+// ✅ 9. Render Table
 // ----------------------------------------------------
-function renderSchools() {
-  if (!schoolListEl) return;
+function renderTable(dataArray) {
+  tableHead.innerHTML = "";
+  tableBody.innerHTML = "";
+  dataCount.textContent = `Total: ${dataArray.length}`;
 
-  let filtered = [...schoolsData];
-  const searchVal = (searchBox?.value || "").toLowerCase();
-  if (searchVal) {
-    filtered = filtered.filter(s =>
-      (s.name || "").toLowerCase().includes(searchVal)
-    );
-  }
-
-  if (sortType) {
-    const v = sortType.value;
-    if (v === "az") filtered.sort((a, b) => a.name.localeCompare(b.name));
-    else if (v === "za") filtered.sort((a, b) => b.name.localeCompare(a.name));
-    else if (v === "high") filtered.sort((a, b) => b.total - a.total);
-    else if (v === "low") filtered.sort((a, b) => a.total - b.total);
-  }
-
-  const totalOnlineSchools = filtered.filter(s => activeSchools[s.normalized]).length;
-  if (totalOnlineEl) {
-    totalOnlineEl.textContent = `Online Schools: ${totalOnlineSchools}`;
-  }
-
-  schoolListEl.innerHTML = "";
-  if (!filtered.length) {
-    schoolListEl.innerHTML = `
-      <div style="grid-column:1/-1;text-align:center;padding:40px;background:#f9fafb;
-      border-radius:16px;border:2px dashed #d1d5db;color:#6b7280;font-size:15px;">
-        <i class="ri-search-eye-line" style="font-size:32px;color:#9ca3af;
-        margin-bottom:10px;display:block;"></i>
-        No schools found.<br>Try adjusting your search or filters.
-      </div>`;
+  if (!dataArray.length) {
+    tableBody.innerHTML = `<tr><td colspan='100%' class="text-center p-4">No matching records found.</td></tr>`;
     return;
   }
 
-  filtered.forEach(s => {
-    const card = document.createElement("div");
-    card.className = "school-card";
-    card.style = `
-      background:#fff;border-radius:14px;box-shadow:0 3px 8px rgba(0,0,0,0.08);
-      overflow:hidden;transition:all 0.25s ease;display:flex;flex-direction:column;position:relative;`;
+  const keys = Object.keys(dataArray[0]).filter((k) => !k.startsWith("__"));
+  const headerRow = document.createElement("tr");
 
-    card.onmouseenter = () => {
-      card.style.transform = "translateY(-4px)";
-      card.style.boxShadow = "0 6px 16px rgba(0,0,0,0.12)";
-    };
-    card.onmouseleave = () => {
-      card.style.transform = "translateY(0)";
-      card.style.boxShadow = "0 3px 8px rgba(0,0,0,0.08)";
-    };
-
-    const displayName = s.name || "School";
-    const isOnline = !!activeSchools[s.normalized];
-    const onlineDot = isOnline ? `<span class="online-dot-pulse"></span>` : "";
-    const headerBg = isOnline
-      ? "linear-gradient(135deg,#16a34a,#22c55e)"
-      : "linear-gradient(135deg,#2563eb,#3b82f6)";
-
-    card.innerHTML = `
-      <div style="background:${headerBg};padding:12px;color:white;font-weight:600;
-      font-size:16px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;">
-        <div style="display:flex;align-items:center;gap:8px;">
-          <i class="ri-building-4-line"></i>
-          <div>${displayName}</div>
-        </div>
-        ${onlineDot}
-      </div>
-      <div style="flex:1;padding:14px 16px;display:grid;gap:10px;font-size:14px;color:#374151;">
-        <div><i class="ri-user-3-line"></i> Students: <b>${s.students}</b></div>
-        <div><i class="ri-team-line"></i> Staff: <b>${s.staff}</b></div>
-        <div><i class="ri-bar-chart-2-line"></i> Total: <b>${s.total}</b></div>
-      </div>`;
-    schoolListEl.appendChild(card);
+  // Checkbox column
+  const selectAllTh = document.createElement("th");
+  const selectAllCheckbox = document.createElement("input");
+  selectAllCheckbox.type = "checkbox";
+  selectAllCheckbox.addEventListener("change", function () {
+    tableBody.querySelectorAll("input[type='checkbox']").forEach((cb) => (cb.checked = this.checked));
   });
-}
+  selectAllTh.appendChild(selectAllCheckbox);
+  headerRow.appendChild(selectAllTh);
 
-if (searchBox) searchBox.addEventListener("input", debounce(renderSchools, 150));
-if (sortType) sortType.addEventListener("change", renderSchools);
-
-// ----------------------------------------------------
-// 9) Render Date-Wise
-// ----------------------------------------------------
-function renderDateWise(dateMap) {
-  if (!dateWiseListEl) return;
-  dateWiseListEl.innerHTML = "";
-
-  const entries = Object.entries(dateMap || {}).sort(
-    (a, b) => new Date(b[0]) - new Date(a[0])
-  );
-
-  if (!entries.length) {
-    dateWiseListEl.innerHTML =
-      `<div style="text-align:center;padding:20px;color:#6b7280;">No date-wise data</div>`;
-    return;
-  }
-
-  const last7 = entries.slice(0, 7);
-  last7.forEach(([dateKey, counts]) => {
-    const uiDate = new Date(dateKey).toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    });
-
-    const card = document.createElement("div");
-    card.className = "date-card";
-    card.style = `
-      background:#fff;border-radius:14px;box-shadow:0 3px 8px rgba(0,0,0,0.08);
-      overflow:hidden;transition:all 0.25s ease;margin-bottom:14px;`;
-
-    card.innerHTML = `
-      <div style="background:linear-gradient(135deg,#9333ea,#a855f7);
-      padding:12px;color:white;font-weight:600;font-size:15px;">
-        <i class="ri-calendar-event-line"></i> ${uiDate}
-      </div>
-      <div style="padding:14px 16px;display:grid;gap:10px;font-size:14px;color:#374151;">
-        <div><i class="ri-user-3-line"></i> Students: <b>${counts.students || 0}</b></div>
-        <div><i class="ri-team-line"></i> Staff: <b>${counts.staff || 0}</b></div>
-        <div><i class="ri-bar-chart-2-line"></i> Total: <b>${(counts.students||0)+(counts.staff||0)}</b></div>
-      </div>`;
-    dateWiseListEl.appendChild(card);
+  // Headers
+  keys.forEach((key) => {
+    const th = document.createElement("th");
+    th.textContent = key;
+    headerRow.appendChild(th);
   });
-}
+  tableHead.appendChild(headerRow);
 
-// ----------------------------------------------------
-// 10) Listen for Active Schools
-// ----------------------------------------------------
-function listenActiveSchools() {
-  try {
-    const baseRef = ref(db, "activeSchools");
-    onValue(baseRef, (snapshot) => {
-      processActiveSchools(snapshot.exists() ? snapshot.val() : {});
-    });
-  } catch (err) {
-    console.error("listenActiveSchools error:", err);
-  }
-}
+  // Rows
+  dataArray.forEach((item) => {
+    const tr = document.createElement("tr");
+    tr.dataset.key = item.__key;
 
-function processActiveSchools(val) {
-  const map = Object.create(null);
-  const onlineNames = [];
+    const cbTd = document.createElement("td");
+    cbTd.innerHTML = `<input type="checkbox">`;
+    tr.appendChild(cbTd);
 
-  Object.values(val || {}).forEach(schoolSessions => {
-    if (!schoolSessions) return;
-    let chosenName = "";
-    let maxExpiry = 0;
-
-    Object.values(schoolSessions).forEach(session => {
-      if (!session) return;
-      const name = (session.name || session.schoolName || "").trim();
-      const status = session.status;
-      const expiry = Number(session.expiresAt) || 0;
-      if (name && status === "online" && Date.now() < expiry) {
-        if (expiry > maxExpiry) {
-          maxExpiry = expiry;
-          chosenName = name;
-        }
+    keys.forEach((key) => {
+      const td = document.createElement("td");
+      td.classList.add("border", "p-2");
+      if (key.toLowerCase() === "photo" && item[key]) {
+        td.innerHTML = `<img src="${item[key]}" alt="photo" class="w-12 h-12 rounded-full">`;
+      } else {
+        td.textContent = item[key] || "";
       }
+      tr.appendChild(td);
     });
 
-    if (chosenName) {
-      const norm = normalizeName(chosenName);
-      map[norm] = true;
-      onlineNames.push(chosenName);
-    }
+    tableBody.appendChild(tr);
+  });
+}
+
+// ----------------------------------------------------
+// ✅ 10. Reset Filters
+// ----------------------------------------------------
+function resetFilters() {
+  schoolFilter.value = "";
+  schoolIDSelect.innerHTML = `<option value="">Select School ID</option>`;
+  dataTypeSelect.value = "";
+  fullDataArray = [];
+  renderTable([]);
+}
+
+// ----------------------------------------------------
+// ✅ 12. Delete Selected Records
+// ----------------------------------------------------
+async function deleteSelectedData() {
+  const selectedRows = Array.from(tableBody.querySelectorAll("input[type='checkbox']:checked"))
+    .map(cb => cb.closest("tr"));
+
+  if (!selectedRows.length) return showToast("No records selected to delete.", "error");
+
+  if (!confirm(`Are you sure you want to delete ${selectedRows.length} record(s)? This action cannot be undone.`)) return;
+
+  const type = dataTypeSelect.value;
+  const deletePromises = [];
+
+  selectedRows.forEach(row => {
+    const key = row.dataset.key;
+    const recordData = fullDataArray.find(item => item.__key === key);
+    if (!recordData) return;
+
+    const schoolName = recordData.__schoolName;
+    const schoolID = recordData.__schoolID;
+
+    const recordRef = ref(db, `DATA-MASTER/${schoolName}/${schoolID}/${type}/${key}`);
+    const workdoneRef = ref(db, `workdone/${schoolName}/${type}/${key}`);
+    const timestamp = new Date().toISOString();
+
+    deletePromises.push(
+      set(workdoneRef, { deletedAt: timestamp, type: type, key: key })
+        .catch(err => console.warn(`Failed to log deletion for ${key}:`, err))
+        .then(() => remove(recordRef))
+        .catch(err => console.error(`Failed to delete record ${key}:`, err))
+    );
   });
 
-  activeSchools = map;
-  renderSchools();
-
-  const onlineContainer = document.getElementById("onlineSchoolsCount");
-  if (onlineContainer) {
-    onlineContainer.innerHTML = `
-      <i class="ri-user-line"></i> ${onlineNames.length}
-      <span style="width:10px;height:10px;background:green;border-radius:50%;display:inline-block;margin-left:6px;"></span>`;
-  }
-
-  const onlineListContainer = document.getElementById("onlineSchoolsList");
-  if (onlineListContainer) {
-    onlineListContainer.innerHTML = "";
-    onlineNames.sort((a, b) => a.localeCompare(b)).forEach(name => {
-      const card = document.createElement("div");
-      card.className = "online-school-card";
-      card.innerHTML = `<span class="online-school-dot"></span>${name}`;
-      onlineListContainer.appendChild(card);
-    });
-  }
-}
-
-// ----------------------------------------------------
-// 11) Polling Dashboard Data (Reuse loadDashboardData)
-// ----------------------------------------------------
-async function pollDashboardData() {
   try {
-    await loadDashboardData(); // ऊपर वाला shallow + cache वाला function
+    await Promise.all(deletePromises);
+
+    selectedRows.forEach(row => row.remove());
+    fullDataArray = fullDataArray.filter(item => !selectedRows.some(row => row.dataset.key === item.__key));
+    dataCount.textContent = `Total: ${fullDataArray.length}`;
+    showToast(`${selectedRows.length} record(s) deleted successfully.`, "success");
   } catch (err) {
-    console.error("pollDashboardData error:", err);
+    console.error("Error deleting records:", err);
+    showToast("Some records could not be deleted. Check console.", "error");
   }
 }
 
 // ----------------------------------------------------
-// 12) Start Listeners (Polling + Realtime for Active Schools)
+// ✅ 13. Export Selected Rows as CSV + Photos ZIP
 // ----------------------------------------------------
-pollDashboardData();                   // पहली बार तुरंत लोड
-setInterval(pollDashboardData, 60000); // हर 60 सेकंड बाद shallow refresh
-listenActiveSchools();                 // Active schools अभी भी realtime पर
+async function exportSelectedData() {
+  const selectedRows = Array.from(tableBody.querySelectorAll("input[type='checkbox']:checked"))
+    .map(cb => cb.closest("tr"));
+
+  if (!selectedRows.length) return showToast("No records selected to export.", "error");
+
+  const headers = ["Enrollment"];
+  const columnHeaders = Array.from(tableHead.querySelectorAll("th")).slice(1).map(th => th.textContent.trim());
+  headers.push(...columnHeaders);
+
+  const data = [];
+  const zip = new JSZip();
+  const imageFolder = zip.folder("Photos");
+
+  for (const row of selectedRows) {
+    const cells = row.querySelectorAll("td");
+    const enrollment = row.dataset.key || "unknown";
+    const rowData = { Enrollment: enrollment };
+
+    columnHeaders.forEach((header, idx) => {
+      const cell = cells[idx + 1];
+      rowData[header] = cell?.textContent.trim() || "";
+    });
+
+    data.push(rowData);
+
+    const img = cells[1]?.querySelector("img");
+    if (img?.src) {
+      try {
+        const resp = await fetch(img.src);
+        if (!resp.ok) throw new Error("Photo fetch failed");
+        const blob = await resp.blob();
+        imageFolder.file(`${enrollment}.jpg`, blob);
+      } catch (err) {
+        console.warn(`Failed to download photo for ${enrollment}: ${err.message}`);
+      }
+    }
+  }
+
+  const csvRows = [headers.join(",")];
+  data.forEach(row => {
+    const values = headers.map(h => `"${(row[h] || "").replace(/"/g, '""')}"`);
+    csvRows.push(values.join(","));
+  });
+
+  zip.file("data.csv", csvRows.join("\n"));
+  const zipBlob = await zip.generateAsync({ type: "blob" });
+  saveAs(zipBlob, `Exported-Data-${Date.now()}.zip`);
+
+  showToast(`${selectedRows.length} records exported successfully.`, "success");
+}
+
+// ----------------------------------------------------
+// ✅ 14. Event Listeners
+// ----------------------------------------------------
+resetBtn.addEventListener("click", resetFilters);
+deleteBtn.addEventListener("click", deleteSelectedData);
+exportBtn.addEventListener("click", exportSelectedData);
+
+schoolFilter.addEventListener("change", () => fetchSchoolIDs(schoolFilter.value));
+schoolIDSelect.addEventListener("change", fetchDataForSchool);
+dataTypeSelect.addEventListener("change", fetchDataForSchool);
+
+// ----------------------------------------------------
+// ✅ 15. Initial Load
+// ----------------------------------------------------
+fetchSchoolNames();
