@@ -8,7 +8,7 @@ import {
   get,
   child,
   set,
-  update,        // added (was missing before)
+  update,
   remove,
   onDisconnect
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
@@ -39,12 +39,12 @@ let imageData = "";
 let lastType = "";
 let stream = null;
 
-let schoolCode = "";
-let schoolName = "";
+let schoolCode = "";   // userid of school (prefix for enrollment)
+let schoolName = "";   // actual school name
 let entryData = {};
 
-let userIP = "";      // original IP
-let safeIP = "";      // firebase-safe key (dots -> dashes)
+let userIP = "";       // original IP
+let safeIP = "";       // firebase-safe key (dots -> dashes)
 
 let sessionTimeout = null;
 let hardTimeout = null;
@@ -59,7 +59,6 @@ const el = id => document.getElementById(id);
 const exists = id => !!el(id);
 const safeGet = id => (exists(id) ? el(id) : null);
 
-// Safe reference getters for frequently-used buttons
 function getButtonRefs() {
   return {
     newEntryBtn: safeGet("newEntryBtn"),
@@ -91,26 +90,40 @@ function resetSessionTimer() {
 }
 
 async function logoutUser(message = "You have been logged out.") {
-  // Best-effort; if not logged in, just return
-  if (!schoolCode || !safeIP) return;
+  if (!schoolCode || !safeIP) return; // not logged in
 
   try {
+    // Remove IP entry from DB
     const ipRef = dbRef(database, `activeSchools/${schoolCode}/${safeIP}`);
     await remove(ipRef);
 
-    // UI updates (guarded)
+    // ✅ UI updates
     if (exists("loginPage")) el("loginPage").classList.remove("hidden");
     if (exists("homePage")) el("homePage").classList.add("hidden");
+    if (exists("idForm")) el("idForm").classList.add("hidden");
+    if (exists("previewPage")) el("previewPage").classList.add("hidden");
 
-    // Reset state
+    // ✅ Clear dynamic contents
+    if (exists("formFields")) el("formFields").innerHTML = "";
+    if (exists("preview")) el("preview").innerHTML = "";
+
+    // ✅ Hide camera/canvas
+    if (exists("canvas")) el("canvas").classList.add("hidden");
+    if (exists("video")) el("video").classList.add("hidden");
+
+    // ✅ Reset state variables
     schoolCode = "";
     schoolName = "";
     entryData = {};
     userIP = "";
     safeIP = "";
+    imageData = "";
+    lastType = "";
 
     if (sessionTimeout) clearTimeout(sessionTimeout);
     if (hardTimeout) clearTimeout(hardTimeout);
+
+    stopCamera?.(); // safe call if function exists
 
     alert(message);
   } catch (error) {
@@ -124,6 +137,7 @@ async function logoutUser(message = "You have been logged out.") {
 ["click", "keydown", "input", "change", "mousemove", "touchstart"].forEach(evt => {
   document.addEventListener(evt, resetSessionTimer, { passive: true });
 });
+
 
 // ============================
 // ✅ Login Function
@@ -180,30 +194,30 @@ window.verifyLogin = async function () {
 
     // Get IP and make Firebase-safe key
     userIP = await fetchUserIP();
-    safeIP = userIP.replace(/\./g, "-"); // "." not allowed in Firebase keys
+    safeIP = userIP.replace(/\./g, "-");
 
     // UI switch
     if (exists("loginPage")) el("loginPage").classList.add("hidden");
     if (exists("homePage")) el("homePage").classList.remove("hidden");
-    if (exists("schoolName")) el("schoolName").innerHTML = `<option selected>${cleanSchoolName}</option>`;
+    if (exists("schoolName")) {
+      el("schoolName").innerHTML = `<option selected>${cleanSchoolName} (${matchedUser.userid})</option>`;
+    }
 
-    // Identify school/user code
+    // Save schoolCode (userid) + schoolName
     schoolCode = matchedUser.userid || 'SCHOOL';
     schoolName = cleanSchoolName;
 
-    // Session path per user + IP (multi-device allowed)
+    // Session path per user + IP
     const ipRef = dbRef(database, `activeSchools/${schoolCode}/${safeIP}`);
 
-    // Save/overwrite this IP session
     await set(ipRef, {
       name: schoolName,
-      ip: userIP,            // store original IP as value
+      ip: userIP,
       status: "online",
       loginAt: Date.now(),
       expiresAt: Date.now() + MAX_SESSION
     });
 
-    // Auto-remove this IP session if connection drops abruptly
     try { onDisconnect(ipRef).remove(); } catch (_) {}
 
     // Start timers
@@ -213,7 +227,6 @@ window.verifyLogin = async function () {
       await logoutUser("Session ended after 1 hour.");
     }, MAX_SESSION);
 
-    // ✅ Clean, simple success message
     showOrAlert("Login Successful!", "success");
   } catch (error) {
     showOrAlert("Firebase Error: " + (error.message || error), "error");
@@ -227,69 +240,42 @@ window.verifyLogin = async function () {
 window.addEventListener("beforeunload", () => {
   if (schoolCode && safeIP) {
     try {
-      // Best-effort cleanup (non-blocking)
       remove(dbRef(database, `activeSchools/${schoolCode}/${safeIP}`));
     } catch (_) {}
   }
 });
 
-// -----------------------------
-// ✅ Generate Unique Enrollment
-// -----------------------------
+// ============================
+// ✅ Generate Unique Enrollment (using USERID prefix)
+// ============================
 async function generateUniqueEnrollment(type) {
-  if (!type || typeof type !== 'string') {
+  if (!type || typeof type !== "string") {
     throw new Error("Invalid 'type' parameter");
   }
 
-  if (!schoolName || !schoolName.trim()) {
-    throw new Error("School name is empty! Cannot generate enrollment.");
+  if (!schoolCode || !schoolCode.trim()) {
+    throw new Error("School UserID is empty! Cannot generate enrollment.");
   }
 
   const dbRoot = dbRef(database);
   const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
 
-  // Clean school name -> words
-  const words = schoolName
-    .replace(/[^a-zA-Z ]/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .split(' ')
-    .filter(Boolean);
-
-  if (words.length === 0) {
-    throw new Error("School name has no valid letters!");
-  }
-
-  // Generate initials
-  let initials = '';
-  if (words.length === 1) {
-    initials = words[0].toUpperCase();
-  } else {
-    initials = words.map(word => word[0].toUpperCase()).join('');
-  }
-
-  // Ensure exactly 4 letters
-  initials = (initials + "XXXX").slice(0, 4); // pad or cut
-
-  // Date
   const now = new Date();
-  const dd = String(now.getDate()).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, "0");
   const mmm = monthNames[now.getMonth()];
+  const yyyy = now.getFullYear();
 
   let unique = false;
   let enrollNo = "";
 
   while (!unique) {
     const serial = String(Math.floor(1000 + Math.random() * 9000)); // 4-digit random
-    enrollNo = `${initials}${dd}${mmm}${serial}`;
+    enrollNo = `${schoolCode}${dd}${mmm}${yyyy}${serial}`;
 
     try {
       const snapshot = await get(child(dbRoot, `${type}/${enrollNo}`));
       if (!snapshot.exists()) unique = true;
-      else {
-        // tiny pause — but keep loop safe (avoid infinite fast loop)
-        await new Promise(res => setTimeout(res, 40));
-      }
+      else await new Promise(res => setTimeout(res, 40));
     } catch (error) {
       console.error("Database error while generating enrollment:", error);
       throw new Error("Unable to generate enrollment number");
@@ -423,29 +409,43 @@ function compressImage(sourceCanvasOrImage, maxWidth = 480, quality = 0.6) {
   return tempCanvas.toDataURL("image/jpeg", quality);
 }
 
-// -----------------------------
-// ✅ Camera Functions
-// -----------------------------
-function startCamera() {
-  navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: "environment" } } })
-    .then(s => {
-      stream = s;
-      const video = safeGet("video");
-      if (!video) return showOrAlert("Video element not found", "error");
-      video.srcObject = stream;
-      video.play().catch(()=>{});
-      video.classList.remove("hidden");
-      const { cameraBtn } = getButtonRefs();
-      if (cameraBtn) {
-        cameraBtn.innerHTML = `<i class="fas fa-camera"></i><span>Capture</span>`;
-        cameraBtn.onclick = takePicture;
-      }
-    })
-    .catch(err => {
-      console.error("Camera error:", err);
-      showOrAlert("Unable To Access Camera", "error");
+async function startCamera() {
+  try {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      showOrAlert("Camera not supported on this device", "error");
+      return;
+    }
+
+    // ✅ Back camera preference (mobile पर back, PC पर default webcam)
+    stream = await navigator.mediaDevices.getUserMedia({
+      video: { facingMode: { ideal: "environment" } }
     });
+
+    const video = safeGet("video");
+    if (!video) return showOrAlert("Video element not found", "error");
+
+    video.srcObject = stream;
+    await video.play().catch(() => {});
+    video.classList.remove("hidden");
+
+    const { cameraBtn } = getButtonRefs();
+    if (cameraBtn) {
+      cameraBtn.innerHTML = `<i class="fas fa-camera"></i><span>Capture</span>`;
+      cameraBtn.onclick = takePicture;
+    }
+  } catch (err) {
+    console.error("Camera error:", err);
+
+    if (err.name === "NotAllowedError") {
+      showOrAlert("Camera permission denied. Please enable it in settings.", "error");
+    } else if (err.name === "NotFoundError") {
+      showOrAlert("No camera found on this device.", "error");
+    } else {
+      showOrAlert("Unable to access camera: " + err.message, "error");
+    }
+  }
 }
+
 
 function stopCamera() {
   if (stream) {
@@ -497,9 +497,9 @@ function retakePicture() {
 }
 
 // -----------------------------
-// ✅ Submit Handler
+// ✅ Submit Handler (Updated with School-wise DB Path)
 // -----------------------------
-function handleSubmit(e) {
+async function handleSubmit(e) {
   try {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
 
@@ -518,18 +518,23 @@ function handleSubmit(e) {
       const tag = (field.tagName || "").toUpperCase();
       const isUpperCase = (field.type === "text" || tag === "TEXTAREA" || tag === "SELECT") &&
         !['email', 'ifsc'].includes((field.name || "").toLowerCase());
-
       if (isUpperCase) value = value.toUpperCase();
       rawData[field.name || `field_${Math.random()}`] = value;
     });
 
     const enrollKey = `${lastType || 'default'}_enroll`;
-    const nameKey = `${lastType || 'default'}_name`;
-    const dobKey = `${lastType || 'default'}_dob`;
-    const enroll = rawData[enrollKey];
-    const dbPath = `${lastType || 'default'}/${enroll || 'unknown'}`;
+    const nameKey   = `${lastType || 'default'}_name`;
+    const dobKey    = `${lastType || 'default'}_dob`;
 
-    // ✅ Simplified error messages
+    const enroll = rawData[enrollKey];
+
+    // ✅ Use schoolCode directly instead of enrollment substring
+    const schoolId = schoolCode || (schoolName || "UNKNOWN");
+
+    // ✅ Final DB Path → DATA-MASTER/SCHOOL/{SCHOOL_ID}/{TYPE}/{ENROLLMENT_ID}
+    const dbPath = `DATA-MASTER/SCHOOL/${schoolId}/${(lastType || "default").toUpperCase()}/${enroll || "unknown"}`;
+
+    // ✅ Validate required fields
     if (!enroll || !imageData) {
       showOrAlert("❌ Submit failed: Enrollment or photo missing", "error");
       setTimeout(goHomeSafe, 2000);
@@ -537,13 +542,13 @@ function handleSubmit(e) {
       return;
     }
 
-    // DOB formatting (if present)
+    // ✅ Format DOB if present
     if (rawData[dobKey]) {
       const dobDate = new Date(rawData[dobKey]);
       if (!isNaN(dobDate)) {
-        const day = String(dobDate.getDate()).padStart(2, '0');
+        const day   = String(dobDate.getDate()).padStart(2, '0');
         const month = dobDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-        const year = dobDate.getFullYear();
+        const year  = dobDate.getFullYear();
         rawData[dobKey] = `${day}-${month}-${year}`;
       } else {
         showOrAlert("❌ Submit failed: Invalid date", "error");
@@ -562,26 +567,29 @@ function handleSubmit(e) {
       photo: ""
     };
 
-    // Copy remaining fields
+    // ✅ Copy remaining fields
     Object.keys(rawData).forEach(key => {
-      if (!["photo", "schoolName", nameKey, enrollKey].includes(key)) data[key] = rawData[key];
+      if (!["photo", "schoolName", nameKey, enrollKey].includes(key)) {
+        data[key] = rawData[key];
+      }
     });
 
     entryData = data;
+
+    // ✅ Show preview safely
     showPreviewSafe(imageData, enroll);
 
-    // Save to Firebase then upload image to ImgBB
+    // ✅ Save to Firebase then upload image
     const recordRef = dbRef(database, dbPath);
-    setSafe(recordRef, data)
-      .then(() => uploadImageToImgBBSafe(enroll, dbPath))
-      .catch((err) => {
-        console.error("Set failed:", err);
-        showSubmitFailedAndGoHomeSafe(dbPath);
-      });
+    await setSafe(recordRef, data);
+    await uploadImageToImgBBSafe(enroll, dbPath);
 
   } catch (err) {
     console.error("Unexpected error:", err);
     showSubmitFailedAndGoHomeSafe();
+  } finally {
+    const { newEntryBtn } = getButtonRefs();
+    if (newEntryBtn) newEntryBtn.disabled = false;
   }
 }
 
@@ -604,18 +612,18 @@ function setSafe(ref, data) {
 // ✅ Upload image to ImgBB + update DB.photo
 // -----------------------------
 function uploadImageToImgBBSafe(enroll, dbPath) {
-  try {
-    if (!imageData) return Promise.reject("No image data");
+  return new Promise((resolve, reject) => {
+    try {
+      if (!imageData) return reject("No image data");
 
-    const base64 = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
-    const formData = new FormData();
-    formData.append("key", "011e81139fd279b28a3b55c414b241b7");
-    formData.append("image", base64);
-    formData.append("name", enroll);
+      const base64 = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
+      const formData = new FormData();
+      formData.append("key", "011e81139fd279b28a3b55c414b241b7");
+      formData.append("image", base64);
+      formData.append("name", enroll);
 
-    updateProgressBarSafe(0);
+      updateProgressBarSafe(0);
 
-    return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("POST", "https://api.imgbb.com/1/upload");
 
@@ -636,10 +644,9 @@ function uploadImageToImgBBSafe(enroll, dbPath) {
                 .then(() => {
                   updateProgressBarSafe(100);
                   showOrAlert("✅ Submitted Successfully!", "success");
-                  const { newEntryBtn } = getButtonRefs();
-                  if (newEntryBtn) newEntryBtn.disabled = false;
                   resolve();
-                }).catch(err => {
+                })
+                .catch(err => {
                   console.error("DB update failed:", err);
                   showSubmitFailedAndGoHomeSafe(dbPath);
                   reject(err);
@@ -667,11 +674,10 @@ function uploadImageToImgBBSafe(enroll, dbPath) {
       };
 
       xhr.send(formData);
-    });
-
-  } catch(e) {
-    return Promise.reject(e);
-  }
+    } catch(e) {
+      reject(e);
+    }
+  });
 }
 
 // ✅ Safe progress bar update
@@ -915,18 +921,27 @@ function goHome() {
   }
 }
 
-// ✅ Message Display Utility
+// ✅ Message Display Utility (Fixed)
 function showOrAlert(message, type = "success") {
   const popup = safeGet("messagePopup");
   if (popup) {
     popup.textContent = message;
-    popup.className = type;
+
+    // ✅ पुराने type classes हटाकर base class + नया type class add करें
+    popup.className = `popup ${type}`;
+
     popup.style.display = "block";
-    setTimeout(() => popup.style.display = "none", 4000);
+
+    // ✅ Auto-hide after 4 sec
+    setTimeout(() => {
+      popup.style.display = "none";
+      popup.className = "popup"; // ✅ Hide होने पर सिर्फ base class restore
+    }, 4000);
   } else {
     alert(message);
   }
 }
+
 
 // ============================
 // ✅ Export to Global Scope
