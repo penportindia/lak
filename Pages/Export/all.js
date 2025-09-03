@@ -77,7 +77,7 @@ function populateSchoolFilter(data) {
   });
 }
 
-// ✅ 9. Render Data Table
+// ✅ 9. Render Data Table (🚫 No photo column at all)
 function renderTable(dataArray) {
   tableHead.innerHTML = "";
   tableBody.innerHTML = "";
@@ -89,7 +89,8 @@ function renderTable(dataArray) {
     return;
   }
 
-  const keys = Object.keys(dataArray[0]).filter(k => k !== "__key");
+  // Exclude __key and photo
+  const keys = Object.keys(dataArray[0]).filter(k => k !== "__key" && k.toLowerCase() !== "photo");
   const headerRow = document.createElement("tr");
 
   // Add checkbox column
@@ -124,11 +125,7 @@ function renderTable(dataArray) {
     keys.forEach(key => {
       const td = document.createElement("td");
       td.classList.add("border", "p-2");
-      if (key.toLowerCase() === "photo" && item[key]) {
-        td.innerHTML = `<img src="${item[key]}" alt="photo" class="w-12 h-12 rounded-full">`;
-      } else {
-        td.textContent = item[key] || "";
-      }
+      td.textContent = item[key] || "";
       tr.appendChild(td);
     });
 
@@ -201,7 +198,7 @@ function deleteSelectedData() {
     });
 }
 
-// ✅ 13. Export Selected Rows as CSV + Photos as ZIP
+// ✅ 13. Export Selected Rows as CSV + Photos as ZIP (fetch real photos only here)
 async function exportSelectedData() {
   const rows = Array.from(document.querySelectorAll("#tableBody tr"));
   const selectedRows = rows.filter(r => r.querySelector("input[type='checkbox']").checked);
@@ -220,21 +217,20 @@ async function exportSelectedData() {
   const imageFolder = zip.folder("Photos");
 
   for (const row of selectedRows) {
-    const cells = row.querySelectorAll("td");
     const enrollment = row.dataset.key || "unknown";
     const rowData = { Enrollment: enrollment };
 
-    columnHeaders.forEach((header, idx) => {
-      const cell = cells[idx + 1];
-      let cellText = cell?.textContent.trim() || "";
-      rowData[header] = cellText;
+    // Get record from fullDataArray
+    const recordData = fullDataArray.find(d => d.__key === enrollment);
+
+    columnHeaders.forEach(header => {
+      rowData[header] = recordData?.[header] || "";
     });
 
     data.push(rowData);
 
-    const img = cells[1]?.querySelector("img");
-    const photoURL = img?.src || "";
-
+    // ✅ Fetch real photo only now
+    const photoURL = recordData?.photo || "";
     if (photoURL && enrollment) {
       try {
         const response = await fetch(photoURL);
