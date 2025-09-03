@@ -8,7 +8,8 @@ import {
   get,
   child,
   set,
-  update
+  remove,
+  onDisconnect
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 // ============================
@@ -36,11 +37,19 @@ const database = getDatabase(app);
 let imageData = '';
 let lastType = '';
 let stream = null;
+
 let schoolCode = '';
 let schoolName = '';
 let entryData = {};
-let sessionTimeout = null; // Timer for inactivity-based auto-logout
-const MAX_IDLE = 10 * 60 * 1000; // 10 minutes in milliseconds
+
+let userIP = '';     // original IP (for value)
+let safeIP = '';     // Firebase-safe key (dots -> dashes)
+
+let sessionTimeout = null;  // inactivity logout
+let hardTimeout = null;     // 1-hour hard logout
+
+const MAX_IDLE = 10 * 60 * 1000;    // 10 minutes
+const MAX_SESSION = 60 * 60 * 1000; // 1 hour
 
 // ============================
 // ✅ DOM Helpers
@@ -49,48 +58,60 @@ const el = id => document.getElementById(id);
 const exists = id => !!el(id);
 
 // ============================
-// ✅ Auto Logout / Inactivity Functions
+// ✅ Get Public IP
 // ============================
+async function fetchUserIP() {
+  try {
+    const res = await fetch("https://api64.ipify.org?format=json");
+    const data = await res.json();
+    return data.ip || "unknown_ip";
+  } catch {
+    return "unknown_ip";
+  }
+}
 
-// Reset session timer on any user activity
+// ============================
+// ✅ Auto Logout / Inactivity
+// ============================
 function resetSessionTimer() {
   if (sessionTimeout) clearTimeout(sessionTimeout);
-
   sessionTimeout = setTimeout(async () => {
-    await logoutUser();
+    await logoutUser("Session expired due to inactivity.");
   }, MAX_IDLE);
 }
 
-// Listen to common activity events to reset timer
-['click', 'keydown', 'input', 'change'].forEach(evt => {
-  document.addEventListener(evt, resetSessionTimer);
-});
-
-// Logout user function
-async function logoutUser() {
-  if (!schoolCode) return;
-
+async function logoutUser(message = "You have been logged out.") {
+  if (!schoolCode || !safeIP) return;
   try {
-    // Remove user from activeSchools
-    await set(dbRef(database, `activeSchools/${schoolCode}`), null);
+    const ipRef = dbRef(database, `activeSchools/${schoolCode}/${safeIP}`);
+    await remove(ipRef);
 
-    // Remove user's activity logs if any
-    await set(dbRef(database, `activityLogs/${schoolCode}`), null);
-
-    alert("Session expired due to inactivity. You have been logged out.");
-
-    // Update UI
+    // UI updates
     if (exists("loginPage")) el("loginPage").classList.remove("hidden");
     if (exists("homePage")) el("homePage").classList.add("hidden");
 
-    // Reset variables
+    // Reset state
     schoolCode = '';
     schoolName = '';
     entryData = {};
+    userIP = '';
+    safeIP = '';
+
+    if (sessionTimeout) clearTimeout(sessionTimeout);
+    if (hardTimeout) clearTimeout(hardTimeout);
+
+    alert(message);
   } catch (error) {
     console.error("Error during logout:", error);
   }
 }
+
+// ============================
+// ✅ Activity listeners (for idle)
+// ============================
+['click', 'keydown', 'input', 'change', 'mousemove', 'touchstart'].forEach(evt => {
+  document.addEventListener(evt, resetSessionTimer, { passive: true });
+});
 
 // ============================
 // ✅ Login Function
@@ -116,25 +137,19 @@ window.verifyLogin = async function () {
     const schools = snapshot.val();
     let matchedUser = null;
 
-    // Loop through schools to find match
+    // Find user by userid+password OR phone+password
     for (let key in schools) {
       const data = schools[key];
       if (!data) continue;
 
-      const inputDigits = uidOrPhone.replace(/\D/g, ""); // Only digits
+      const inputDigits = uidOrPhone.replace(/\D/g, "");
       const dbPhoneDigits = String(data.phone || "").replace(/\D/g, "");
       const inputUserId = uidOrPhone.startsWith("+") ? uidOrPhone : "+" + uidOrPhone;
 
-      // Case 1: UserID + Password
       const uidMatch = (data.userid === uidOrPhone || data.userid === inputUserId) && data.password === pwd;
-
-      // Case 2: Phone + Password
       const phoneMatch = dbPhoneDigits && dbPhoneDigits === inputDigits && data.password === pwd;
 
-      if (uidMatch || phoneMatch) {
-        matchedUser = data;
-        break;
-      }
+      if (uidMatch || phoneMatch) { matchedUser = data; break; }
     }
 
     if (!matchedUser) {
@@ -142,36 +157,51 @@ window.verifyLogin = async function () {
       return;
     }
 
-    // Clean school name (letters, numbers, spaces, commas allowed)
-    let rawSchoolName = matchedUser.name || '';
-    let cleanSchoolName = rawSchoolName
-      .replace(/[^a-zA-Z0-9 ,]/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
+    // Clean school name
+    const rawSchoolName = matchedUser.name || '';
+    const cleanSchoolName = rawSchoolName.replace(/[^a-zA-Z0-9 ,]/g, '').replace(/\s+/g, ' ').trim();
 
     if (!cleanSchoolName) {
       showOrAlert("School name is invalid in database!", "error");
       return;
     }
 
-    // Update UI
+    // Get IP and make Firebase-safe key
+    userIP = await fetchUserIP();
+    safeIP = userIP.replace(/\./g, "-"); // "." not allowed in Firebase keys
+
+    // UI switch
     if (exists("loginPage")) el("loginPage").classList.add("hidden");
     if (exists("homePage")) el("homePage").classList.remove("hidden");
     if (exists("schoolName")) el("schoolName").innerHTML = `<option selected>${cleanSchoolName}</option>`;
 
+    // Identify school/user code
     schoolCode = matchedUser.userid || 'SCHOOL';
     schoolName = cleanSchoolName;
 
-    // Mark school as active in Firebase
-    await set(dbRef(database, `activeSchools/${schoolCode}`), {
+    // Session path per user + IP (multi-device allowed)
+    const ipRef = dbRef(database, `activeSchools/${schoolCode}/${safeIP}`);
+
+    // Save/overwrite this IP session
+    await set(ipRef, {
       name: schoolName,
+      ip: userIP,            // store original IP as value
       status: "online",
-      loginAt: Date.now()
+      loginAt: Date.now(),
+      expiresAt: Date.now() + MAX_SESSION
     });
 
-    // Start/reset inactivity session timer
-    resetSessionTimer();
+    // Auto-remove this IP session if connection drops abruptly
+    try { onDisconnect(ipRef).remove(); } catch (_) {}
 
+    // Start timers
+    resetSessionTimer();
+    if (hardTimeout) clearTimeout(hardTimeout);
+    hardTimeout = setTimeout(async () => {
+      await logoutUser("Session ended after 1 hour.");
+    }, MAX_SESSION);
+
+    // ✅ Clean, simple success message
     showOrAlert("Login Successful!", "success");
   } catch (error) {
     showOrAlert("Firebase Error: " + (error.message || error), "error");
@@ -183,9 +213,10 @@ window.verifyLogin = async function () {
 // ✅ Auto Logout on Page Close / Refresh
 // ============================
 window.addEventListener("beforeunload", () => {
-  if (schoolCode) {
+  if (schoolCode && safeIP) {
     try {
-      set(dbRef(database, `activeSchools/${schoolCode}`), null);
+      // Best-effort cleanup (non-blocking)
+      remove(dbRef(database, `activeSchools/${schoolCode}/${safeIP}`));
     } catch (_) {}
   }
 });
