@@ -324,7 +324,7 @@ async function generateFormFields(type) {
     ['enroll', 'Enrollment Number *', 'text', true],
     ['empid', 'Employee ID', 'text'],
     ['name', 'Name *', 'text'],
-    ['designation', 'Designation *', 'select', ['DIRECTOR', 'PRINCIPAL', 'VICE PRINCIPAL', 'ADMIN', 'ACCOUNTANT', 'LIBRARIAN', 'TEACHER', 'CLERK', 'COMPUTER OPERATOR', 'RECEPTIONIST', 'DRIVER', 'ATTENDANT', 'GUARD', 'CARETAKER', 'HELPER', 'PEON', 'MED', 'OTHER']],
+    ['designation', 'Designation *', 'select', ['DIRECTOR', 'PRINCIPAL', 'VICE PRINCIPAL', 'COORDINATOR', 'ADMIN', 'ACCOUNTANT', 'LIBRARIAN', 'TEACHER', 'CLERK', 'COMPUTER OPERATOR', 'RECEPTIONIST', 'DRIVER', 'ATTENDANT', 'GUARD', 'CARETAKER', 'HELPER', 'PEON', 'MED', 'OTHER']],
     ['father', "Father / Spouse Name *", 'text'],
     ['dob', 'Date of Birth', 'date'],
     ['contact', 'Contact Number', 'text'],
@@ -497,7 +497,7 @@ function retakePicture() {
 }
 
 // -----------------------------
-// ✅ Submit Handler (Updated with School-wise DB Path)
+// ✅ Submit Handler (Final Updated for SchoolName + SchoolID in Path)
 // -----------------------------
 async function handleSubmit(e) {
   try {
@@ -506,6 +506,7 @@ async function handleSubmit(e) {
     const { newEntryBtn } = getButtonRefs();
     if (newEntryBtn) newEntryBtn.disabled = true;
 
+    // 🔹 Collect form fields
     const formFields = document.querySelectorAll("#formFields input, #formFields select, #formFields textarea");
     if (!formFields || formFields.length === 0) {
       if (newEntryBtn) newEntryBtn.disabled = false;
@@ -522,19 +523,21 @@ async function handleSubmit(e) {
       rawData[field.name || `field_${Math.random()}`] = value;
     });
 
+    // 🔹 Dynamic keys
     const enrollKey = `${lastType || 'default'}_enroll`;
     const nameKey   = `${lastType || 'default'}_name`;
     const dobKey    = `${lastType || 'default'}_dob`;
 
     const enroll = rawData[enrollKey];
 
-    // ✅ Use schoolCode directly instead of enrollment substring
-    const schoolId = schoolCode || (schoolName || "UNKNOWN");
+    // 🔹 Use SchoolName + SchoolID
+    const schoolId   = schoolCode || "UNKNOWN_ID"; 
+    const schoolNode = (schoolName || "UNKNOWN_SCHOOL").toUpperCase();
 
-    // ✅ Final DB Path → DATA-MASTER/SCHOOL/{SCHOOL_ID}/{TYPE}/{ENROLLMENT_ID}
-    const dbPath = `DATA-MASTER/SCHOOL/${schoolId}/${(lastType || "default").toUpperCase()}/${enroll || "unknown"}`;
+    // 🔹 Final DB Path → DATA-MASTER/{SCHOOL_NAME}/{SCHOOL_ID}/{TYPE}/{ENROLLMENT_ID}
+    const dbPath = `DATA-MASTER/${schoolNode}/${schoolId}/${(lastType || "default").toUpperCase()}/${enroll || "unknown"}`;
 
-    // ✅ Validate required fields
+    // 🔹 Validate required fields
     if (!enroll || !imageData) {
       showOrAlert("❌ Submit failed: Enrollment or photo missing", "error");
       setTimeout(goHomeSafe, 2000);
@@ -542,7 +545,7 @@ async function handleSubmit(e) {
       return;
     }
 
-    // ✅ Format DOB if present
+    // 🔹 Format DOB if present
     if (rawData[dobKey]) {
       const dobDate = new Date(rawData[dobKey]);
       if (!isNaN(dobDate)) {
@@ -558,28 +561,30 @@ async function handleSubmit(e) {
       }
     }
 
-    rawData.schoolName = (schoolName || "SCHOOL NAME").toUpperCase();
+    // 🔹 Add School Info
+    rawData.schoolName = schoolNode;
 
     const data = {
       [enrollKey]: enroll,
       [nameKey]: rawData[nameKey] || "",
       schoolName: rawData.schoolName,
+      schoolId: schoolId,
       photo: ""
     };
 
-    // ✅ Copy remaining fields
+    // 🔹 Copy remaining fields
     Object.keys(rawData).forEach(key => {
-      if (!["photo", "schoolName", nameKey, enrollKey].includes(key)) {
+      if (!["photo", "schoolName", "schoolId", nameKey, enrollKey].includes(key)) {
         data[key] = rawData[key];
       }
     });
 
     entryData = data;
 
-    // ✅ Show preview safely
+    // 🔹 Show preview safely
     showPreviewSafe(imageData, enroll);
 
-    // ✅ Save to Firebase then upload image
+    // 🔹 Save to Firebase then upload image
     const recordRef = dbRef(database, dbPath);
     await setSafe(recordRef, data);
     await uploadImageToImgBBSafe(enroll, dbPath);
@@ -684,7 +689,10 @@ function uploadImageToImgBBSafe(enroll, dbPath) {
 function updateProgressBarSafe(percent) {
   try {
     const progressEl = safeGet("uploadProgress");
-    if (progressEl) { progressEl.style.width = percent + "%"; progressEl.textContent = percent + "%"; }
+    if (progressEl) { 
+      progressEl.style.width = percent + "%"; 
+      progressEl.textContent = percent + "%"; 
+    }
   } catch(e) { console.warn(e); }
 }
 
@@ -956,3 +964,4 @@ window.editEntry = editEntry;
 window.newEntry = newEntry;
 window.goHome = goHome;
 window.generateBarcodeImage = generateBarcodeImage;
+
