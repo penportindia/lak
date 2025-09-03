@@ -1,4 +1,6 @@
+/* ------------------------------ */
 /* Root Variables */
+/* ------------------------------ */
 :root {
   --color-bg: #f9fafb;
   --color-white: #ffffff;
@@ -14,24 +16,32 @@
   --btn-gray-hover: #4b5563;
   --btn-red: #ef4444;
   --btn-red-hover: #dc2626;
+
+  --row-warning-bg: #fdecea;
+  --row-warning-hover: #fbd5d5;
+  --row-warning-text: #b91c1c;
 }
 
+/* ------------------------------ */
 /* General Reset */
+/* ------------------------------ */
 * {
   margin: 0;
   padding: 0;
   box-sizing: border-box;
 }
 
-/* Font & Background */
 body {
   font-family: 'Segoe UI', sans-serif;
   background-color: var(--color-bg);
   color: var(--color-dark);
   padding: 20px;
+  line-height: 1.5;
 }
 
+/* ------------------------------ */
 /* Main Container */
+/* ------------------------------ */
 .main-container {
   max-width: 100%;
   margin: 0 auto;
@@ -40,7 +50,9 @@ body {
   gap: 24px;
 }
 
+/* ------------------------------ */
 /* Filter Panel */
+/* ------------------------------ */
 .filter-panel {
   display: flex;
   justify-content: space-between;
@@ -68,10 +80,12 @@ body {
   background-color: #f1f5f9;
   font-size: 14px;
   cursor: pointer;
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .filter-left select:hover {
   background-color: #e2e8f0;
+  border-color: var(--btn-blue);
 }
 
 /* School Data Count */
@@ -105,36 +119,28 @@ body {
   border-radius: 8px;
   cursor: pointer;
   color: white;
-  transition: background-color 0.3s ease;
+  transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-#resetBtn {
-  background-color: var(--btn-gray);
-}
-#resetBtn:hover {
-  background-color: var(--btn-gray-hover);
+.filter-actions button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
 }
 
-#exportBtn {
-  background-color: var(--btn-blue);
-}
-#exportBtn:hover {
-  background-color: var(--btn-blue-hover);
-}
+/* Button Colors */
+#resetBtn { background-color: var(--btn-gray); }
+#resetBtn:hover { background-color: var(--btn-gray-hover); }
 
-#deleteBtn {
-  background-color: var(--btn-red);
-}
-#deleteBtn:hover {
-  background-color: var(--btn-red-hover);
-}
+#exportBtn { background-color: var(--btn-blue); }
+#exportBtn:hover { background-color: var(--btn-blue-hover); }
 
-.filter-actions i {
-  font-size: 16px;
-}
+#deleteBtn { background-color: var(--btn-red); }
+#deleteBtn:hover { background-color: var(--btn-red-hover); }
 
+/* ------------------------------ */
 /* Table Wrapper */
+/* ------------------------------ */
 .table-wrapper {
   background-color: var(--color-white);
   padding: 15px;
@@ -148,7 +154,8 @@ body {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
-  min-width: 600px;
+  min-width: 600px; /* Ensures table doesn't break on smaller screens */
+  table-layout: auto; /* Fixes responsive column sizing */
 }
 
 #data-table thead {
@@ -168,12 +175,23 @@ body {
   padding: 12px 10px;
   border-bottom: 1px solid var(--color-gray);
   vertical-align: middle;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  overflow: hidden;
 }
 
-/* Hover on row */
 #data-table tbody tr:hover {
   background-color: var(--color-hover);
   transition: background-color 0.3s ease;
+}
+
+/* Image Styling */
+#data-table img {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  object-fit: cover;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 /* Checkbox Styling */
@@ -184,24 +202,30 @@ body {
   accent-color: var(--btn-blue);
 }
 
+/* Missing Photo / Warning Rows */
+#data-table tbody tr.missing-photo {
+  background-color: var(--row-warning-bg);
+  color: var(--row-warning-text);
+  font-weight: 500;
+}
+#data-table tbody tr.missing-photo:hover {
+  background-color: var(--row-warning-hover);
+}
+
+/* ------------------------------ */
 /* Responsive Design */
+/* ------------------------------ */
 @media screen and (max-width: 768px) {
   .filter-panel {
     flex-direction: column;
     align-items: flex-start;
   }
-
-  .filter-left,
-  .filter-actions {
+  .filter-left, .filter-actions {
     width: 100%;
     justify-content: flex-start;
   }
-
-  .filter-actions button {
-    width: auto;
-  }
-
   #data-table {
     font-size: 13px;
+    min-width: 100%;
   }
 }
