@@ -22,15 +22,27 @@
     <!-- Filter Panel -->
     <div class="filter-panel">
       <div class="filter-left">
-        <select id="dataType">
-          <option value="staff">Staff</option>
-          <option value="student">Student</option>
+        <!-- School Name Dropdown -->
+        <label for="schoolFilter">School:</label>
+        <select id="schoolFilter">
+          <option value="">Select School</option>
         </select>
 
+        <!-- School ID Dropdown (disabled until a school is selected) -->
+        <label for="schoolIDSelect">School ID:</label>
+        <select id="schoolIDSelect" disabled>
+          <option value="">Select School ID</option>
+        </select>
+
+        <!-- Data Type Dropdown (uppercase to match Firebase keys) -->
+        <label for="dataType">Type:</label>
+        <select id="dataType">
+          <option value="STAFF">Staff</option>
+          <option value="STUDENT">Student</option>
+        </select>
+
+        <!-- Data Count -->
         <div class="school-data-count">
-          <select id="schoolFilter">
-            <option value="">All Schools</option>
-          </select>
           <div id="dataCount">Total: 0</div>
         </div>
       </div>
@@ -50,6 +62,10 @@
       </div>
     </div>
 
+    <!-- Notification Toast -->
+    <div id="notification" class="notification" style="display:none;"></div>
+
+    <!-- Table -->
     <div class="table-wrapper">
       <table id="data-table">
         <thead id="tableHead"></thead>
