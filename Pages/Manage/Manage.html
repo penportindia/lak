@@ -46,27 +46,19 @@
 <body>
   <div class="container">
 
-    <!-- 🔍 Compound 1: Search Section -->
+    <!-- 🔍 Search Section -->
     <div class="card p-4">
       <div class="row g-3 align-items-end">
-        <div class="col-md-6">
-          <label for="idType" class="form-label">Select Type</label>
-          <select id="idType" class="form-select">
-            <option value="">-- Select --</option>
-            <option value="student">Student</option>
-            <option value="staff">Staff</option>
-          </select>
-        </div>
-        <div class="col-md-4">
+        <div class="col-md-9">
           <label for="enrollNo" class="form-label">Enrollment Number</label>
           <div class="input-group">
-            <input type="text" id="enrollNo" class="form-control text-uppercase" placeholder="INR" oninput="this.value = this.value.toUpperCase()" />
+            <input type="text" id="enrollNo" class="form-control text-uppercase" placeholder="Enter Enrollment Number" oninput="this.value = this.value.toUpperCase()" />
             <span class="input-group-text" onclick="startScanner()">
               <i class="fas fa-barcode"></i>
             </span>
           </div>
         </div>
-        <div class="col-md-2">
+        <div class="col-md-3">
           <button onclick="searchRecord()" class="btn btn-primary w-100 btn-icon">
             <i class="fas fa-search"></i> Search
           </button>
@@ -81,31 +73,20 @@
       </div>
     </div>
 
-    <!-- 📝 Compound 2: Form + Buttons Section -->
+    <!-- 📝 Update Form Section -->
     <div class="card p-4" id="updateForm">
-      <!-- 🧩 Form content will be inserted here dynamically via JavaScript -->
-      
-      <!-- ✅ Buttons Section -->
-      <div class="d-flex justify-content-end gap-2 mt-3">
-        <button onclick="updateRecord()" class="btn btn-warning btn-icon">
-          <i class="fas fa-edit"></i> Update
-        </button>
-        <button onclick="deleteRecord()" class="btn btn-danger btn-icon">
-          <i class="fas fa-trash"></i> Delete
-        </button>
-        <button onclick="clearForm()" class="btn btn-secondary btn-icon">
-          <i class="fas fa-eraser"></i> Clear
-        </button>
-      </div>
+      <!-- Form will be injected here dynamically -->
     </div>
 
   </div>
 
   <script type="module" src="manage.js"></script>
   <script>
+    // Focus on input when barcode button is clicked
     function startScanner() {
       const enrollInput = document.getElementById("enrollNo");
       enrollInput.focus();
+      // You can integrate a real barcode scanner library here
     }
   </script>
 </body>
