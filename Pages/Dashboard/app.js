@@ -171,7 +171,7 @@ function applyAggregatesToUI({ studentCount, staffCount, totalEnrollment, unique
 }
 
 // ----------------------------------------------------
-// 8) Render Schools (optimized with keys only)
+// 8) Render Schools (optimized with keys only + colored icons)
 // ----------------------------------------------------
 function renderSchools() {
   if (!schoolListEl) return;
@@ -242,9 +242,9 @@ function renderSchools() {
         ${onlineDot}
       </div>
       <div style="flex:1;padding:14px 16px;display:grid;gap:10px;font-size:14px;color:#374151;">
-        <div><i class="ri-user-3-line"></i> Students: <b>${s.students}</b></div>
-        <div><i class="ri-team-line"></i> Staff: <b>${s.staff}</b></div>
-        <div><i class="ri-bar-chart-2-line"></i> Total: <b>${s.total}</b></div>
+        <div><i class="ri-user-3-line" style="color:#2563eb;"></i> Students: <b>${s.students}</b></div>
+        <div><i class="ri-team-line" style="color:#16a34a;"></i> Staff: <b>${s.staff}</b></div>
+        <div><i class="ri-bar-chart-2-line" style="color:#f59e0b;"></i> Total: <b>${s.total}</b></div>
       </div>`;
     schoolListEl.appendChild(card);
   });
@@ -254,14 +254,33 @@ if (searchBox) searchBox.addEventListener("input", debounce(renderSchools, 150))
 if (sortType) sortType.addEventListener("change", renderSchools);
 
 // ----------------------------------------------------
-// 9) Render Date-Wise
+// 9) Render Date-Wise (Inline + Different Header Colors)
 // ----------------------------------------------------
 function renderDateWise(dateMap) {
   if (!dateWiseListEl) return;
   dateWiseListEl.innerHTML = "";
 
+  function parseDateString(dateStr) {
+    if (!dateStr) return new Date();
+    const [year, month, day] = dateStr.split("-").map(Number);
+    const d = new Date(year, month - 1, day);
+    d.setDate(d.getDate() + 1); // 🔥 1 दिन plus
+    return d;
+  }
+
+  // 🔥 अलग-अलग header colors (7 तक)
+  const headerColors = [
+    "linear-gradient(135deg,#9333ea,#a855f7)", // Purple
+    "linear-gradient(135deg,#2563eb,#3b82f6)", // Blue
+    "linear-gradient(135deg,#16a34a,#22c55e)", // Green
+    "linear-gradient(135deg,#f59e0b,#fbbf24)", // Amber
+    "linear-gradient(135deg,#dc2626,#ef4444)", // Red
+    "linear-gradient(135deg,#0d9488,#14b8a6)", // Teal
+    "linear-gradient(135deg,#be185d,#ec4899)"  // Pink
+  ];
+
   const entries = Object.entries(dateMap || {}).sort(
-    (a, b) => new Date(b[0]) - new Date(a[0])
+    (a, b) => parseDateString(b[0]) - parseDateString(a[0])
   );
 
   if (!entries.length) {
@@ -271,32 +290,68 @@ function renderDateWise(dateMap) {
   }
 
   const last7 = entries.slice(0, 7);
-  last7.forEach(([dateKey, counts]) => {
-    const uiDate = new Date(dateKey).toLocaleDateString("en-GB", {
+
+  last7.forEach(([dateKey, counts], index) => {
+    const dateObj = parseDateString(dateKey);
+
+    // 📅 सिर्फ "DD MMM" दिखेगा
+    const uiDate = dateObj.toLocaleDateString("en-GB", {
       day: "2-digit",
-      month: "short",
-      year: "numeric"
+      month: "short"
     });
 
     const card = document.createElement("div");
     card.className = "date-card";
     card.style = `
-      background:#fff;border-radius:14px;box-shadow:0 3px 8px rgba(0,0,0,0.08);
-      overflow:hidden;transition:all 0.25s ease;margin-bottom:14px;`;
+      background:#fff;
+      border-radius:14px;
+      box-shadow:0 3px 8px rgba(0,0,0,0.08);
+      overflow:hidden;
+      transition:all 0.25s ease;
+      margin-bottom:14px;
+    `;
+
+    // header bg alag alag hoga
+    const headerBg = headerColors[index % headerColors.length];
 
     card.innerHTML = `
-      <div style="background:linear-gradient(135deg,#9333ea,#a855f7);
-      padding:12px;color:white;font-weight:600;font-size:15px;">
+      <div style="background:${headerBg};
+        padding:12px;color:white;font-weight:600;font-size:15px;
+        display:flex;align-items:center;gap:6px;">
         <i class="ri-calendar-event-line"></i> ${uiDate}
       </div>
       <div style="padding:14px 16px;display:grid;gap:10px;font-size:14px;color:#374151;">
-        <div><i class="ri-user-3-line"></i> Students: <b>${counts.students || 0}</b></div>
-        <div><i class="ri-team-line"></i> Staff: <b>${counts.staff || 0}</b></div>
-        <div><i class="ri-bar-chart-2-line"></i> Total: <b>${(counts.students||0)+(counts.staff||0)}</b></div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <i class="ri-user-3-line" style="color:#2563eb;"></i> 
+          <span class="label" style="display:inline;">Students:</span> 
+          <b>${counts.students || 0}</b>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <i class="ri-team-line" style="color:#16a34a;"></i> 
+          <span class="label" style="display:inline;">Staff:</span> 
+          <b>${counts.staff || 0}</b>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <i class="ri-bar-chart-2-line" style="color:#f59e0b;"></i> 
+          <span class="label" style="display:inline;">Total:</span> 
+          <b>${(counts.students||0)+(counts.staff||0)}</b>
+        </div>
       </div>`;
+
     dateWiseListEl.appendChild(card);
   });
+
+  // ✅ Mobile responsive (inline trick)
+  const styleEl = document.createElement("style");
+  styleEl.textContent = `
+    @media (max-width: 640px) {
+      .date-card .label { display: none !important; }
+      .date-card div[style*="font-weight:600"] { font-size:14px !important; }
+    }
+  `;
+  document.head.appendChild(styleEl);
 }
+
 
 // ----------------------------------------------------
 // 10) Listen for Active Schools
