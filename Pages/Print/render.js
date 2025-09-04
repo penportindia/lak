@@ -1,6 +1,6 @@
+// -------------------- Imports -------------------- //
 import {
-  fetchData,
-  applyFilters,
+  fetchDataForSchool,
   resetFilters,
   getSelectedData,
   dataTypeSelect,
@@ -10,67 +10,63 @@ import {
 
 let templateData = null;
 let renderedData = [];
-
-// -------------------- DOM READY -------------------- //
-document.addEventListener("DOMContentLoaded", () => {
-  // Filter Events
-  dataTypeSelect.addEventListener("change", () => {
-    fetchData(dataTypeSelect.value);
-  });
-  schoolFilter.addEventListener("change", applyFilters);
-  resetBtn.addEventListener("click", resetFilters);
-
-  // Buttons
-  const generateBtn = document.getElementById("generateBtn");
-  const templateUpload = document.getElementById("templateUpload");
-  const renderBtn = document.getElementById("renderBtn");
-  const printBtn = document.getElementById("printBtn");
-  const goToDataBtn = document.getElementById("goToDataBtn");
-
-  if (generateBtn) {
-    generateBtn.addEventListener("click", () => {
-      const selected = getSelectedData();
-      if (!selected.length) return alert("Please select at least one record.");
-
-      const type = dataTypeSelect.value?.toLowerCase();
-      const selectedWithType = selected.map(r => ({ ...r, type }));
-      localStorage.setItem("selectedRecords", JSON.stringify(selectedWithType));
-      alert(`${selectedWithType.length} record(s) saved.`);
-
-      togglePages("page-1", "page-2");
-    });
-  }
-
-  if (goToDataBtn) {
-    goToDataBtn.addEventListener("click", () => {
-      const wrapper = document.getElementById("slidesWrapper");
-      if (wrapper) wrapper.innerHTML = "";
-
-      const previewContainer = document.getElementById("previewContainer");
-      if (previewContainer) previewContainer.innerHTML = "";
-
-      if (templateUpload) templateUpload.value = "";
-      templateData = null;
-      renderedData = [];
-
-      document.querySelectorAll(".uploaded-template, .rendered-card").forEach(el => el.remove());
-      togglePages("page-2", "page-1");
-    });
-  }
-
-  if (templateUpload) templateUpload.addEventListener("change", handleTemplateUpload);
-  if (renderBtn) renderBtn.addEventListener("click", handleRenderClick);
-  if (printBtn) printBtn.addEventListener("click", handleA4Print);
-
-  fetchData(dataTypeSelect.value);
-});
+let cropper = null; // single cropper instance
 
 // -------------------- Page Toggle -------------------- //
 function togglePages(hideId, showId) {
-  const hideElem = document.getElementById(hideId);
-  const showElem = document.getElementById(showId);
-  if (hideElem) hideElem.style.display = "none";
-  if (showElem) showElem.style.display = "flex";
+  document.getElementById(hideId)?.classList.remove("active");
+  document.getElementById(showId)?.classList.add("active");
+}
+
+// -------------------- DOM Ready -------------------- //
+document.addEventListener("DOMContentLoaded", () => {
+  // Filters
+  dataTypeSelect?.addEventListener("change", fetchDataForSchool);
+  schoolFilter?.addEventListener("change", fetchDataForSchool);
+  resetBtn?.addEventListener("click", resetFilters);
+
+  // Buttons
+  const generateBtn    = document.getElementById("generateBtn");
+  const templateUpload = document.getElementById("templateUpload");
+  const renderBtn      = document.getElementById("renderBtn");
+  const printBtn       = document.getElementById("printBtn");
+  const goToDataBtn    = document.getElementById("goToDataBtn");
+
+  generateBtn?.addEventListener("click", handleGenerateClick);
+  goToDataBtn?.addEventListener("click", handleBackToData);
+  templateUpload?.addEventListener("change", handleTemplateUpload);
+  renderBtn?.addEventListener("click", handleRenderClick);
+  printBtn?.addEventListener("click", handleA4Print);
+});
+
+// -------------------- Generate Button -------------------- //
+function handleGenerateClick() {
+  const selected = getSelectedData();
+  if (!selected?.length) return alert("⚠️ Please select at least one record.");
+
+  const type = dataTypeSelect?.value?.toLowerCase() || "unknown";
+  const selectedWithType = selected.map(r => ({
+    ...r,
+    type,
+    __key: r.__key || crypto.randomUUID()
+  }));
+
+  localStorage.setItem("selectedRecords", JSON.stringify(selectedWithType));
+  alert(`✅ ${selectedWithType.length} record(s) saved.`);
+  togglePages("page-1", "page-2");
+}
+
+// -------------------- Back to Data Page -------------------- //
+function handleBackToData() {
+  const wrapper = document.getElementById("slidesWrapper");
+  if (wrapper) wrapper.innerHTML = "";
+
+  templateData = null;
+  renderedData = [];
+  document.getElementById("templateUpload") && (document.getElementById("templateUpload").value = "");
+  document.querySelectorAll(".uploaded-template, .rendered-card").forEach(el => el.remove());
+
+  togglePages("page-2", "page-1");
 }
 
 // -------------------- Template Upload -------------------- //
@@ -86,6 +82,7 @@ function handleTemplateUpload(event) {
     } catch (err) {
       alert("Invalid JSON format.");
       console.error("Template JSON Parse Error:", err);
+      templateData = null;
     }
   };
   reader.readAsText(file);
@@ -93,8 +90,8 @@ function handleTemplateUpload(event) {
 
 // -------------------- Rendering -------------------- //
 function handleRenderClick() {
-  if (!templateData?.front) return alert("Please upload a valid template JSON with at least a 'front' page.");
-  const selectedData = JSON.parse(localStorage.getItem("selectedRecords")) || [];
+  if (!templateData?.front) return alert("Please upload a valid template JSON with a 'front' page.");
+  const selectedData = JSON.parse(localStorage.getItem("selectedRecords") || "[]");
   if (!selectedData.length) return alert("No selected record found. Please select records on Page-1.");
 
   const wrapper = document.getElementById("slidesWrapper");
@@ -102,10 +99,11 @@ function handleRenderClick() {
 
   wrapper.innerHTML = "";
   renderedData = selectedData;
+
   const slide = document.createElement("div");
   slide.className = "slide";
 
-  selectedData.forEach((record) => {
+  selectedData.forEach(record => {
     const front = createCardElement(templateData.front, record);
     slide.appendChild(front);
     if (templateData.back) {
@@ -125,8 +123,7 @@ function createCardElement(template, record = {}) {
 
   if (!template?.items?.length) {
     container.innerText = "Invalid template data.";
-    container.style.color = "red";
-    container.style.padding = "20px";
+    Object.assign(container.style, { color: "red", padding: "20px" });
     return container;
   }
 
@@ -197,12 +194,13 @@ function renderCard(template, container, record = {}) {
     if (item.type === "image") {
       const img = document.createElement("img");
       img.src = value.startsWith("http") || value.startsWith("data:image") ? value : "";
-      img.style.width = item.width || "100px";
-      img.style.height = item.height || "100px";
-      img.style.objectFit = "cover";
-      img.style.borderRadius = item.borderRadius || "0";
-      img.style.border = item.border || "none";
-
+      Object.assign(img.style, {
+        width: item.width || "100px",
+        height: item.height || "100px",
+        objectFit: "cover",
+        borderRadius: item.borderRadius || "0",
+        border: item.border || "none"
+      });
       img.addEventListener("click", () => openCropModal(img));
       el.appendChild(img);
     } else {
@@ -213,32 +211,27 @@ function renderCard(template, container, record = {}) {
     container.appendChild(el);
   });
 
-  if (templateData?.front && templateData?.back) {
-    appendQRCode(container, record);
-  }
+  if (templateData?.front && templateData?.back) appendQRCode(container, record);
 }
 
 // -------------------- Draggable -------------------- //
 function makeElementDraggable(el, record, key) {
-  let isDragging = false;
-  let startX, startY, origX, origY;
+  let isDragging = false, startX, startY, origX, origY;
 
   el.addEventListener("mousedown", (e) => {
     isDragging = true;
     startX = e.clientX;
     startY = e.clientY;
-    origX = parseInt(el.style.left || 0);
-    origY = parseInt(el.style.top || 0);
+    origX = parseInt(el.style.left) || 0;
+    origY = parseInt(el.style.top) || 0;
     el.style.cursor = "grabbing";
     e.preventDefault();
   });
 
   document.addEventListener("mousemove", (e) => {
     if (!isDragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    el.style.left = origX + dx + "px";
-    el.style.top = origY + dy + "px";
+    el.style.left = origX + (e.clientX - startX) + "px";
+    el.style.top = origY + (e.clientY - startY) + "px";
   });
 
   document.addEventListener("mouseup", () => {
@@ -248,27 +241,24 @@ function makeElementDraggable(el, record, key) {
     if (key) {
       record[key + "_left"] = el.style.left;
       record[key + "_top"] = el.style.top;
+      const selectedData = JSON.parse(localStorage.getItem("selectedRecords") || "[]");
+      const updatedData = selectedData.map(r => r.__key === record.__key ? record : r);
+      localStorage.setItem("selectedRecords", JSON.stringify(updatedData));
     }
-    const selectedData = JSON.parse(localStorage.getItem("selectedRecords") || "[]");
-    const updatedData = selectedData.map(r => r.id === record.id ? record : r);
-    localStorage.setItem("selectedRecords", JSON.stringify(updatedData));
   });
 }
 
 // -------------------- Cropper -------------------- //
-let cropper;
-
 function openCropModal(imgElement) {
   const cropContainer = document.getElementById("cropContainer");
   const cropImage = document.getElementById("cropImage");
+  if (!cropContainer || !cropImage) return;
 
   cropContainer.style.display = "flex";
   cropImage.src = imgElement.src;
 
-  if (cropper) {
-    cropper.destroy();
-    cropper = null;
-  }
+  cropper?.destroy();
+  cropper = null;
 
   cropImage.onload = () => {
     cropper = new Cropper(cropImage, {
@@ -286,9 +276,9 @@ function openCropModal(imgElement) {
   document.getElementById("cropCancel").replaceWith(cropCancel);
 
   cropConfirm.addEventListener("click", () => {
-    const croppedCanvas = cropper.getCroppedCanvas();
-    if (croppedCanvas) {
-      imgElement.src = croppedCanvas.toDataURL();
+    const canvas = cropper?.getCroppedCanvas();
+    if (canvas) {
+      imgElement.src = canvas.toDataURL();
       imgElement.style.objectFit = "cover";
     }
     cropContainer.style.display = "none";
@@ -307,35 +297,30 @@ function openCropModal(imgElement) {
 function capitalize(str) {
   return str.replace(/([A-Z])/g, ' $1').replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
 }
+
 function appendQRCode(container, record) {
   if (!record || typeof record !== 'object') return;
 
   const qrDiv = document.createElement("div");
-  qrDiv.style.position = "absolute";
-  qrDiv.style.right = "10px";
-  qrDiv.style.bottom = "10px";
-  qrDiv.style.width = "50px";
-  qrDiv.style.height = "50px";
-
+  Object.assign(qrDiv.style, {
+    position: "absolute",
+    right: "10px",
+    bottom: "10px",
+    width: "50px",
+    height: "50px"
+  });
   container.appendChild(qrDiv);
 
   let fieldsToInclude = [];
   if (record.type === "student") fieldsToInclude = ["student_name", "student_adm"];
   else if (record.type === "staff") fieldsToInclude = ["staff_empid", "staff_name"];
   else {
+    Object.assign(qrDiv.style, { fontSize: "10px", color: "gray", textAlign: "center", lineHeight: "50px" });
     qrDiv.innerText = "QR: Unknown Type";
-    qrDiv.style.fontSize = "10px";
-    qrDiv.style.color = "gray";
-    qrDiv.style.textAlign = "center";
-    qrDiv.style.lineHeight = "50px";
     return;
   }
 
-  const readableText = fieldsToInclude.map(key => {
-    const label = capitalize(key);
-    const value = record[key] ?? "N/A";
-    return `${label}: ${value}`;
-  }).join('\n');
+  const readableText = fieldsToInclude.map(key => `${capitalize(key)}: ${record[key] ?? "N/A"}`).join("\n");
 
   try {
     new QRCode(qrDiv, { text: readableText, width: 50, height: 50, colorDark: "#000000", colorLight: "#ffffff", correctLevel: QRCode.CorrectLevel.H });
