@@ -4,8 +4,7 @@ import {
   ref as dbRef,
   get,
   update,
-  remove,
-  onValue
+  remove
 } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
 
 // 🔐 Firebase Config
@@ -19,46 +18,72 @@ const firebaseConfig = {
   appId: "1:772712220138:web:381c173dccf1a6513fde93"
 };
 
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// ImgBB API key
 const imgbbAPI = "403847857c5df16d7db901c4017519c7";
 
+// Current record info
+let currentSchoolName = "";
+let currentSchoolId = "";
 let currentType = "";
 let currentEnroll = "";
-let unsubscribe = null;
 
 // 🔍 Search Record
 window.searchRecord = async function () {
-  const type = document.getElementById("idType").value;
   const enroll = document.getElementById("enrollNo").value.trim().toUpperCase();
-
+  if (!enroll) return alert("⚠️ Please enter Enrollment Number.");
   if (!navigator.onLine) return alert("🚫 You're offline.");
-  if (!type || !enroll) return alert("⚠️ Select Type and enter Enrollment Number.");
 
-  const path = `${type}/${enroll}`;
-  const ref = dbRef(db, path);
-
-  if (unsubscribe) unsubscribe();
   showSpinner();
+  clearForm(false);
 
   try {
-    unsubscribe = onValue(ref, (snapshot) => {
+    const masterRef = dbRef(db, "DATA-MASTER");
+    const masterSnap = await get(masterRef);
+
+    if (!masterSnap.exists()) {
       hideSpinner();
-      if (snapshot.exists()) {
-        const data = snapshot.val();
-        currentType = type;
-        currentEnroll = enroll;
-        renderForm(type, data);
-      } else {
-        alert("❌ Record not found.");
-        clearForm(false);
+      return alert("❌ No data available.");
+    }
+
+    const masterData = masterSnap.val();
+    let found = false;
+
+    outerLoop:
+    for (const schoolName in masterData) {
+      for (const schoolId in masterData[schoolName]) {
+        const schoolNode = masterData[schoolName][schoolId];
+
+        // Check STAFF
+        if (schoolNode.STAFF && schoolNode.STAFF[enroll]) {
+          found = true;
+          currentSchoolName = schoolName;
+          currentSchoolId = schoolId;
+          currentType = "STAFF";
+          currentEnroll = enroll;
+          renderForm("STAFF", schoolNode.STAFF[enroll]);
+          break outerLoop;
+        }
+
+        // Check STUDENT
+        if (schoolNode.STUDENT && schoolNode.STUDENT[enroll]) {
+          found = true;
+          currentSchoolName = schoolName;
+          currentSchoolId = schoolId;
+          currentType = "STUDENT";
+          currentEnroll = enroll;
+          renderForm("STUDENT", schoolNode.STUDENT[enroll]);
+          break outerLoop;
+        }
       }
-    }, (error) => {
-      hideSpinner();
-      alert("❌ " + error.message);
-      logError(error.message, "searchRecord-onValue");
-    });
+    }
+
+    hideSpinner();
+    if (!found) alert("❌ Record not found.");
+
   } catch (err) {
     hideSpinner();
     alert("❌ " + err.message);
@@ -66,6 +91,7 @@ window.searchRecord = async function () {
   }
 };
 
+// Render dynamic form
 function renderForm(type, data) {
   const form = document.getElementById("updateForm");
   const disabledFields = ["schoolName", "staff_enroll", "student_enroll"];
@@ -73,7 +99,7 @@ function renderForm(type, data) {
   let html = '<div class="row">';
   Object.keys(data).forEach((key) => {
     if (key === "photo") return;
-    const label = key.replace(`${type}_`, "").replace(/_/g, " ").toUpperCase();
+    const label = key.replace(/_/g, " ").toUpperCase();
     const val = data[key] || "";
     const disabled = disabledFields.includes(key) ? "disabled" : "";
 
@@ -108,11 +134,11 @@ function renderForm(type, data) {
   applyUppercase();
 }
 
+// Download photo
 window.downloadPhoto = async function (url, filename) {
   try {
     const response = await fetch(url, { mode: 'cors' });
     const blob = await response.blob();
-
     const blobUrl = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = blobUrl;
@@ -120,8 +146,6 @@ window.downloadPhoto = async function (url, filename) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-
-    // Release memory
     URL.revokeObjectURL(blobUrl);
   } catch (err) {
     alert("❌ Unable to download image.");
@@ -129,7 +153,7 @@ window.downloadPhoto = async function (url, filename) {
   }
 };
 
-
+// Force uppercase input
 function applyUppercase() {
   document.querySelectorAll("#updateForm input[type='text']").forEach((el) => {
     el.addEventListener("input", () => {
@@ -138,6 +162,7 @@ function applyUppercase() {
   });
 }
 
+// Upload to ImgBB
 async function uploadToImgBB(file) {
   const base64 = await new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -149,11 +174,7 @@ async function uploadToImgBB(file) {
   const formData = new FormData();
   formData.append("key", imgbbAPI);
   formData.append("image", base64);
-
-  // Enrollment Number as image name
-  if (currentEnroll) {
-    formData.append("name", currentEnroll); // 👈 set the image name
-  }
+  if (currentEnroll) formData.append("name", currentEnroll);
 
   const res = await fetch("https://api.imgbb.com/1/upload", {
     method: "POST",
@@ -165,12 +186,12 @@ async function uploadToImgBB(file) {
   throw new Error("Image upload failed.");
 }
 
-
 // ✅ Update Record
 window.updateRecord = async function () {
-  if (!currentType || !currentEnroll) return alert("⚠️ Please search first.");
+  if (!currentSchoolName || !currentSchoolId || !currentType || !currentEnroll)
+    return alert("⚠️ Please search first.");
 
-  const ref = dbRef(db, `${currentType}/${currentEnroll}`);
+  const ref = dbRef(db, `DATA-MASTER/${currentSchoolName}/${currentSchoolId}/${currentType}/${currentEnroll}`);
   const snapshot = await get(ref);
   const existing = snapshot.exists() ? snapshot.val() : {};
 
@@ -219,14 +240,15 @@ window.updateRecord = async function () {
 
 // 🗑️ Delete Record
 window.deleteRecord = async function () {
-  if (!currentType || !currentEnroll) return alert("⚠️ Please search first.");
+  if (!currentSchoolName || !currentSchoolId || !currentType || !currentEnroll)
+    return alert("⚠️ Please search first.");
 
   const confirmDelete = confirm("⚠️ Are you sure you want to delete this record?");
   if (!confirmDelete) return;
 
   try {
     showSpinner();
-    const recordRef = dbRef(db, `${currentType}/${currentEnroll}`);
+    const recordRef = dbRef(db, `DATA-MASTER/${currentSchoolName}/${currentSchoolId}/${currentType}/${currentEnroll}`);
     const snapshot = await get(recordRef);
 
     if (!snapshot.exists()) {
@@ -252,18 +274,15 @@ window.clearForm = function (full = true) {
   if (form) form.innerHTML = "";
 
   if (full) {
-    const enrollInput = document.getElementById("enrollNo");
-    if (enrollInput) {
-      enrollInput.value = "";
-      enrollInput.focus();
-    }
+    document.getElementById("enrollNo").value = "";
     currentType = "";
     currentEnroll = "";
+    currentSchoolName = "";
+    currentSchoolId = "";
   }
-
-  if (typeof unsubscribe === "function") unsubscribe();
 };
 
+// Spinner
 function showSpinner() {
   document.getElementById("loadingSpinner").style.display = "block";
 }
@@ -271,6 +290,7 @@ function hideSpinner() {
   document.getElementById("loadingSpinner").style.display = "none";
 }
 
+// Log errors
 async function logError(message, sourceFn) {
   const now = new Date().toISOString().replace(/:/g, "-");
   const ref = dbRef(db, `errors/${now}`);
@@ -286,7 +306,3 @@ async function logError(message, sourceFn) {
     console.error("Logging failed:", e);
   }
 }
-
-window.onbeforeunload = () => {
-  if (unsubscribe) unsubscribe();
-};
