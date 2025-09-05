@@ -3,68 +3,67 @@
 <head>
   <meta charset="UTF-8" />
   <title>School Dashboard</title>
-
-  <!-- Fonts & Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Tailwind -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Remix Icons -->
   <link href="https://cdn.jsdelivr.net/npm/remixicon/fonts/remixicon.css" rel="stylesheet">
-
-  <!-- CSS -->
+  <!-- External CSS -->
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
-  
-  <!-- Top Stat Cards -->
-  <section class="cards">
-    <div class="card">
-      <i class="ri-graduation-cap-line"></i>
-      <div class="card-info">
+<body class="bg-gray-50 text-gray-800 font-inter">
+
+  <!-- Top Stats Section -->
+  <section class="top-stats grid grid-cols-2 md:grid-cols-4 gap-6 p-6">
+    <div class="stat-card card-hover">
+      <i class="ri-graduation-cap-line stat-icon text-indigo-600"></i>
+      <div>
         <h4>Students</h4>
         <span id="studentCount">0</span>
       </div>
     </div>
-    <div class="card">
-      <i class="ri-user-star-line"></i>
-      <div class="card-info">
+    <div class="stat-card card-hover">
+      <i class="ri-user-star-line stat-icon text-pink-600"></i>
+      <div>
         <h4>Staff</h4>
         <span id="staffCount">0</span>
       </div>
     </div>
-    <div class="card">
-      <i class="ri-pie-chart-2-line"></i>
-      <div class="card-info">
+    <div class="stat-card card-hover">
+      <i class="ri-pie-chart-2-line stat-icon text-green-600"></i>
+      <div>
         <h4>Total Enrollment</h4>
         <span id="totalEnrollment">0</span>
       </div>
     </div>
-    <div class="card">
-      <i class="ri-community-line"></i>
-      <div class="card-info">
+    <div class="stat-card card-hover">
+      <i class="ri-community-line stat-icon text-orange-600"></i>
+      <div>
         <h4>Schools</h4>
         <span id="uniqueSchools">0</span>
       </div>
     </div>
   </section>
 
-  <!-- Main Row: Filters + Date-wise Report -->
-  <section class="main-row">
+  <!-- Main Row -->
+  <section class="main-row flex flex-col md:flex-row gap-6 p-6">
 
     <!-- Filters Sidebar -->
-    <aside class="filters-card">
-      <div class="filters-header">
-        <i class="ri-filter-3-line"></i>
+    <aside class="filters bg-white rounded-2xl shadow card-hover w-full md:w-1/4 p-5">
+      <div class="header flex items-center gap-2 mb-4">
+        <i class="ri-filter-3-line text-indigo-600"></i>
         <h3>Filters</h3>
       </div>
-
-      <div class="filter-group">
-        <div class="input-wrapper">
-          <i class="ri-search-line"></i>
-          <input type="text" id="searchBox" placeholder="Search school...">
+      <div class="search mb-4">
+        <div class="relative">
+          <i class="ri-search-line absolute left-3 top-3 text-gray-400"></i>
+          <input type="text" id="searchBox" placeholder="Search school..." class="pl-10 w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 p-2">
         </div>
       </div>
-
-      <div class="filter-group">
+      <div class="sort">
         <label for="sortType">Sort By</label>
-        <select id="sortType">
+        <select id="sortType" class="w-full mt-1 rounded-xl border-gray-200 p-2 focus:ring-2 focus:ring-indigo-500">
           <option value="az">A → Z</option>
           <option value="za">Z → A</option>
           <option value="high">Highest Enrollment</option>
@@ -74,56 +73,45 @@
     </aside>
 
     <!-- Date-wise Report -->
-    <div class="date-wise">
-      <!-- Header: Online Users + Online Schools -->
-      <div class="date-wise-header">
-
-        <!-- Left: Online Users + Online Schools -->
-        <div class="online-wrapper">
-          <div id="onlineSchoolsCount" class="online-count">
-            <i class="ri-user-line"></i>
-            <span id="onlineNumber">0</span>
-            <span id="blinkCircle" class="blink-indicator"></span>
+    <div class="report bg-white rounded-2xl shadow card-hover flex-1 p-5">
+      <div class="report-header flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+        <div class="online-info flex items-center gap-3 flex-wrap">
+          <div id="onlineSchoolsCount" class="flex items-center gap-2">
+            <i class="ri-user-line text-green-600"></i>
+            <span class="font-semibold">0</span>
+            <span class="w-2 h-2 rounded-full bg-green-500 blink"></span>
           </div>
-          <div id="onlineSchoolsList" class="online-schools-container">
-            <!-- JS will inject full-name mini cards -->
-          </div>
+          <div id="onlineSchoolsList" class="flex flex-wrap gap-2"></div>
         </div>
-
-        <!-- Right: 7 Days Report Title -->
-        <h2 class="section-title">
-          <i class="ri-calendar-event-line"></i> 7 Days Report
+        <h2 class="text-lg font-semibold flex items-center gap-2 text-indigo-600">
+          <i class="ri-calendar-event-line"></i>
         </h2>
-
       </div>
-
-      <!-- Date-wise Cards/List -->
-      <div class="date-wise-list" id="dateWiseList">
-        <!-- JS will render date-wise cards here -->
-      </div>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="dateWiseList"></div>
     </div>
-
   </section>
 
   <!-- School List -->
-  <section class="school-section">
-    <h2 class="section-title"><i class="ri-building-4-line"></i> School List</h2>
-    <div id="schoolList" class="school-list">
-      <!-- JS will render school cards -->
-    </div>
+  <section class="school-list p-6">
+    <h2 class="text-lg font-semibold mb-4 flex items-center gap-2 text-indigo-600">
+      <i class="ri-building-4-line"></i>
+      School List
+    </h2>
+    <div id="schoolList" class="grid gap-4 md:grid-cols-2 lg:grid-cols-3"></div>
   </section>
 
   <!-- Footer -->
-  <footer class="footer">
-    <div class="footer-brand">
+  <footer class="footer bg-gray-100 border-t p-6 text-center mt-6">
+    <div class="flex justify-center items-center gap-2 text-gray-600">
       <i class="ri-shield-check-line"></i>
       Designed & Developed 
-      <a href="https://penportindia.github.io/penport/" target="_blank">Penport India</a>
+      <a href="https://penportindia.github.io/penport/" target="_blank" class="text-indigo-600 font-medium hover:underline">
+        Penport India
+      </a>
     </div>
-    <p class="footer-tagline">Simplifying Complexity Through Code</p>
-  </footer>  
+    <p class="text-sm text-gray-500 mt-1">Simplifying Complexity Through Code</p>
+  </footer>
 
-  <!-- JS -->
   <script type="module" src="app.js"></script>
 </body>
 </html>
