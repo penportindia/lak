@@ -291,6 +291,12 @@ function renderDateWise(dateMap) {
 
   const last7 = entries.slice(0, 7);
 
+  // ✅ Container को flex row बनाओ
+  dateWiseListEl.style.display = "flex";
+  dateWiseListEl.style.flexWrap = "wrap";
+  dateWiseListEl.style.gap = "14px";
+  dateWiseListEl.style.justifyContent = "center";
+
   last7.forEach(([dateKey, counts], index) => {
     const dateObj = parseDateString(dateKey);
 
@@ -308,7 +314,8 @@ function renderDateWise(dateMap) {
       box-shadow:0 3px 8px rgba(0,0,0,0.08);
       overflow:hidden;
       transition:all 0.25s ease;
-      margin-bottom:14px;
+      width:200px;    /* ✅ fixed width */
+      flex-shrink:0;  /* shrink ना हो */
     `;
 
     // header bg alag alag hoga
@@ -347,10 +354,12 @@ function renderDateWise(dateMap) {
     @media (max-width: 640px) {
       .date-card .label { display: none !important; }
       .date-card div[style*="font-weight:600"] { font-size:14px !important; }
+      .date-card { width: 45% !important; } /* मोबाइल पर 2 cards per row */
     }
   `;
   document.head.appendChild(styleEl);
 }
+
 
 
 // ----------------------------------------------------
