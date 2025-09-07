@@ -216,10 +216,11 @@
         "top": "255px",
         "left": "10px",
         "width": "200px",
-        "fontSize": "12px",
+        "fontSize": "10px",
         "color": "#000"
       }
     ]
   }
 }
+
 
