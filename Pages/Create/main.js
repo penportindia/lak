@@ -39,7 +39,7 @@ let imageData = "";
 let lastType = "";
 let stream = null;
 
-let schoolCode = "";   // userid of school (prefix for enrollment)
+let schoolCode = "";   // userid of school
 let schoolName = "";   // actual school name
 let entryData = {};
 
@@ -90,28 +90,23 @@ function resetSessionTimer() {
 }
 
 async function logoutUser(message = "You have been logged out.") {
-  if (!schoolCode || !safeIP) return; // not logged in
+  if (!schoolCode || !safeIP) return;
 
   try {
-    // Remove IP entry from DB
     const ipRef = dbRef(database, `activeSchools/${schoolCode}/${safeIP}`);
     await remove(ipRef);
 
-    // ✅ UI updates
     if (exists("loginPage")) el("loginPage").classList.remove("hidden");
     if (exists("homePage")) el("homePage").classList.add("hidden");
     if (exists("idForm")) el("idForm").classList.add("hidden");
     if (exists("previewPage")) el("previewPage").classList.add("hidden");
 
-    // ✅ Clear dynamic contents
     if (exists("formFields")) el("formFields").innerHTML = "";
     if (exists("preview")) el("preview").innerHTML = "";
 
-    // ✅ Hide camera/canvas
     if (exists("canvas")) el("canvas").classList.add("hidden");
     if (exists("video")) el("video").classList.add("hidden");
 
-    // ✅ Reset state variables
     schoolCode = "";
     schoolName = "";
     entryData = {};
@@ -123,7 +118,7 @@ async function logoutUser(message = "You have been logged out.") {
     if (sessionTimeout) clearTimeout(sessionTimeout);
     if (hardTimeout) clearTimeout(hardTimeout);
 
-    stopCamera?.(); // safe call if function exists
+    stopCamera?.();
 
     alert(message);
   } catch (error) {
@@ -138,20 +133,19 @@ async function logoutUser(message = "You have been logged out.") {
   document.addEventListener(evt, resetSessionTimer, { passive: true });
 });
 
-
 // ============================
-// ✅ Login Function
+// ✅ Login Function (Full-proof)
 // ============================
 window.verifyLogin = async function () {
-  const uidOrPhone = (safeGet("loginUser")?.value || "").trim();
-  const pwd = (safeGet("loginPass")?.value || "").trim();
-
-  if (!uidOrPhone || !pwd) {
-    showOrAlert("Please enter both User ID or Phone Number and Password.", "error");
-    return;
-  }
-
   try {
+    const uidOrPhone = (safeGet("loginUser")?.value || "").trim();
+    const pwd = (safeGet("loginPass")?.value || "").trim();
+
+    if (!uidOrPhone || !pwd) {
+      showOrAlert("Please enter both User ID or Phone Number and Password.", "error");
+      return;
+    }
+
     const rootRef = dbRef(database);
     const snapshot = await get(child(rootRef, `schools`));
 
@@ -175,7 +169,10 @@ window.verifyLogin = async function () {
       const uidMatch = (data.userid === uidOrPhone || data.userid === inputUserId) && data.password === pwd;
       const phoneMatch = dbPhoneDigits && dbPhoneDigits === inputDigits && data.password === pwd;
 
-      if (uidMatch || phoneMatch) { matchedUser = data; break; }
+      if (uidMatch || phoneMatch) {
+        matchedUser = data;
+        break;
+      }
     }
 
     if (!matchedUser) {
@@ -183,7 +180,12 @@ window.verifyLogin = async function () {
       return;
     }
 
-    // Clean school name
+    // ✅ Status check (case-insensitive)
+    if (!matchedUser.status || matchedUser.status.toString().trim().toLowerCase() !== "active") {
+      showOrAlert("You are an Inactive user. Please Contact Admin to Activate your account first.", "error");
+      return;
+    }
+
     const rawSchoolName = matchedUser.name || '';
     const cleanSchoolName = rawSchoolName.replace(/[^a-zA-Z0-9 ,]/g, '').replace(/\s+/g, ' ').trim();
 
@@ -192,22 +194,18 @@ window.verifyLogin = async function () {
       return;
     }
 
-    // Get IP and make Firebase-safe key
     userIP = await fetchUserIP();
     safeIP = userIP.replace(/\./g, "-");
 
-    // UI switch
     if (exists("loginPage")) el("loginPage").classList.add("hidden");
     if (exists("homePage")) el("homePage").classList.remove("hidden");
     if (exists("schoolName")) {
       el("schoolName").innerHTML = `<option selected>${cleanSchoolName} (${matchedUser.userid})</option>`;
     }
 
-    // Save schoolCode (userid) + schoolName
     schoolCode = matchedUser.userid || 'SCHOOL';
     schoolName = cleanSchoolName;
 
-    // Session path per user + IP
     const ipRef = dbRef(database, `activeSchools/${schoolCode}/${safeIP}`);
 
     await set(ipRef, {
@@ -220,7 +218,6 @@ window.verifyLogin = async function () {
 
     try { onDisconnect(ipRef).remove(); } catch (_) {}
 
-    // Start timers
     resetSessionTimer();
     if (hardTimeout) clearTimeout(hardTimeout);
     hardTimeout = setTimeout(async () => {
@@ -228,6 +225,7 @@ window.verifyLogin = async function () {
     }, MAX_SESSION);
 
     showOrAlert("Login Successful!", "success");
+
   } catch (error) {
     showOrAlert("Firebase Error: " + (error.message || error), "error");
     console.error(error);
@@ -244,6 +242,7 @@ window.addEventListener("beforeunload", () => {
     } catch (_) {}
   }
 });
+
 
 // ============================
 // ✅ Generate Unique Enrollment (using USERID prefix)
@@ -964,4 +963,3 @@ window.editEntry = editEntry;
 window.newEntry = newEntry;
 window.goHome = goHome;
 window.generateBarcodeImage = generateBarcodeImage;
-
