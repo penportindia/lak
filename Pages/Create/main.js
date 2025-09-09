@@ -39,12 +39,12 @@ let imageData = "";
 let lastType = "";
 let stream = null;
 
-let schoolCode = "";   // userid of school
-let schoolName = "";   // actual school name
+let schoolCode = "";     // userid of school
+let schoolName = "";     // actual school name
 let entryData = {};
 
-let userIP = "";       // original IP
-let safeIP = "";       // firebase-safe key (dots -> dashes)
+let userIP = "";         // original IP
+let safeIP = "";         // firebase-safe key (dots -> dashes)
 
 let sessionTimeout = null;
 let hardTimeout = null;
@@ -80,30 +80,35 @@ async function fetchUserIP() {
 }
 
 // ============================
-// ✅ Auto Logout / Inactivity
+// ✅ Auto Logout / Inactivity (Updated)
 // ============================
 function resetSessionTimer() {
   if (sessionTimeout) clearTimeout(sessionTimeout);
-  sessionTimeout = setTimeout(async () => {
-    await logoutUser("Session expired due to inactivity.");
+  sessionTimeout = setTimeout(() => {
+    // Page reload on inactivity
+    location.reload(); 
   }, MAX_IDLE);
 }
 
 async function logoutUser(message = "You have been logged out.") {
-  if (!schoolCode || !safeIP) return;
+  if (!schoolCode || !safeIP) {
+    if (exists("loginPage")) el("loginPage").classList.remove("hidden");
+    if (exists("homePage")) el("homePage").classList.add("hidden");
+    alert(message);
+    return;
+  }
 
   try {
     const ipRef = dbRef(database, `activeSchools/${schoolCode}/${safeIP}`);
     await remove(ipRef);
 
+    // ✅ Clear all state and UI
     if (exists("loginPage")) el("loginPage").classList.remove("hidden");
     if (exists("homePage")) el("homePage").classList.add("hidden");
     if (exists("idForm")) el("idForm").classList.add("hidden");
     if (exists("previewPage")) el("previewPage").classList.add("hidden");
-
     if (exists("formFields")) el("formFields").innerHTML = "";
     if (exists("preview")) el("preview").innerHTML = "";
-
     if (exists("canvas")) el("canvas").classList.add("hidden");
     if (exists("video")) el("video").classList.add("hidden");
 
@@ -117,12 +122,12 @@ async function logoutUser(message = "You have been logged out.") {
 
     if (sessionTimeout) clearTimeout(sessionTimeout);
     if (hardTimeout) clearTimeout(hardTimeout);
-
-    stopCamera?.();
+    stopCamera();
 
     alert(message);
   } catch (error) {
     console.error("Error during logout:", error);
+    alert("An error occurred during logout. Please refresh the page.");
   }
 }
 
@@ -289,7 +294,7 @@ async function generateUniqueEnrollment(type) {
 // -----------------------------
 window.navigateToForm = async function () {
   const type = (safeGet("idType")?.value || "").trim().toLowerCase();
-  if (!type) return alert("Please select ID type");
+  if (!type) return showOrAlert("Please select ID type", "error");
   lastType = type;
   if (exists("homePage")) el("homePage").classList.add("hidden");
   if (exists("idForm")) el("idForm").classList.remove("hidden");
@@ -345,6 +350,7 @@ async function generateFormFields(type) {
   } catch (e) {
     console.error("Enrollment generation failed:", e);
     enrollNo = `${type.toUpperCase()}-TEMP-${Date.now()}`;
+    showOrAlert("Warning: Could not generate unique enrollment number.", "warning");
   }
 
   fields.forEach(fieldDef => {
@@ -352,7 +358,6 @@ async function generateFormFields(type) {
     const fullId = `${type}_${id}`;
     let inputHTML = '';
 
-    // Required if label has * AND not 'dob' or 'contact'
     const isRequired = (label.includes('*') && !['dob', 'contact'].includes(id)) ? 'required' : '';
 
     if (controlType === 'select') {
@@ -382,29 +387,17 @@ async function generateFormFields(type) {
 // ✅ Image Compression Helper
 // -----------------------------
 function compressImage(sourceCanvasOrImage, maxWidth = 480, quality = 0.6) {
-  // Accepts a canvas element or any drawable (video/canvas/img)
   const tempCanvas = document.createElement("canvas");
   const ctx = tempCanvas.getContext("2d");
-
   const srcWidth = sourceCanvasOrImage.width || sourceCanvasOrImage.videoWidth || 0;
   const srcHeight = sourceCanvasOrImage.height || sourceCanvasOrImage.videoHeight || 0;
-
-  if (!srcWidth || !srcHeight) {
-    // nothing to compress
-    return "";
-  }
-
+  if (!srcWidth || !srcHeight) return "";
   const ratio = srcWidth / srcHeight;
   const newWidth = Math.min(srcWidth, maxWidth);
   const newHeight = Math.round(newWidth / ratio);
-
   tempCanvas.width = newWidth;
   tempCanvas.height = newHeight;
-
-  // drawImage supports canvas/image/video as source
   ctx.drawImage(sourceCanvasOrImage, 0, 0, newWidth, newHeight);
-
-  // return compressed JPEG
   return tempCanvas.toDataURL("image/jpeg", quality);
 }
 
@@ -414,19 +407,14 @@ async function startCamera() {
       showOrAlert("Camera not supported on this device", "error");
       return;
     }
-
-    // ✅ Back camera preference (mobile पर back, PC पर default webcam)
     stream = await navigator.mediaDevices.getUserMedia({
       video: { facingMode: { ideal: "environment" } }
     });
-
     const video = safeGet("video");
     if (!video) return showOrAlert("Video element not found", "error");
-
     video.srcObject = stream;
     await video.play().catch(() => {});
     video.classList.remove("hidden");
-
     const { cameraBtn } = getButtonRefs();
     if (cameraBtn) {
       cameraBtn.innerHTML = `<i class="fas fa-camera"></i><span>Capture</span>`;
@@ -434,7 +422,6 @@ async function startCamera() {
     }
   } catch (err) {
     console.error("Camera error:", err);
-
     if (err.name === "NotAllowedError") {
       showOrAlert("Camera permission denied. Please enable it in settings.", "error");
     } else if (err.name === "NotFoundError") {
@@ -444,7 +431,6 @@ async function startCamera() {
     }
   }
 }
-
 
 function stopCamera() {
   if (stream) {
@@ -461,21 +447,16 @@ function stopCamera() {
 function takePicture() {
   const video = safeGet("video");
   const canvas = safeGet("canvas");
-
-  if (!video || !canvas) return alert("Camera or canvas element missing.");
-  if (!video.videoWidth) return alert("Camera not ready.");
-
+  if (!video || !canvas || !video.videoWidth) {
+    return showOrAlert("Camera not ready.", "error");
+  }
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
   const ctx = canvas.getContext("2d");
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   canvas.classList.remove("hidden");
-
-  // compress using canvas as source
-  imageData = compressImage(canvas, 480, 0.6);  // Resize width = 480px, quality = 60%
-
+  imageData = compressImage(canvas, 480, 0.6);
   stopCamera();
-
   const { cameraBtn } = getButtonRefs();
   if (cameraBtn) {
     cameraBtn.innerHTML = `<i class="fas fa-redo"></i><span>Retake</span>`;
@@ -496,16 +477,21 @@ function retakePicture() {
 }
 
 // -----------------------------
-// ✅ Submit Handler (Final Updated for SchoolName + SchoolID in Path)
+// ✅ Submit Handler (Updated)
 // -----------------------------
 async function handleSubmit(e) {
   try {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
-
     const { newEntryBtn } = getButtonRefs();
     if (newEntryBtn) newEntryBtn.disabled = true;
 
-    // 🔹 Collect form fields
+    // ✅ Photo validation added here
+    if (!imageData) {
+      showOrAlert("Please Capture Photo before submitting.", "error");
+      if (newEntryBtn) newEntryBtn.disabled = false;
+      return;
+    }
+
     const formFields = document.querySelectorAll("#formFields input, #formFields select, #formFields textarea");
     if (!formFields || formFields.length === 0) {
       if (newEntryBtn) newEntryBtn.disabled = false;
@@ -516,53 +502,43 @@ async function handleSubmit(e) {
     formFields.forEach(field => {
       let value = (field.value || "").trim();
       const tag = (field.tagName || "").toUpperCase();
-      const isUpperCase = (field.type === "text" || tag === "TEXTAREA" || tag === "SELECT") &&
-        !['email', 'ifsc'].includes((field.name || "").toLowerCase());
+      const isUpperCase = (field.type === "text" || tag === "TEXTAREA" || tag === "SELECT");
       if (isUpperCase) value = value.toUpperCase();
       rawData[field.name || `field_${Math.random()}`] = value;
     });
 
-    // 🔹 Dynamic keys
     const enrollKey = `${lastType || 'default'}_enroll`;
-    const nameKey   = `${lastType || 'default'}_name`;
-    const dobKey    = `${lastType || 'default'}_dob`;
-
+    const nameKey = `${lastType || 'default'}_name`;
+    const dobKey = `${lastType || 'default'}_dob`;
     const enroll = rawData[enrollKey];
-
-    // 🔹 Use SchoolName + SchoolID
-    const schoolId   = schoolCode || "UNKNOWN_ID"; 
-    const schoolNode = (schoolName || "UNKNOWN_SCHOOL").toUpperCase();
-
-    // 🔹 Final DB Path → DATA-MASTER/{SCHOOL_NAME}/{SCHOOL_ID}/{TYPE}/{ENROLLMENT_ID}
-    const dbPath = `DATA-MASTER/${schoolNode}/${schoolId}/${(lastType || "default").toUpperCase()}/${enroll || "unknown"}`;
-
-    // 🔹 Validate required fields
-    if (!enroll || !imageData) {
-      showOrAlert("❌ Submit failed: Enrollment or photo missing", "error");
+    
+    if (!enroll) {
+      showOrAlert("❌ Submit failed: Enrollment number missing.", "error");
       setTimeout(goHomeSafe, 2000);
       if (newEntryBtn) newEntryBtn.disabled = false;
       return;
     }
 
-    // 🔹 Format DOB if present
+    const schoolId = schoolCode || "UNKNOWN_ID";
+    const schoolNode = (schoolName || "UNKNOWN_SCHOOL").toUpperCase();
+    const dbPath = `DATA-MASTER/${schoolNode}/${schoolId}/${(lastType || "default").toUpperCase()}/${enroll || "unknown"}`;
+    
     if (rawData[dobKey]) {
       const dobDate = new Date(rawData[dobKey]);
       if (!isNaN(dobDate)) {
-        const day   = String(dobDate.getDate()).padStart(2, '0');
+        const day = String(dobDate.getDate()).padStart(2, '0');
         const month = dobDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
-        const year  = dobDate.getFullYear();
+        const year = dobDate.getFullYear();
         rawData[dobKey] = `${day}-${month}-${year}`;
       } else {
-        showOrAlert("❌ Submit failed: Invalid date", "error");
+        showOrAlert("❌ Submit failed: Invalid date.", "error");
         setTimeout(goHomeSafe, 2000);
         if (newEntryBtn) newEntryBtn.disabled = false;
         return;
       }
     }
 
-    // 🔹 Add School Info
     rawData.schoolName = schoolNode;
-
     const data = {
       [enrollKey]: enroll,
       [nameKey]: rawData[nameKey] || "",
@@ -570,8 +546,6 @@ async function handleSubmit(e) {
       schoolId: schoolId,
       photo: ""
     };
-
-    // 🔹 Copy remaining fields
     Object.keys(rawData).forEach(key => {
       if (!["photo", "schoolName", "schoolId", nameKey, enrollKey].includes(key)) {
         data[key] = rawData[key];
@@ -579,11 +553,8 @@ async function handleSubmit(e) {
     });
 
     entryData = data;
-
-    // 🔹 Show preview safely
     showPreviewSafe(imageData, enroll);
 
-    // 🔹 Save to Firebase then upload image
     const recordRef = dbRef(database, dbPath);
     await setSafe(recordRef, data);
     await uploadImageToImgBBSafe(enroll, dbPath);
@@ -688,9 +659,9 @@ function uploadImageToImgBBSafe(enroll, dbPath) {
 function updateProgressBarSafe(percent) {
   try {
     const progressEl = safeGet("uploadProgress");
-    if (progressEl) { 
-      progressEl.style.width = percent + "%"; 
-      progressEl.textContent = percent + "%"; 
+    if (progressEl) {
+      progressEl.style.width = percent + "%";
+      progressEl.textContent = percent + "%";
     }
   } catch(e) { console.warn(e); }
 }
@@ -776,7 +747,6 @@ function showPreview(photoUrl, enrollmentNumber) {
     </div>
   `;
 
-  // Load JsBarcode lazily if missing
   if (typeof JsBarcode === "undefined") {
     const script = document.createElement("script");
     script.src = "https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js";
@@ -791,7 +761,6 @@ function showPreview(photoUrl, enrollmentNumber) {
 // ✅ Generate Barcode as PNG
 function generateBarcodeImage(enroll) {
   if (!enroll) return;
-
   try {
     JsBarcode("#barcode", enroll, {
       format: "CODE128",
@@ -802,19 +771,16 @@ function generateBarcodeImage(enroll) {
   } catch (e) {
     console.warn("JsBarcode call failed:", e);
   }
-
   const checkAndConvert = () => {
     const svg = document.querySelector("#barcode");
     if (!svg || svg.children.length === 0) {
       return setTimeout(checkAndConvert, 100);
     }
-
     try {
       const svgData = new XMLSerializer().serializeToString(svg);
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d");
       const img = new Image();
-
       img.onload = () => {
         canvas.width = img.width;
         canvas.height = img.height;
@@ -822,38 +788,32 @@ function generateBarcodeImage(enroll) {
         const pngFile = canvas.toDataURL("image/png");
         svg.outerHTML = `<img src="${pngFile}" style="width:140px;height:40px;">`;
       };
-
       img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
     } catch (e) {
       console.error("Failed to convert barcode SVG -> PNG:", e);
     }
   };
-
   checkAndConvert();
 }
 
 // ✅ Save ID as JPG
 function saveIDAsImage() {
   const previewEl = safeGet("idCardBox");
-  if (!previewEl) return alert("❌ Preview not found!");
-
+  if (!previewEl) return showOrAlert("❌ Preview not found!", "error");
   const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
   const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
   const fileName = `${enrollmentNumber}-${studentName}.jpg`;
-
-  // Lazy-load html2canvas if not present
   const doCapture = () => {
     if (typeof html2canvas === "undefined") {
       const script = document.createElement("script");
       script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
       script.onload = () => capture();
-      script.onerror = () => alert("Failed to load html2canvas library.");
+      script.onerror = () => showOrAlert("Failed to load html2canvas library.", "error");
       document.body.appendChild(script);
     } else {
       capture();
     }
   };
-
   const capture = () => {
     html2canvas(previewEl, {
       scale: 3,
@@ -864,9 +824,8 @@ function saveIDAsImage() {
       a.href = canvas.toDataURL("image/jpeg", 1.0);
       a.download = fileName;
       a.click();
-    }).catch(err => alert("❌ Failed to save image: " + (err?.message || err)));
+    }).catch(err => showOrAlert("❌ Failed to save image: " + (err?.message || err), "error"));
   };
-
   doCapture();
 }
 
@@ -877,7 +836,6 @@ function editEntry() {
 }
 
 function newEntry() {
-  // ✅ Hide preview page and reset form
   const previewPage = safeGet("previewPage");
   const formFields = safeGet("formFields");
   const idForm = safeGet("idForm");
@@ -892,19 +850,15 @@ function newEntry() {
   if (video) video.classList.add("hidden");
   if (idForm) idForm.classList.remove("hidden");
 
-  // ✅ Reset global values
   imageData = '';
   entryData = {};
   lastType = idTypeSelect?.value?.trim().toLowerCase() || '';
-
   stopCamera();
 
   if (cameraBtn) {
     cameraBtn.innerHTML = `<i class="fas fa-video"></i><span>Camera</span>`;
     cameraBtn.onclick = startCamera;
   }
-
-  // ✅ Generate dynamic form fields
   generateFormFields(lastType);
 }
 
@@ -933,16 +887,11 @@ function showOrAlert(message, type = "success") {
   const popup = safeGet("messagePopup");
   if (popup) {
     popup.textContent = message;
-
-    // ✅ पुराने type classes हटाकर base class + नया type class add करें
     popup.className = `popup ${type}`;
-
     popup.style.display = "block";
-
-    // ✅ Auto-hide after 4 sec
     setTimeout(() => {
       popup.style.display = "none";
-      popup.className = "popup"; // ✅ Hide होने पर सिर्फ base class restore
+      popup.className = "popup";
     }, 4000);
   } else {
     alert(message);
@@ -954,12 +903,12 @@ function showOrAlert(message, type = "success") {
 // ✅ Export to Global Scope
 // ============================
 window.handleSubmit = handleSubmit;
+window.logoutUser = logoutUser;
+window.navigateToForm = navigateToForm;
 window.startCamera = startCamera;
 window.takePicture = takePicture;
 window.retakePicture = retakePicture;
-window.showPreview = showPreview;
-window.saveIDAsImage = saveIDAsImage;
-window.editEntry = editEntry;
 window.newEntry = newEntry;
 window.goHome = goHome;
-window.generateBarcodeImage = generateBarcodeImage;
+window.editEntry = editEntry;
+window.saveIDAsImage = saveIDAsImage;
