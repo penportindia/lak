@@ -4,8 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Lakshmi ID Maker</title>
+  <!-- Fonts & Icons -->
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Outlined" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
   <style>
     :root {
       --sidebar-width: 72px;
@@ -18,27 +20,19 @@
       --transition: all 0.3s ease;
     }
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
+    * { margin:0; padding:0; box-sizing:border-box; font-family:'Poppins',sans-serif; }
 
     body {
       display: flex;
       flex-direction: column;
       height: 100vh;
-      background-color: #f4f6f8;
+      background: #f4f6f8;
       overflow: hidden;
     }
 
-    .container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-    }
+    .container { display:flex; flex:1; overflow:hidden; }
 
+    /* Sidebar */
     .sidebar {
       width: var(--sidebar-width);
       background: var(--bg-dark);
@@ -52,64 +46,51 @@
 
     .sidebar-header {
       padding: 20px 0 10px;
-      background-color: #1c2733;
+      background: #1c2733;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
     }
 
-    .sidebar-header img {
-      width: 42px;
-      height: 42px;
-      object-fit: contain;
-      margin-bottom: 4px;
-    }
+    .sidebar-header img { width: 42px; height: 42px; margin-bottom: 4px; }
 
-    .menu {
-      flex: 1;
-      padding-top: 10px;
-      display: flex;
-      flex-direction: column;
-    }
+    .menu { flex:1; padding-top:10px; display:flex; flex-direction:column; }
 
     .menu-item {
       position: relative;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 16px 0;
-      margin: 8px;
-      cursor: pointer;
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      padding:16px 0;
+      margin:8px;
+      cursor:pointer;
       color: var(--text-muted);
+      border-radius:10px;
       transition: var(--transition);
-      border-radius: 10px;
     }
 
+    .menu-item i { font-size: 26px; z-index:2; }
+
     .menu-item:hover {
-      background-color: var(--bg-hover);
+      background: var(--bg-hover);
       color: #fff;
-      box-shadow: 0 0 8px rgba(29, 161, 242, 0.5);
-      transform: scale(1.05);
+      box-shadow: 0 0 12px rgba(29, 161, 242, 0.6);
+      transform: scale(1.1);
     }
 
     .menu-item.active {
-      background-color: var(--primary-color);
+      background: var(--primary-color);
       color: #fff;
     }
 
-    .menu-item i.material-icons-outlined {
-      font-size: 24px;
-      z-index: 2;
-    }
-
+    /* Tooltip */
     .menu-item::after {
       content: attr(data-title);
       position: absolute;
       left: 80px;
       top: 50%;
       transform: translateY(-50%);
-      background: rgba(20, 20, 20, 0.85);
+      background: rgba(20,20,20,0.85);
       color: #fff;
       padding: 8px 14px;
       border-radius: 12px;
@@ -124,204 +105,164 @@
     }
 
     .menu-item::before {
-      content: '';
-      position: absolute;
-      left: 72px;
-      top: 50%;
+      content:'';
+      position:absolute;
+      left:72px;
+      top:50%;
       transform: translateY(-50%);
-      width: 0;
-      height: 0;
-      border-top: 6px solid transparent;
-      border-bottom: 6px solid transparent;
-      border-left: 6px solid rgba(20, 20, 20, 0.85);
-      opacity: 0;
+      border:6px solid transparent;
+      border-left-color: rgba(20,20,20,0.85);
+      opacity:0;
       transition: all 0.3s ease;
     }
 
     .menu-item:hover::after,
-    .menu-item:hover::before {
-      opacity: 1;
-    }
+    .menu-item:hover::before { opacity:1; }
 
-    .main-content {
-      flex: 1;
-      background-color: #ffffff;
-      position: relative;
-    }
-
+    /* Main content */
+    .main-content { flex:1; background:#fff; position:relative; }
     iframe {
-      width: 100%;
+      width:100%;
       height: calc(100vh - 40px);
-      border: none;
-      opacity: 0;
+      border:none;
+      opacity:0;
       transition: opacity 0.5s ease;
     }
+    iframe.visible { opacity:1; }
 
-    iframe.visible {
-      opacity: 1;
-    }
-
+    /* Loader */
     #loader {
-      position: absolute;
-      width: 100%;
+      position:absolute;
+      width:100%;
       height: calc(100vh - 40px);
-      background-color: #ffffff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 10;
+      background:#fff;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      z-index:10;
     }
 
     .spinner {
-      width: 48px;
-      height: 48px;
-      border: 6px solid #e0e0e0;
-      border-top: 6px solid var(--primary-color);
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
+      width:48px;
+      height:48px;
+      border:6px solid #e0e0e0;
+      border-top:6px solid var(--primary-color);
+      border-radius:50%;
+      animation:spin 1s linear infinite;
     }
+    @keyframes spin { to { transform: rotate(360deg); } }
 
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
+    /* Footer */
     footer {
-      width: 100%;
-      background: #1e2a38;
-      color: #fff;
-      font-size: 14px;
-      text-align: center;
-      padding: 10px 0;
-      z-index: 999;
-      box-shadow: 0 -2px 8px rgba(0,0,0,0.1);
+      width:100%;
+      background:#1e2a38;
+      color:#fff;
+      font-size:14px;
+      text-align:center;
+      padding:10px 0;
+      z-index:999;
+      box-shadow:0 -2px 8px rgba(0,0,0,0.1);
     }
-
-    footer a {
-      color: #1da1f2;
-      text-decoration: none;
-    }
+    footer a { color: var(--primary-color); text-decoration:none; }
   </style>
 </head>
 <body>
 
-  <div class="container">
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <img src="https://i.ibb.co/pv4P6tML/Lakshmi-Logo-01.png" alt="Lakshmi Logo" />
-      </div>
-      <div class="menu">
-        <div class="menu-item active" data-title="Dashboard" onclick="loadPage(this, 'dashboard')">
-          <i class="material-icons-outlined">dashboard</i>
-        </div>
-        <div class="menu-item" data-title="Create" onclick="loadPage(this, 'create')">
-          <i class="material-icons-outlined">add_circle_outline</i>
-        </div>
-        <div class="menu-item" data-title="Manage" onclick="loadPage(this, 'manage')">
-          <i class="material-icons-outlined">folder_open</i>
-        </div>
-        <div class="menu-item" data-title="Template" onclick="loadPage(this, 'template')">
-          <i class="material-icons-outlined">description</i>
-        </div>
-        <div class="menu-item" data-title="Schools" onclick="loadPage(this, 'schools')">
-          <i class="material-icons-outlined">school</i>
-        </div>
-        <div class="menu-item" data-title="Print" onclick="loadPage(this, 'print')">
-          <i class="material-icons-outlined">print</i>
-        </div>
-        <div class="menu-item" data-title="Export" onclick="loadPage(this, 'export')">
-          <i class="material-icons-outlined">upload_file</i>
-        </div>
-        <div class="menu-item" data-title="Logout" onclick="logout()" style="margin-top: auto; margin-bottom: 16px;">
-          <i class="material-icons-outlined">logout</i>
-        </div>
-      </div>
+<div class="container">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <img src="https://i.ibb.co/pv4P6tML/Lakshmi-Logo-01.png" alt="Lakshmi Logo"/>
     </div>
-
-    <div class="main-content">
-      <div id="loader">
-        <div class="spinner"></div>
+    <div class="menu">
+      <div class="menu-item active" data-title="Dashboard" onclick="loadPage(this,'dashboard')">
+        <i class="material-icons">dashboard</i>
       </div>
-      <iframe id="contentFrame"></iframe>
+      <div class="menu-item" data-title="Create" onclick="loadPage(this,'create')">
+        <i class="material-icons">add_circle</i>
+      </div>
+      <div class="menu-item" data-title="Manage" onclick="loadPage(this,'manage')">
+        <i class="material-icons">folder</i>
+      </div>
+      <div class="menu-item" data-title="Template" onclick="loadPage(this,'template')">
+        <i class="material-icons">description</i>
+      </div>
+      <div class="menu-item" data-title="Schools" onclick="loadPage(this,'schools')">
+        <i class="material-icons">school</i>
+      </div>
+      <div class="menu-item" data-title="Print" onclick="loadPage(this,'print')">
+        <i class="material-icons">print</i>
+      </div>
+      <div class="menu-item" data-title="Export" onclick="loadPage(this,'export')">
+        <i class="material-icons">file_upload</i>
+      </div>
+      <div class="menu-item" data-title="Logout" onclick="logout()" style="margin-top:auto; margin-bottom:16px;">
+        <i class="material-icons">logout</i>
+      </div>
     </div>
   </div>
 
-  <script>
-    const iframe = document.getElementById("contentFrame");
-    const loader = document.getElementById("loader");
-    let iframeLoadTimeout = null;
+  <!-- Main content -->
+  <div class="main-content">
+    <div id="loader"><div class="spinner"></div></div>
+    <iframe id="contentFrame"></iframe>
+  </div>
+</div>
 
-    const pageLinks = {
-      dashboard: "https://penportindia.github.io/lak/Pages/Dashboard/index.html",
-      create: "https://penportindia.github.io/lak/Pages/Create/index.html",
-      manage: "https://penportindia.github.io/lak/Pages/Manage/Manage.html",
-      template: "https://penportindia.github.io/lak/Pages/Template/index.html",
-      schools: "https://penportindia.github.io/lak/Pages/Schools/index.html",
-      print: "https://penportindia.github.io/lak/Pages/Print/Print.html",
-      export: "https://penportindia.github.io/lak/Pages/Export/index.html",
-      setting: "https://penportindia.github.io/lak/Pages/Settings/index.html" // optional: update as needed
-    };
+<!-- Script -->
+<script>
+const iframe = document.getElementById("contentFrame");
+const loader = document.getElementById("loader");
+let iframeLoadTimeout = null;
 
-    function setActiveMenu(el) {
-      document.querySelectorAll(".menu-item").forEach(item => item.classList.remove("active"));
-      el.classList.add("active");
-    }
+const pageLinks = {
+  dashboard: "https://penportindia.github.io/lak/Pages/Dashboard/index.html",
+  create: "https://penportindia.github.io/lak/Pages/Create/index.html",
+  manage: "https://penportindia.github.io/lak/Pages/Manage/Manage.html",
+  template: "https://penportindia.github.io/lak/Pages/Template/index.html",
+  schools: "https://penportindia.github.io/lak/Pages/Schools/index.html",
+  print: "https://penportindia.github.io/lak/Pages/Print/Print.html",
+  export: "https://penportindia.github.io/lak/Pages/Export/index.html",
+  setting: "https://penportindia.github.io/lak/Pages/Settings/index.html"
+};
 
-    function loadPage(el, page) {
-      clearTimeout(iframeLoadTimeout);
-      setActiveMenu(el);
-      loader.style.display = "flex";
-      iframe.classList.remove("visible");
+function setActiveMenu(el){
+  document.querySelectorAll(".menu-item").forEach(item=>item.classList.remove("active"));
+  el.classList.add("active");
+}
 
-      const link = pageLinks[page.toLowerCase()];
-      if (!link) {
-        fallbackToDashboard();
-        return;
-      }
+function loadPage(el,page){
+  clearTimeout(iframeLoadTimeout);
+  setActiveMenu(el);
+  loader.style.display="flex";
+  iframe.classList.remove("visible");
 
-      iframe.src = link;
+  const link=pageLinks[page.toLowerCase()];
+  if(!link){ fallbackToDashboard(); return; }
+  iframe.src = link;
 
-      iframeLoadTimeout = setTimeout(() => {
-        fallbackToDashboard();
-      }, 5000);
-    }
+  iframeLoadTimeout = setTimeout(()=>fallbackToDashboard(),7000);
+}
 
-    function fallbackToDashboard() {
-      const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
-      if (dashboardItem) {
-        setActiveMenu(dashboardItem);
-        iframe.src = pageLinks["dashboard"];
-      }
-    }
+function fallbackToDashboard(){
+  const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
+  if(dashboardItem){ setActiveMenu(dashboardItem); iframe.src=pageLinks["dashboard"]; }
+}
 
-    iframe.onload = () => {
-      clearTimeout(iframeLoadTimeout);
-      try {
-        const doc = iframe.contentDocument || iframe.contentWindow.document;
-        const content = doc.body.innerText || "";
+iframe.onload = ()=>{
+  clearTimeout(iframeLoadTimeout);
+  loader.style.display="none";
+  iframe.classList.add("visible");
+  document.title = "Lakshmi ID Maker";
+}
 
-        if (content.includes("Cannot GET") || doc.title.toLowerCase().includes("404")) {
-          fallbackToDashboard();
-        } else {
-          loader.style.display = "none";
-          iframe.classList.add("visible");
-          document.title = doc.title || "Lakshmi ID Maker";
-        }
-      } catch (err) {
-        fallbackToDashboard();
-      }
-    };
+window.addEventListener("DOMContentLoaded",()=>{
+  const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
+  if(dashboardItem) loadPage(dashboardItem,"dashboard");
+});
 
-    window.addEventListener("DOMContentLoaded", () => {
-      const dashboardItem = document.querySelector(".menu-item[data-title='Dashboard']");
-      if (dashboardItem) {
-        loadPage(dashboardItem, "dashboard");
-      }
-    });
+function logout(){ window.location.href="https://penportindia.github.io/lak/index.html"; }
+</script>
 
-    function logout() {
-      window.location.href = "https://penportindia.github.io/lak/index.html";
-    }
-  </script>
 </body>
 </html>
-
