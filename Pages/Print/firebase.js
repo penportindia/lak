@@ -237,7 +237,7 @@ function showImagePreview(url) {
 }
 
 // ----------------------------------------------------
-// ✅ Stylish Inline Edit Module (Locked Key Fields + Photo Preview + Uppercase)
+// 🚀 Modern Stylish Inline Edit Module (3 Columns Fields + Bigger Photo)
 // ----------------------------------------------------
 function openEditModule(item, keys) {
   document.getElementById("editModule")?.remove();
@@ -247,40 +247,85 @@ function openEditModule(item, keys) {
   module.style.cssText = `
     position: fixed; top: 5%; left: 50%;
     transform: translateX(-50%);
-    background: #fefefe;
-    padding: 25px 30px;
-    border-radius: 12px;
-    box-shadow: 0 12px 30px rgba(0,0,0,0.2);
+    background: #ffffff;
+    padding: 0;
+    border-radius: 16px;
+    box-shadow: 0 12px 35px rgba(0,0,0,0.2);
     z-index: 10000;
     max-height: 95vh;
-    overflow-y: visible;  /* no scroll */
-    min-width: 600px;
+    overflow-y: auto;
+    min-width: 950px;
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    transition: all 0.3s ease-in-out;
+    display: flex;
+    flex-direction: column;
+    animation: fadeIn 0.3s ease-in-out;
   `;
 
-  const title = document.createElement("h2");
-  title.textContent = `${item.__key}`;
-  title.style.cssText = `
-    margin-bottom: 25px;
-    text-align: center;
-    font-size: 1.4rem;
-    color: #222;
-    letter-spacing: 0.5px;
+  // CSS Animation
+  const styleTag = document.createElement("style");
+  styleTag.textContent = `
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(-20px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+    @media(max-width: 900px) {
+      #editModule {
+        min-width: 95%;
+        flex-direction: column;
+      }
+      #editModule .edit-body {
+        flex-direction: column;
+      }
+      #editModule .photo-section {
+        width: 100%;
+      }
+    }
   `;
-  module.appendChild(title);
+  document.head.appendChild(styleTag);
+
+  // Header
+  const header = document.createElement("div");
+  header.style.cssText = `
+    background: linear-gradient(135deg, #4CAF50, #2e7d32);
+    color: white;
+    padding: 18px 24px;
+    border-radius: 16px 16px 0 0;
+    font-size: 1.3rem;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    text-align: center;
+  `;
+  header.textContent = `Edit: ${item.__key}`;
+  module.appendChild(header);
+
+  // Body (Left + Right)
+  const body = document.createElement("div");
+  body.className = "edit-body";
+  body.style.cssText = `
+    display: flex;
+    gap: 35px;
+    padding: 25px;
+  `;
+
+  // ===== Left (Fields)
+  const leftSection = document.createElement("div");
+  leftSection.style.cssText = `
+    flex: 2.5;
+    display: flex;
+    flex-direction: column;
+  `;
 
   const formFields = {};
-
   const formGrid = document.createElement("div");
   formGrid.style.cssText = `
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    grid-template-columns: repeat(3, 1fr);   /* ✅ 3 columns fixed */
     gap: 20px;
-    align-items: flex-end;
   `;
 
   keys.forEach(key => {
+    if (key.toLowerCase() === "photo") return; // skip photo here
+
     const fieldDiv = document.createElement("div");
     fieldDiv.style.cssText = "display: flex; flex-direction: column;";
 
@@ -289,11 +334,10 @@ function openEditModule(item, keys) {
     label.style.cssText = `
       font-weight: 600;
       margin-bottom: 6px;
-      color: #555;
-      font-size: 0.95rem;
+      color: #333;
+      font-size: 0.9rem;
     `;
 
-    // Fully disabled fields
     if (["schoolname","schoolid","studentenrollment","staffenrollment"].includes(key.toLowerCase())) {
       const input = document.createElement("input");
       input.type = "text";
@@ -301,64 +345,43 @@ function openEditModule(item, keys) {
       input.disabled = true;
       input.readOnly = true;
       input.style.cssText = `
-        padding: 8px 10px;
-        border: 1px solid #ccc;
-        border-radius: 8px;
-        background: #f0f0f0;
-        color: #777;
-        cursor: not-allowed;
-        transition: all 0.2s;
-        text-transform: uppercase;
+        padding: 10px 12px;
+        border: 1px solid #ddd;
+        border-radius: 10px;
+        background: #f5f5f5;
+        color: #888;
+        font-size: 0.95rem;
       `;
       fieldDiv.appendChild(label);
       fieldDiv.appendChild(input);
       formFields[key] = input;
-    }
-    // Photo preview only
-    else if (key.toLowerCase() === "photo") {
-      const imgPreview = document.createElement("img");
-      imgPreview.src = item[key] ?? "";
-      imgPreview.alt = "Photo Preview";
-      imgPreview.style.cssText = `
-        width: 120px;
-        height: 120px;
-        object-fit: cover;
-        border-radius: 10px;
-        margin-top: 5px;
-        border: 1px solid #ccc;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      `;
-      fieldDiv.appendChild(label);
-      fieldDiv.appendChild(imgPreview);
-    }
-    // Editable fields (Uppercase)
-    else {
+    } else {
       const input = document.createElement("input");
       input.type = !isNaN(item[key]) ? "number" : "text";
       input.value = item[key]?.toString().toUpperCase() ?? "";
       input.style.cssText = `
-        padding: 8px 12px;
+        padding: 10px 12px;
         border: 1px solid #ccc;
-        border-radius: 8px;
+        border-radius: 10px;
         font-size: 0.95rem;
         color: #333;
         outline: none;
-        transition: all 0.2s;
+        transition: 0.2s;
         text-transform: uppercase;
       `;
-
-      // Convert input to uppercase as user types
-      input.addEventListener("input", () => {
-        input.value = input.value.toUpperCase();
-      });
-
       input.addEventListener("focus", () => {
         input.style.borderColor = "#4CAF50";
-        input.style.boxShadow = "0 0 5px rgba(76, 175, 80, 0.5)";
+        input.style.boxShadow = "0 0 6px rgba(76,175,80,0.4)";
       });
       input.addEventListener("blur", () => {
         input.style.borderColor = "#ccc";
         input.style.boxShadow = "none";
+      });
+      // ✅ Yahan badlav kiya gaya hai
+      input.addEventListener("input", () => {
+        const cursorPosition = input.selectionStart;
+        input.value = input.value.toUpperCase();
+        input.setSelectionRange(cursorPosition, cursorPosition);
       });
 
       fieldDiv.appendChild(label);
@@ -368,50 +391,81 @@ function openEditModule(item, keys) {
 
     formGrid.appendChild(fieldDiv);
   });
+  leftSection.appendChild(formGrid);
 
-  module.appendChild(formGrid);
+  // ===== Right (Photo + Buttons)
+  const rightSection = document.createElement("div");
+  rightSection.className = "photo-section";
+  rightSection.style.cssText = `
+    flex: 1.2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  `;
+
+  const imgCard = document.createElement("div");
+  imgCard.style.cssText = `
+    background: #fafafa;
+    border: 1px solid #eee;
+    padding: 18px;
+    border-radius: 16px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    margin-bottom: 25px;
+    text-align: center;
+    width: 100%;
+  `;
+
+  const imgPreview = document.createElement("img");
+  imgPreview.src = item.photo ?? "";
+  imgPreview.alt = "Photo Preview";
+  imgPreview.style.cssText = `
+    width: 200px;    /* ✅ Bigger size */
+    height: 200px;
+    object-fit: cover;
+    border-radius: 14px;
+    border: 1px solid #ddd;
+  `;
+  imgCard.appendChild(imgPreview);
+  rightSection.appendChild(imgCard);
 
   // Buttons
   const btnDiv = document.createElement("div");
   btnDiv.style.cssText = `
     display: flex;
-    justify-content: flex-end;
-    margin-top: 25px;
-    gap: 12px;
+    justify-content: center;
+    gap: 16px;
+    width: 100%;
   `;
 
   const updateBtn = document.createElement("button");
   updateBtn.textContent = "Update";
   updateBtn.style.cssText = `
-    padding: 10px 18px;
-    background: #4CAF50;
+    flex: 1;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #4CAF50, #2e7d32);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
   `;
-  updateBtn.addEventListener("mouseover", () => updateBtn.style.background = "#45a049");
-  updateBtn.addEventListener("mouseout", () => updateBtn.style.background = "#4CAF50");
+  updateBtn.addEventListener("mouseover", () => {
+    updateBtn.style.transform = "translateY(-2px)";
+    updateBtn.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
+  });
+  updateBtn.addEventListener("mouseout", () => {
+    updateBtn.style.transform = "none";
+    updateBtn.style.boxShadow = "none";
+  });
 
   updateBtn.addEventListener("click", async () => {
     try {
-      for (let key in formFields) {
-        if (!formFields[key].disabled && !formFields[key].value.trim()) {
-          alert(`⚠️ ${key} cannot be empty`);
-          formFields[key].focus();
-          return;
-        }
-      }
-
-      // Save all editable fields in uppercase
       const updatedData = Object.fromEntries(
         Object.entries(formFields)
           .filter(([k,v]) => !v.disabled)
           .map(([k,v]) => [k, v.value.trim().toUpperCase()])
       );
-
       if(item.photo) updatedData.photo = item.photo;
 
       const recordRef = ref(db, `DATA-MASTER/${item.__schoolName}/${item.__schoolID}/${item.__type}/${item.__key}`);
@@ -429,37 +483,40 @@ function openEditModule(item, keys) {
   const cancelBtn = document.createElement("button");
   cancelBtn.textContent = "Cancel";
   cancelBtn.style.cssText = `
-    padding: 10px 18px;
-    background: #aaa;
+    flex: 1;
+    padding: 12px 20px;
+    background: linear-gradient(135deg, #9e9e9e, #616161);
     color: white;
     border: none;
-    border-radius: 8px;
+    border-radius: 10px;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
   `;
-  cancelBtn.addEventListener("mouseover", () => cancelBtn.style.background = "#888");
-  cancelBtn.addEventListener("mouseout", () => cancelBtn.style.background = "#aaa");
+  cancelBtn.addEventListener("mouseover", () => {
+    cancelBtn.style.transform = "translateY(-2px)";
+    cancelBtn.style.boxShadow = "0 4px 10px rgba(0,0,0,0.2)";
+  });
+  cancelBtn.addEventListener("mouseout", () => {
+    cancelBtn.style.transform = "none";
+    cancelBtn.style.boxShadow = "none";
+  });
   cancelBtn.addEventListener("click", () => module.remove());
 
-  btnDiv.appendChild(cancelBtn);
   btnDiv.appendChild(updateBtn);
-  module.appendChild(btnDiv);
+  btnDiv.appendChild(cancelBtn);
+  rightSection.appendChild(btnDiv);
 
+  // Add sections
+  body.appendChild(leftSection);
+  body.appendChild(rightSection);
+  module.appendChild(body);
   document.body.appendChild(module);
 
-  // Auto-focus first editable field
+  // Auto focus
   const firstEditable = keys.find(k => !["schoolname","schoolid","studentenrollment","staffenrollment","photo"].includes(k.toLowerCase()));
   if(firstEditable) formFields[firstEditable]?.focus();
-
-  // Submit on Enter
-  module.addEventListener("keypress", e => {
-    if (e.key === "Enter") updateBtn.click();
-  });
-
-  module.scrollIntoView({ behavior: "smooth", block: "center" });
 }
-
 
 // ----------------------------------------------------
 // ✅ Reset Filters
