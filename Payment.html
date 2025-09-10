@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Payment Manager</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --accent-1: #0f766e;
+            --accent-2: #06b6d4;
+            --muted: #6b7280;
+            --card-bg: #ffffff;
+            --border-color: #e5e7eb;
+        }
+        
+        body {
+            background: linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%);
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: #1f2937;
+        }
+        
+        .topbar { border-left: 6px solid var(--accent-1); background: linear-gradient(90deg, rgba(15,118,110,0.04), rgba(6,182,212,0.02)); padding: 18px; border-radius: 12px; box-shadow: 0 8px 24px rgba(15,23,42,0.04);}
+        .card-modern { border: none; border-radius: 12px; box-shadow: 0 10px 30px rgba(15,23,42,0.06);}
+        .small-muted { color: var(--muted); font-size: .88rem;}
+        .rate-badge { background: linear-gradient(90deg, var(--accent-1), var(--accent-2)); color: #fff; font-weight: 700; padding: 6px 10px; border-radius: 999px;}
+        .list-group-item { border-radius: 10px; margin-bottom: 8px; border: 1px solid var(--border-color);}
+        .list-group-item:hover { background-color: #f9fafb;}
+        .table-modern thead th { border-bottom: 1px solid var(--border-color);}
+        .table-hover tbody tr:hover { background-color: #f9fafb;}
+        .btn-round { border-radius: 10px; transition: all 0.2s ease;}
+        .btn-round:hover { transform: translateY(-1px);}
+        .btn-success { background-color: var(--accent-1); border-color: var(--accent-1);}
+        .btn-success:hover { background-color: #0c615a; border-color: #0c615a;}
+        .search-input { max-width: 360px;}
+        .form-control:focus { border-color: var(--accent-2); box-shadow: 0 0 0 0.25rem rgba(6, 182, 212, 0.25);}
+        @media (max-width: 767px) { .search-input { max-width: 100%;} }
+    </style>
+</head>
+<body>
+    <div class="container py-4">
+        <div class="d-flex align-items-start justify-content-between flex-wrap gap-3 mb-4 topbar">
+            <div>
+                <h3 class="mb-1">PENPORT INDIA</h3>
+                <div class="small-muted">Author <span class="rate-badge ms-2">₹aushan</span> · Lakshmi <strong>ID MAKER</strong></div>
+            </div>
+            <div class="text-end">
+                <div class="small-muted mb-2">Penport</div>
+                <div class="d-flex gap-2">
+                    <button id="refreshBtn" class="btn btn-outline-secondary btn-sm btn-round" title="Refresh data">
+                        <i class="bi bi-arrow-clockwise"></i>
+                    </button>
+                    <button id="openPayment" class="btn btn-success btn-sm btn-round" data-bs-toggle="modal" data-bs-target="#paymentModal">
+                        <i class="bi bi-cash-stack me-1"></i> Pay
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cards -->
+        <div class="row g-3 mb-4">
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-modern p-3">
+                    <div class="small-muted">Total Schools</div>
+                    <h3 id="totalSchools" class="mb-0">0</h3>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-modern p-3">
+                    <div class="small-muted">Total Enrollments</div>
+                    <h3 id="totalEnrollments" class="mb-0">0</h3>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-modern p-3">
+                    <div class="small-muted">Total Demand</div>
+                    <h3 id="totalCommission" class="mb-0">0 ₹</h3>
+                </div>
+            </div>
+            <div class="col-sm-6 col-md-3">
+                <div class="card card-modern p-3">
+                    <div class="small-muted">Total Paid</div>
+                    <h4 id="totalPaid" class="mb-1">0 ₹</h4>
+                    <div class="small-muted">Total Due</div>
+                    <h5 id="totalDue" class="text-danger mb-0">0 ₹</h5>
+                </div>
+            </div>
+        </div>
+
+        <!-- Schools Table -->
+        <div class="row g-3">
+            <div class="col-lg-8">
+                <div class="card card-modern">
+                    <div class="card-header d-flex align-items-center justify-content-between p-3">
+                        <strong>Schools</strong>
+                        <div class="d-flex align-items-center gap-2">
+                            <input id="searchSchool" class="form-control form-control-sm search-input" placeholder="Search" />
+                        </div>
+                    </div>
+                    <div class="card-body p-0">
+                        <div class="table-responsive">
+                            <table class="table table-hover table-modern mb-0 align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>School</th>
+                                        <th class="text-end">Enrollments</th>
+                                        <th class="text-end">Demand (₹)</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="schoolsBody">
+                                    <tr><td colspan="4" class="text-center small-muted p-4">Loading...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payments -->
+            <div class="col-lg-4">
+                <div class="card card-modern mb-3">
+                    <div class="card-header p-3"><strong>Global Payments</strong></div>
+                    <div class="card-body">
+                        <div class="small-muted mb-3">Payments are global and not assigned to schools. They reduce the overall due amount.</div>
+                        <div class="d-flex gap-2 mb-3">
+                            <input id="filterFrom" type="date" class="form-control form-control-sm" />
+                            <input id="filterTo" type="date" class="form-control form-control-sm" />
+                            <button id="applyFilter" class="btn btn-sm btn-primary btn-round">Apply</button>
+                        </div>
+                        <div style="max-height:420px; overflow-y:auto;">
+                            <ul id="paymentsList" class="list-group"></ul>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card card-modern p-3">
+                    <div class="small-muted mb-2">Notes & Security</div>
+                    <ul class="small-muted mb-0 ps-3">
+                        <li>Fixed commission: <strong>₹2 per enrollment</strong>.</li>
+                        <li>Payments are recorded globally under <code>payments/</code>.</li>
+                        <li>A password is required for all payment actions.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div class="modal fade" id="schoolModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-1"><strong id="modalSchoolId"></strong></p>
+                    <div class="row">
+                        <div class="col-6 small-muted">Enrollments</div>
+                        <div class="col-6 text-end fw-bold" id="modalEnrollments">0</div>
+                        <div class="col-6 small-muted mt-2">Commission(₹)</div>
+                        <div class="col-6 text-end fw-bold mt-2" id="modalCommission">0 ₹</div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-round" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="paymentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <form id="paymentForm" class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-wallet2 me-2"></i>Record Global Payment</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Amount (₹)</label>
+                        <input id="payAmount" type="number" min="0.01" step="0.01" class="form-control" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Date & Time</label>
+                        <input id="payDate" type="datetime-local" class="form-control" />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Note</label>
+                        <input id="payNote" class="form-control" placeholder="Transaction ID / Cash / Note" />
+                    </div>
+                    <div class="small-muted mt-3">This payment reduces the overall due amount.</div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-success btn-round" type="submit">Save Payment</button>
+                    <button class="btn btn-secondary btn-round" type="button" data-bs-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase + App JS -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, onValue, push, set, remove, get } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
+            authDomain: "schools-cdce8.firebaseapp.com",
+            databaseURL: "https://schools-cdce8-default-rtdb.firebaseio.com",
+            projectId: "schools-cdce8",
+            storageBucket: "schools-cdce8.appspot.com",
+            messagingSenderId: "772712220138",
+            appId: "1:772712220138:web:381c173dccf1a6513fde93"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+
+        // ✅ Anonymous Authentication (silent, no alert)
+        signInAnonymously(auth)
+            .then(() => console.log("✅ Auth successful"))
+            .catch(e => { console.error("❌ Auth failed:", e); });
+
+        const RATE = 2;
+        const totalSchoolsEl = document.getElementById('totalSchools');
+        const totalEnrollmentsEl = document.getElementById('totalEnrollments');
+        const totalCommissionEl = document.getElementById('totalCommission');
+        const totalPaidEl = document.getElementById('totalPaid');
+        const totalDueEl = document.getElementById('totalDue');
+        const schoolsBody = document.getElementById('schoolsBody');
+        const paymentsList = document.getElementById('paymentsList');
+        const searchSchool = document.getElementById('searchSchool');
+        const refreshBtn = document.getElementById('refreshBtn');
+        const applyFilter = document.getElementById('applyFilter');
+        const filterFrom = document.getElementById('filterFrom');
+        const filterTo = document.getElementById('filterTo');
+        const modalSchoolId = document.getElementById('modalSchoolId');
+        const modalEnrollments = document.getElementById('modalEnrollments');
+        const modalCommission = document.getElementById('modalCommission');
+        const paymentForm = document.getElementById('paymentForm');
+        const payAmount = document.getElementById('payAmount');
+        const payDate = document.getElementById('payDate');
+        const payNote = document.getElementById('payNote');
+
+        function nowISOLocal() {
+            const d = new Date();
+            d.setMinutes(d.getMinutes() - d.getTimezoneOffset());
+            return d.toISOString().slice(0, 16);
+        }
+        payDate.value = nowISOLocal();
+
+        async function sha256hex(text) {
+            const enc = new TextEncoder().encode(text);
+            const hash = await crypto.subtle.digest('SHA-256', enc);
+            return Array.from(new Uint8Array(hash)).map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        async function requirePassword(action) {
+            const passwordRef = ref(db, 'admin/paymentPasswordHash');
+            try {
+                const snapshot = await get(passwordRef);
+                const storedHash = snapshot.exists() ? snapshot.val() : null;
+
+                if (!storedHash) {
+                    let p1 = prompt('Set admin password:');
+                    if (!p1) return false;
+                    let p2 = prompt('Confirm password:');
+                    if (p1 !== p2) { alert('Passwords do not match!'); return false; }
+                    await set(passwordRef, await sha256hex(p1));
+                    alert('Password set successfully!');
+                    return true;
+                } else {
+                    const input = prompt(`Enter admin password to ${action}:`);
+                    if (!input) return false;
+                    if ((await sha256hex(input)) === storedHash) return true;
+                    alert('Incorrect password!');
+                    return false;
+                }
+            } catch (error) {
+                console.error("Password check failed:", error);
+                alert("Error during password authentication.");
+                return false;
+            }
+        }
+
+        let workdoneData = {}, paymentsData = {};
+
+        onValue(ref(db, 'workdone'), (snapshot) => { workdoneData = snapshot.exists() ? snapshot.val() : {}; renderSchools(); computeTotals(); });
+        onValue(ref(db, 'payments'), (snapshot) => { paymentsData = snapshot.exists() ? snapshot.val() : {}; renderPayments(); computeTotals(); });
+
+        function renderSchools() {
+            const data = workdoneData || {};
+            const query = (searchSchool.value || '').trim().toLowerCase();
+            const sids = Object.keys(data).filter(sid => !query || sid.toLowerCase().includes(query));
+            if (!sids.length) { schoolsBody.innerHTML = '<tr><td colspan="4" class="text-center small-muted p-4">No schools found</td></tr>'; return; }
+
+            let html = '';
+            for (const sid of sids) {
+                const groups = data[sid] || {};
+                let enrollCount = 0;
+                for (const t of Object.keys(groups)) enrollCount += Object.keys(groups[t] || {}).length;
+                const commission = enrollCount * RATE;
+                html += `<tr>
+                    <td>${sid}</td>
+                    <td class="text-end">${enrollCount}</td>
+                    <td class="text-end">${commission.toFixed(2)} ₹</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-outline-primary btn-view" data-school="${sid}" title="View details">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </td>
+                </tr>`;
+            }
+            schoolsBody.innerHTML = html;
+
+            document.querySelectorAll('.btn-view').forEach(btn => {
+                btn.addEventListener('click', (e) => { openSchoolModal(e.currentTarget.dataset.school); });
+            });
+        }
+
+        function openSchoolModal(sid) {
+            const groups = workdoneData[sid] || {};
+            let enrollCount = 0;
+            for (const t of Object.keys(groups)) enrollCount += Object.keys(groups[t] || {}).length;
+            const commission = enrollCount * RATE;
+            modalSchoolId.textContent = `School ID: ${sid}`;
+            modalEnrollments.textContent = enrollCount;
+            modalCommission.textContent = commission.toFixed(2) + ' ₹';
+            new bootstrap.Modal(document.getElementById('schoolModal')).show();
+        }
+
+        function renderPayments() {
+            const all = paymentsData || {};
+            const rows = [];
+            const fromDate = filterFrom.value ? new Date(filterFrom.value).setHours(0,0,0,0) : null;
+            const toDate = filterTo.value ? new Date(filterTo.value).setHours(23,59,59,999) : null;
+            for (const pid of Object.keys(all)) {
+                const rec = all[pid];
+                const dateNum = rec.date ? new Date(rec.date).getTime() : (rec.createdAt || 0);
+                if (fromDate && dateNum < fromDate) continue;
+                if (toDate && dateNum > toDate) continue;
+                rows.push({ pid, rec, dateNum });
+            }
+            rows.sort((a,b)=>b.dateNum - a.dateNum);
+            paymentsList.innerHTML = '';
+            if (!rows.length) { paymentsList.innerHTML = '<li class="list-group-item small-muted text-center">No payments recorded</li>'; return; }
+            for (const r of rows) {
+                const dateStr = r.rec.date ? new Date(r.rec.date).toLocaleString() : (r.rec.createdAt ? new Date(r.rec.createdAt).toLocaleString() : '');
+                const li = document.createElement('li');
+                li.className = 'list-group-item d-flex justify-content-between align-items-start';
+                li.innerHTML = `<div class="ms-2 me-auto">
+                    <div><strong>${Number(r.rec.amount).toFixed(2)} ₹</strong></div>
+                    <div class="small-muted">${r.rec.note||''}</div>
+                </div>
+                <div class="text-end small-muted">
+                    <div>${dateStr}</div>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-outline-danger btn-del" data-id="${r.pid}" title="Delete payment">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </div>
+                </div>`;
+                paymentsList.appendChild(li);
+            }
+
+            document.querySelectorAll('.btn-del').forEach(btn=>{
+                btn.addEventListener('click', async (e)=>{
+                    const pid = e.currentTarget.dataset.id;
+                    if (!confirm('Are you sure to delete this payment?')) return;
+                    const authOk = await requirePassword('delete this payment');
+                    if (!authOk) return;
+                    try { await remove(ref(db, `payments/${pid}`)); alert('Payment deleted'); } 
+                    catch(err){ console.error(err); alert('Error deleting payment'); }
+                });
+            });
+        }
+
+        function computeTotals() {
+            let totalSchools = Object.keys(workdoneData||{}).length;
+            let totalEnrollments=0,totalCommission=0,totalPaid=0;
+            for(const sid of Object.keys(workdoneData||{})){
+                let count=0;
+                const groups=workdoneData[sid]||{};
+                for(const t of Object.keys(groups)) count+=Object.keys(groups[t]||{}).length;
+                totalEnrollments+=count;
+                totalCommission+=count*RATE;
+            }
+            for(const pid of Object.keys(paymentsData||{})) totalPaid+=Number(paymentsData[pid].amount||0);
+            totalSchoolsEl.textContent=totalSchools;
+            totalEnrollmentsEl.textContent=totalEnrollments;
+            totalCommissionEl.textContent=totalCommission.toFixed(2)+' ₹';
+            totalPaidEl.textContent=totalPaid.toFixed(2)+' ₹';
+            totalDueEl.textContent=(totalCommission-totalPaid).toFixed(2)+' ₹';
+        }
+
+        paymentForm.addEventListener('submit', async (e)=>{
+            e.preventDefault();
+            const authOk = await requirePassword('record this payment');
+            if(!authOk) return;
+            const amount = Number(payAmount.value);
+            if(isNaN(amount)||amount<=0){ alert('Enter valid amount'); return; }
+            const dateIso = payDate.value ? new Date(payDate.value).toISOString() : new Date().toISOString();
+            const note = payNote.value.trim()||'No note';
+            try{ await push(ref(db,'payments'),{amount,date:dateIso,note,createdAt:Date.now()}); 
+                alert('Payment saved'); paymentForm.reset(); payDate.value=nowISOLocal(); 
+                bootstrap.Modal.getInstance(document.getElementById('paymentModal'))?.hide();
+            } catch(e){ console.error(e); alert('Error saving payment'); }
+        });
+
+        applyFilter.addEventListener('click', ()=>renderPayments());
+        searchSchool.addEventListener('input', ()=>renderSchools());
+        refreshBtn.addEventListener('click', ()=>location.reload());
+
+        (async()=>{
+            try{
+                const [workdoneSnap,paymentsSnap]=await Promise.all([get(ref(db,'workdone')),get(ref(db,'payments'))]);
+                workdoneData=workdoneSnap.exists()?workdoneSnap.val():{};
+                paymentsData=paymentsSnap.exists()?paymentsSnap.val():{};
+                renderSchools(); renderPayments(); computeTotals();
+            } catch(e){ console.error(e);
+                schoolsBody.innerHTML='<tr><td colspan="4" class="text-center text-danger p-4">Error loading data.</td></tr>';
+                paymentsList.innerHTML='<li class="list-group-item text-danger text-center">Error loading data.</li>';
+            }
+        })();
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
