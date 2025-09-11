@@ -362,12 +362,28 @@ async function generateFormFields(type) {
 
     if (controlType === 'select') {
       const options = Array.isArray(optOrReadonly) ? optOrReadonly : [];
-      inputHTML = `<select id="${fullId}" name="${fullId}" ${isRequired}>
-        <option value="" disabled selected>Select ${label.replace('*', '').trim()}</option>`;
-      options.forEach(opt => inputHTML += `<option value="${opt}">${opt}</option>`);
-      inputHTML += `</select>`;
+
+      // ✅ Special case: staff designation with input + datalist
+      if (id === 'designation' && type === 'staff') {
+        const datalistId = `${fullId}_list`;
+        inputHTML = `
+          <input list="${datalistId}" id="${fullId}" name="${fullId}" ${isRequired} />
+          <datalist id="${datalistId}">
+            ${options.map(opt => `<option value="${opt}">`).join('')}
+          </datalist>
+        `;
+      } else {
+        // Regular select dropdown
+        inputHTML = `<select id="${fullId}" name="${fullId}" ${isRequired}>
+          <option value="" disabled selected>Select ${label.replace('*', '').trim()}</option>`;
+        options.forEach(opt => inputHTML += `<option value="${opt}">${opt}</option>`);
+        inputHTML += `</select>`;
+      }
+
     } else if (controlType === 'textarea') {
-      inputHTML = `<textarea id="${fullId}" name="${fullId}" rows="2" ${isRequired}></textarea>`;
+      // ✅ Limit address to 50 characters
+      const maxLength = 50;
+      inputHTML = `<textarea id="${fullId}" name="${fullId}" rows="2" maxlength="${maxLength}" ${isRequired}></textarea>`;
     } else {
       const value = id === 'enroll' ? enrollNo : '';
       const ro = id === 'enroll' ? 'readonly' : '';
@@ -382,6 +398,8 @@ async function generateFormFields(type) {
     container.appendChild(wrapper);
   });
 }
+
+
 
 // -----------------------------
 // ✅ Image Compression Helper
@@ -415,6 +433,8 @@ async function startCamera() {
     video.srcObject = stream;
     await video.play().catch(() => {});
     video.classList.remove("hidden");
+
+    // ✅ Set button state for Capture
     const { cameraBtn } = getButtonRefs();
     if (cameraBtn) {
       cameraBtn.innerHTML = `<i class="fas fa-camera"></i><span>Capture</span>`;
@@ -455,8 +475,11 @@ function takePicture() {
   const ctx = canvas.getContext("2d");
   ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
   canvas.classList.remove("hidden");
+
   imageData = compressImage(canvas, 480, 0.6);
   stopCamera();
+
+  // ✅ Set button state for Retake
   const { cameraBtn } = getButtonRefs();
   if (cameraBtn) {
     cameraBtn.innerHTML = `<i class="fas fa-redo"></i><span>Retake</span>`;
@@ -469,15 +492,9 @@ function retakePicture() {
   const canvas = safeGet("canvas");
   if (canvas) canvas.classList.add("hidden");
 
+  // ✅ Just restart camera, button will be handled in startCamera()
   startCamera();
-
-  const { cameraBtn } = getButtonRefs();
-  if (cameraBtn) {
-    cameraBtn.innerHTML = `<i class="fas fa-camera"></i><span>Capture</span>`;
-    cameraBtn.onclick = takePicture;
-  }
 }
-
 
 // -----------------------------
 // ✅ Submit Handler (Updated)
@@ -915,4 +932,3 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
-
