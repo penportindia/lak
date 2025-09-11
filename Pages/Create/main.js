@@ -468,13 +468,16 @@ function retakePicture() {
   imageData = '';
   const canvas = safeGet("canvas");
   if (canvas) canvas.classList.add("hidden");
+
   startCamera();
+
   const { cameraBtn } = getButtonRefs();
   if (cameraBtn) {
-    cameraBtn.innerHTML = `<i class="fas fa-video"></i><span>Camera</span>`;
-    cameraBtn.onclick = startCamera;
+    cameraBtn.innerHTML = `<i class="fas fa-camera"></i><span>Capture</span>`;
+    cameraBtn.onclick = takePicture;
   }
 }
+
 
 // -----------------------------
 // ✅ Submit Handler (Updated)
@@ -912,3 +915,4 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
