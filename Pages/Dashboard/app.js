@@ -291,11 +291,10 @@ function renderDateWise(dateMap) {
 
   const last7 = entries.slice(0, 7);
 
-  // ✅ Container को flex row बनाओ
-  dateWiseListEl.style.display = "flex";
-  dateWiseListEl.style.flexWrap = "wrap";
+  // ✅ Container को grid बनाओ (PC पर हमेशा 7 columns)
+  dateWiseListEl.style.display = "grid";
+  dateWiseListEl.style.gridTemplateColumns = "repeat(7, 1fr)";
   dateWiseListEl.style.gap = "14px";
-  dateWiseListEl.style.justifyContent = "center";
 
   last7.forEach(([dateKey, counts], index) => {
     const dateObj = parseDateString(dateKey);
@@ -314,8 +313,7 @@ function renderDateWise(dateMap) {
       box-shadow:0 3px 8px rgba(0,0,0,0.08);
       overflow:hidden;
       transition:all 0.25s ease;
-      width:200px;    /* ✅ fixed width */
-      flex-shrink:0;  /* shrink ना हो */
+      cursor:pointer;
     `;
 
     // header bg alag alag hoga
@@ -329,17 +327,17 @@ function renderDateWise(dateMap) {
       </div>
       <div style="padding:14px 16px;display:grid;gap:10px;font-size:14px;color:#374151;">
         <div style="display:flex;align-items:center;gap:6px;">
-          <i class="ri-user-3-line" style="color:#2563eb;"></i> 
+          <i class="ri-user-3-line" style="color:#2563eb;" title="Students"></i> 
           <span class="label" style="display:inline;">Students:</span> 
           <b>${counts.students || 0}</b>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <i class="ri-team-line" style="color:#16a34a;"></i> 
+          <i class="ri-team-line" style="color:#16a34a;" title="Staff"></i> 
           <span class="label" style="display:inline;">Staff:</span> 
           <b>${counts.staff || 0}</b>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <i class="ri-bar-chart-2-line" style="color:#f59e0b;"></i> 
+          <i class="ri-bar-chart-2-line" style="color:#f59e0b;" title="Total"></i> 
           <span class="label" style="display:inline;">Total:</span> 
           <b>${(counts.students||0)+(counts.staff||0)}</b>
         </div>
@@ -348,19 +346,30 @@ function renderDateWise(dateMap) {
     dateWiseListEl.appendChild(card);
   });
 
-  // ✅ Mobile responsive (inline trick)
+  // ✅ Styles: Hover effect + Mobile Responsive
   const styleEl = document.createElement("style");
   styleEl.textContent = `
+    .date-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 6px 14px rgba(0,0,0,0.12);
+    }
+    @media (max-width: 1024px) {
+      /* Tablet पर 3 cards per row */
+      #${dateWiseListEl.id} {
+        grid-template-columns: repeat(3, 1fr) !important;
+      }
+    }
     @media (max-width: 640px) {
+      /* Mobile पर 2 cards per row */
+      #${dateWiseListEl.id} {
+        grid-template-columns: repeat(2, 1fr) !important;
+      }
       .date-card .label { display: none !important; }
       .date-card div[style*="font-weight:600"] { font-size:14px !important; }
-      .date-card { width: 45% !important; } /* मोबाइल पर 2 cards per row */
     }
   `;
   document.head.appendChild(styleEl);
 }
-
-
 
 // ----------------------------------------------------
 // 10) Listen for Active Schools
