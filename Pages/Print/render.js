@@ -149,7 +149,10 @@ function renderCard(template, container, record = {}) {
     backgroundImage: template.pageStyle?.backgroundImage || "",
     backgroundSize: template.pageStyle?.backgroundSize || "cover",
     backgroundPosition: template.pageStyle?.backgroundPosition || "center",
-    boxSizing: "border-box"
+    boxSizing: "border-box",
+    borderRadius: template.pageStyle?.borderRadius || "0",
+    boxShadow: template.pageStyle?.boxShadow || "none",
+    fontFamily: template.pageStyle?.fontFamily || "sans-serif"
   });
 
   template.items.forEach(item => {
@@ -159,6 +162,7 @@ function renderCard(template, container, record = {}) {
     const savedLeft = key && record[key + "_left"] ? record[key + "_left"] : item.left || "0px";
     const savedTop = key && record[key + "_top"] ? record[key + "_top"] : item.top || "0px";
 
+    // Apply rotation and transform properties
     Object.assign(el.style, {
       position: "absolute",
       left: savedLeft,
@@ -180,7 +184,9 @@ function renderCard(template, container, record = {}) {
       textAlign: item.textAlign || "left",
       padding: "2px",
       cursor: "pointer",
-      userSelect: "none"
+      userSelect: "none",
+      transform: item.transform || "none", // Added transform property
+      transformOrigin: item.transformOrigin || "center" // Added transformOrigin property
     });
 
     let rawText = item.text || "";
@@ -194,9 +200,11 @@ function renderCard(template, container, record = {}) {
     if (item.type === "image") {
       const img = document.createElement("img");
       img.src = value.startsWith("http") || value.startsWith("data:image") ? value : "";
+      
+      // Use 100% width and height to fit parent div
       Object.assign(img.style, {
-        width: item.width || "100px",
-        height: item.height || "100px",
+        width: "100%",
+        height: "100%",
         objectFit: "cover",
         borderRadius: item.borderRadius || "0",
         border: item.border || "none"
