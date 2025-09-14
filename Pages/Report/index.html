@@ -1,0 +1,624 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Report Dashboard</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-light: #f3f4f6;
+            --white: #ffffff;
+            --green: #34D399; /* Vibrant green */
+            --dark-green: #047857; /* Darker green */
+            --text-dark: #1f2937;
+            --text-muted: #6b7280;
+            --glass-bg: rgba(255, 255, 255, 0.85);
+            --glass-border: rgba(255, 255, 255, 0.6);
+            --card-radius: 16px;
+            --glass-blur: 12px;
+            --shadow-light: 0 4px 15px rgba(0, 0, 0, 0.05);
+            --shadow-hover: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        html, body {
+            height: 100%;
+        }
+
+        body {
+            background-color: var(--bg-light);
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+            color: var(--text-dark);
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            padding: 3rem 1rem;
+        }
+
+        /* Container */
+        .app-wrap {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        /* Glass Card Base */
+        .glass-card {
+            background: var(--glass-bg);
+            border: 1px solid var(--glass-border);
+            border-radius: var(--card-radius);
+            backdrop-filter: blur(var(--glass-blur));
+            -webkit-backdrop-filter: blur(var(--glass-blur));
+            box-shadow: var(--shadow-light);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .glass-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-hover);
+        }
+
+        /* Top Bar */
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 1.5rem;
+        }
+
+        .brand h1 {
+            font-size: 1.75rem;
+            margin: 0;
+            font-weight: 700;
+            color: var(--green);
+            letter-spacing: -0.5px;
+        }
+
+        .brand p {
+            margin: 0;
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+
+        .controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .form-control, .btn-icon {
+            border-radius: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background-color: var(--white);
+            transition: all 0.2s ease;
+        }
+
+        .form-control {
+            min-width: 240px;
+        }
+
+        .form-control:focus {
+            box-shadow: 0 0 0 0.25rem rgba(52, 211, 153, 0.25);
+            border-color: var(--green);
+        }
+        
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-muted);
+        }
+        
+        .btn-icon:hover {
+            background-color: var(--green);
+            color: var(--white);
+            border-color: var(--green);
+        }
+
+        /* Summary Cards */
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1rem;
+        }
+
+        .summary-card {
+            padding: 1.5rem;
+        }
+
+        .summary-card .label {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+            font-weight: 500;
+        }
+
+        .summary-card .value {
+            font-size: 2rem;
+            margin-top: 0.5rem;
+            font-weight: 800;
+            color: var(--dark-green);
+        }
+
+        /* School Grid */
+        .schools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .school-card {
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* New flex layout for the card content */
+        .school-content {
+            flex: 1;
+            padding-bottom: 1rem;
+        }
+
+        .school-title {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: var(--text-dark);
+        }
+
+        .school-sub {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+            margin-top: 0.25rem;
+            margin-bottom: 1rem;
+        }
+        
+        /* New action bar at the bottom of the card */
+        .card-bottom-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-top: 0.75rem;
+            border-top: 1px solid rgba(0,0,0,0.08);
+        }
+        
+        /* Smaller, re-aligned last update text */
+        .last-update {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .last-update strong {
+            font-weight: 500;
+            color: var(--text-dark);
+        }
+
+        /* Date card + small view icon */
+        .date-card {
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            border-radius: 12px;
+            background: var(--glass-bg);
+            border: 1px solid rgba(0,0,0,0.08);
+        }
+
+        .date-left {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .date-pill {
+            padding: 0.5rem 0.75rem;
+            border-radius: 8px;
+            background: var(--green);
+            font-weight: 700;
+            color: var(--white);
+            font-size: 0.9rem;
+        }
+
+        .date-info {
+            color: var(--text-muted);
+            font-size: 0.88rem;
+        }
+
+        .view-small {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            border: 1px solid rgba(0,0,0,0.1);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: transparent;
+            color: var(--text-dark);
+            transition: background-color 0.2s ease, color 0.2s ease;
+        }
+
+        .view-small:hover {
+            background-color: var(--green);
+            color: var(--white);
+        }
+
+        /* Modal custom */
+        .modal-content {
+            border-radius: 16px;
+            background: var(--white);
+            border: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+            padding: 1.5rem;
+        }
+        
+        .modal-body {
+            padding: 1.5rem;
+        }
+        
+        .modal-footer {
+            border-top: 1px solid rgba(0,0,0,0.08);
+            padding: 1rem 1.5rem;
+        }
+
+        .table thead th {
+            background: transparent;
+            color: var(--text-muted);
+            border-bottom: 1px solid rgba(0,0,0,0.08);
+        }
+
+        /* small helpers */
+        .muted { color: var(--text-muted); }
+        .green { color: var(--green); }
+        .dark-green { color: var(--dark-green); }
+
+        /* responsive tweaks */
+        @media (max-width: 900px) {
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                padding: 1.25rem;
+            }
+        }
+        
+        @media (max-width: 560px) {
+            .app-wrap { padding: 1.5rem 1rem; }
+            .summary-grid { grid-template-columns: repeat(1, 1fr); }
+            .controls { width: 100%; flex-direction: column; }
+            .search-box { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-wrap">
+        <div class="topbar glass-card">
+            <div class="brand">
+                <h1>Report</h1>
+                <p>Staff & Students Work Done</p>
+            </div>
+            
+            <div class="controls" style="display:flex; align-items:center; gap:8px; background:#fff; padding:6px 10px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.08);">
+  
+            <input id="searchBox" 
+                    type="text" 
+                    placeholder="Search..." 
+                    style="flex:1; padding:8px 12px; border:1px solid #dcdcdc; border-radius:8px; outline:none; font-size:14px; transition:0.3s;"/>
+            
+            <button id="refreshBtn" 
+                    title="Refresh" 
+                    style="background:#16a34a; color:#fff; border:none; border-radius:8px; padding:8px 12px; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.3s;">
+                <i class="bi bi-arrow-clockwise" style="font-size:16px;"></i>
+            </button>
+            </div>
+
+            <script>
+            // Input focus effect
+            document.getElementById("searchBox").addEventListener("focus", function() {
+                this.style.borderColor = "#16a34a";
+                this.style.boxShadow = "0 0 0 3px rgba(22,163,74,0.2)";
+            });
+            document.getElementById("searchBox").addEventListener("blur", function() {
+                this.style.borderColor = "#dcdcdc";
+                this.style.boxShadow = "none";
+            });
+
+            // Button hover effect
+            const refreshBtn = document.getElementById("refreshBtn");
+            refreshBtn.addEventListener("mouseenter", () => {
+                refreshBtn.style.background = "#15803d";
+            });
+            refreshBtn.addEventListener("mouseleave", () => {
+                refreshBtn.style.background = "#16a34a";
+            });
+            </script>
+        </div>
+        
+        <div class="summary-grid">
+            <div class="summary-card glass-card">
+                <div class="label">Total Schools</div>
+                <div id="totalSchools" class="value">0</div>
+            </div>
+            <div class="summary-card glass-card">
+                <div class="label">Total Staff</div>
+                <div id="totalStaff" class="value">0</div>
+            </div>
+            <div class="summary-card glass-card">
+                <div class="label">Total Students</div>
+                <div id="totalStudents" class="value">0</div>
+            </div>
+            <div class="summary-card glass-card">
+                <div class="label">Grand Total</div>
+                <div id="grandTotal" class="value">0</div>
+            </div>
+        </div>
+        
+        <div id="schoolsContainer" class="schools-grid"></div>
+    </div>
+    
+    <div class="modal fade" id="schoolModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-building me-2 green"></i> <span id="modalSchoolId" class="dark-green">School</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div id="dateCards"></div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="modal fade" id="dateModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title"><i class="bi bi-list-check me-2 green"></i> <span id="modalDateTitle" class="dark-green">Details</span></h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm table-borderless">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Key</th>
+                                <th>Time</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dateDetails"></tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getDatabase, ref, onValue } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
+            authDomain: "schools-cdce8.firebaseapp.com",
+            databaseURL: "https://schools-cdce8-default-rtdb.firebaseio.com",
+            projectId: "schools-cdce8",
+            storageBucket: "schools-cdce8.appspot.com",
+            messagingSenderId: "772712220138",
+            appId: "1:772712220138:web:381c173dccf1a6513fde93"
+        };
+    
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const auth = getAuth(app);
+        signInAnonymously(auth).catch((error) => console.error("Anonymous sign-in failed:", error));
+
+        // DOM Elements
+        const totalSchoolsEl = document.getElementById('totalSchools');
+        const totalStaffEl = document.getElementById('totalStaff');
+        const totalStudentsEl = document.getElementById('totalStudents');
+        const grandTotalEl = document.getElementById('grandTotal');
+        const schoolsContainer = document.getElementById('schoolsContainer');
+        const modalSchoolId = document.getElementById('modalSchoolId');
+        const dateCards = document.getElementById('dateCards');
+        const searchBox = document.getElementById('searchBox');
+        const modalDateTitle = document.getElementById('modalDateTitle');
+        const dateDetails = document.getElementById('dateDetails');
+
+        let workdoneData = {};
+        let searchQuery = '';
+
+        // Helper Functions
+        function formatDate(input) {
+            let d;
+            if (!input) return '';
+            if (/^\d{4}-\d{2}-\d{2}$/.test(input)) {
+                const parts = input.split('-');
+                d = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+            } else {
+                d = new Date(input);
+            }
+            if (isNaN(d.getTime())) return input;
+            const day = String(d.getDate()).padStart(2, '0');
+            const month = d.toLocaleString('en-US', { month: 'short' });
+            const year = d.getFullYear();
+            return `${day}-${month}-${year}`;
+        }
+        
+        function formatTime(input) {
+            if (!input) return '';
+            const d = new Date(input);
+            if (isNaN(d.getTime())) return input;
+            return d.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+        }
+        
+        function escapeHtml(s) { return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;'); }
+
+        // Data & Rendering
+        onValue(ref(db, 'workdone'), (snapshot) => {
+            workdoneData = snapshot.exists() ? snapshot.val() : {};
+            renderDashboard();
+        });
+
+        function renderDashboard() {
+            const sids = Object.keys(workdoneData);
+            let totalSchools = 0;
+            let totalStaff = 0;
+            let totalStudents = 0;
+            schoolsContainer.innerHTML = '';
+
+            const filteredSids = sids.filter(sid => !searchQuery || sid.toLowerCase().includes(searchQuery.toLowerCase())).sort();
+            totalSchools = filteredSids.length;
+
+            if (filteredSids.length === 0) {
+                schoolsContainer.innerHTML = '<div class="muted text-center w-100 p-4">No schools found.</div>';
+            }
+
+            filteredSids.forEach(sid => {
+                const school = workdoneData[sid] || {};
+                const staffCount = school.STAFF ? Object.keys(school.STAFF).length : 0;
+                const studentCount = school.STUDENT ? Object.keys(school.STUDENT).length : 0;
+                const total = staffCount + studentCount;
+                totalStaff += staffCount;
+                totalStudents += studentCount;
+
+                const lastUpdateText = getLastUpdate(school) || '—';
+
+                const el = document.createElement('div');
+                el.className = 'school-card glass-card';
+                el.innerHTML = `
+                    <div class="school-content">
+                        <div class="school-title">${escapeHtml(sid)}</div>
+                        <div class="school-sub">Staff: ${staffCount} · Students: ${studentCount} · Total: ${total}</div>
+                    </div>
+                    <div class="card-bottom-bar">
+                        <div class="last-update">Last update: <strong>${lastUpdateText}</strong></div>
+                        <button class="btn btn-sm btn-icon btn-view" data-school="${escapeHtml(sid)}" title="Open report"><i class="bi bi-eye"></i></button>
+                    </div>
+                `;
+                schoolsContainer.appendChild(el);
+            });
+
+            totalSchoolsEl.textContent = totalSchools;
+            totalStaffEl.textContent = totalStaff;
+            totalStudentsEl.textContent = totalStudents;
+            grandTotalEl.textContent = totalStaff + totalStudents;
+
+            document.querySelectorAll('.btn-view').forEach(b => b.addEventListener('click', () => openSchoolModal(b.dataset.school)));
+        }
+
+        function getLastUpdate(school) {
+            let latest = null;
+            const records = [...Object.values(school.STAFF || {}), ...Object.values(school.STUDENT || {})];
+            records.forEach(r => {
+                if (r && r.deletedAt) {
+                    const t = new Date(r.deletedAt);
+                    if (!isNaN(t.getTime()) && (!latest || t > latest)) {
+                        latest = t;
+                    }
+                }
+            });
+            return latest ? `${formatDate(latest.toISOString().split('T')[0])} · ${formatTime(latest.toISOString())}` : null;
+        }
+
+        // Modals
+        function openSchoolModal(sid) {
+            modalSchoolId.textContent = sid;
+            const school = workdoneData[sid] || {};
+            const staff = school.STAFF || {};
+            const students = school.STUDENT || {};
+            
+            const dateMap = {};
+            Object.values(staff).forEach(rec => {
+                if (rec && rec.deletedAt) {
+                    const dateKey = rec.deletedAt.split('T')[0];
+                    if (!dateMap[dateKey]) dateMap[dateKey] = { staff: [], students: [] };
+                    dateMap[dateKey].staff.push(rec);
+                }
+            });
+            Object.values(students).forEach(rec => {
+                if (rec && rec.deletedAt) {
+                    const dateKey = rec.deletedAt.split('T')[0];
+                    if (!dateMap[dateKey]) dateMap[dateKey] = { staff: [], students: [] };
+                    dateMap[dateKey].students.push(rec);
+                }
+            });
+
+            const sorted = Object.keys(dateMap).sort((a, b) => new Date(b) - new Date(a));
+            let html = '';
+            if (sorted.length === 0) {
+                html = '<div class="text-center muted">No records for this school.</div>';
+            } else {
+                sorted.forEach(d => {
+                    const s = dateMap[d].staff.length;
+                    const st = dateMap[d].students.length;
+                    const total = s + st;
+                    html += `
+                        <div class="date-card">
+                            <div class="date-left">
+                                <div class="date-pill">${formatDate(d)}</div>
+                                <div>
+                                    <div class="fw-bold dark-green">${total} items</div>
+                                    <div class="date-info">Staff: <strong>${s}</strong> · Students: <strong>${st}</strong></div>
+                                </div>
+                            </div>
+                            <div>
+                                <button class="view-small btn" data-school="${escapeHtml(sid)}" data-date="${escapeHtml(d)}" title="View details"><i class="bi bi-eye"></i></button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            
+            dateCards.innerHTML = html;
+            new bootstrap.Modal(document.getElementById('schoolModal')).show();
+
+            document.querySelectorAll('.view-small').forEach(b => b.addEventListener('click', () => openDateModal(b.dataset.school, b.dataset.date)));
+        }
+
+        function openDateModal(sid, date) {
+            const school = workdoneData[sid] || {};
+            const records = [...Object.values(school.STAFF || {}), ...Object.values(school.STUDENT || {})];
+            
+            let rows = '';
+            records.sort((a,b) => new Date(a.deletedAt) - new Date(b.deletedAt)).forEach(rec => {
+                if (rec && rec.deletedAt && rec.deletedAt.startsWith(date)) {
+                    const type = rec.key.startsWith('STF') ? 'Staff' : 'Student';
+                    rows += `<tr><td>${type}</td><td>${escapeHtml(rec.key || '—')}</td><td>${formatTime(rec.deletedAt)}</td></tr>`;
+                }
+            });
+
+            modalDateTitle.textContent = `School: ${sid} · ${formatDate(date)}`;
+            dateDetails.innerHTML = rows || '<tr><td colspan="3" class="muted text-center">No records.</td></tr>';
+            new bootstrap.Modal(document.getElementById('dateModal')).show();
+        }
+
+        // Event Listeners
+        searchBox.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderDashboard();
+        });
+        document.getElementById('refreshBtn').addEventListener('click', () => location.reload());
+
+    </script>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
