@@ -58,19 +58,37 @@
       <div class="search mb-4">
         <div class="relative">
           <i class="ri-search-line absolute left-3 top-3 text-gray-400"></i>
-          <input type="text" id="searchBox" placeholder="Search school..." class="pl-10 w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 p-2">
+          <input type="text" id="searchBox" placeholder="Search school..." 
+                class="pl-10 w-full rounded-xl border border-gray-200 focus:ring-2 focus:ring-indigo-500 p-2">
         </div>
       </div>
       <div class="sort">
         <label for="sortType">Sort By</label>
-        <select id="sortType" class="w-full mt-1 rounded-xl border-gray-200 p-2 focus:ring-2 focus:ring-indigo-500">
+        <select id="sortType" 
+                class="w-full mt-1 rounded-xl border-gray-200 p-2 focus:ring-2 focus:ring-indigo-500">
           <option value="az">A → Z</option>
           <option value="za">Z → A</option>
           <option value="high">Highest Enrollment</option>
           <option value="low">Lowest Enrollment</option>
         </select>
       </div>
+
+      <!-- Done Button -->
+      <div class="mt-6 flex justify-end">
+        <button onclick="window.location.href='https://penportindia.github.io/lak/Pages/Report/index.html'" 
+                class="flex items-center gap-2 px-4 py-2 
+                      rounded-md 
+                      bg-gradient-to-r from-lime-400 to-emerald-600 
+                      text-white font-semibold text-sm tracking-wide
+                      shadow-md hover:shadow-emerald-500/40
+                      hover:from-lime-500 hover:to-emerald-700
+                      transition-all duration-300 ease-out hover:scale-105">
+          <i class="ri-check-double-line text-base"></i>
+          Done
+        </button>
+      </div>
     </aside>
+
 
     <!-- Date-wise Report -->
     <div class="report bg-white rounded-2xl shadow card-hover flex-1 p-5">
