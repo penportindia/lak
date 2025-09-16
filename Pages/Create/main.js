@@ -39,17 +39,17 @@ let imageData = "";
 let lastType = "";
 let stream = null;
 
-let schoolCode = "";     // userid of school
-let schoolName = "";     // actual school name
+let schoolCode = ""; // userid of school
+let schoolName = ""; // actual school name
 let entryData = {};
 
-let userIP = "";         // original IP
-let safeIP = "";         // firebase-safe key (dots -> dashes)
+let userIP = ""; // original IP
+let safeIP = ""; // firebase-safe key (dots -> dashes)
 
 let sessionTimeout = null;
 let hardTimeout = null;
 
-const MAX_IDLE = 10 * 60 * 1000;    // 10 minutes
+const MAX_IDLE = 10 * 60 * 1000; // 10 minutes
 const MAX_SESSION = 60 * 60 * 1000; // 1 hour
 
 // ============================
@@ -65,6 +65,44 @@ function getButtonRefs() {
     cameraBtn: safeGet("cameraBtn")
   };
 }
+
+// ============================
+// ✅ Custom Modal Functions (Replaces `alert()`)
+// ============================
+function showModal(title, message, isError = false) {
+    const modal = document.getElementById('messageModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalMessage = document.getElementById('modalMessage');
+    const modalIcon = modal.querySelector('.modal-icon');
+    
+    modalTitle.textContent = title;
+    modalMessage.textContent = message;
+
+    if (isError) {
+        modalIcon.innerHTML = '<i class="fas fa-times-circle"></i>';
+        modalIcon.classList.add('error');
+    } else {
+        modalIcon.innerHTML = '<i class="fas fa-check-circle"></i>';
+        modalIcon.classList.remove('error');
+    }
+
+    modal.classList.add('visible');
+
+    // Automatically hide the modal after 3 seconds
+    setTimeout(() => {
+        hideModal();
+    }, 3000);
+}
+
+function hideModal() {
+    const modal = document.getElementById('messageModal');
+    modal.classList.remove('visible');
+}
+
+// Add event listeners to the modal's close button and OK button
+document.querySelector('.close-btn').addEventListener('click', hideModal);
+document.getElementById('modalOkBtn').addEventListener('click', hideModal);
+
 
 // ============================
 // ✅ Get Public IP
@@ -86,7 +124,7 @@ function resetSessionTimer() {
   if (sessionTimeout) clearTimeout(sessionTimeout);
   sessionTimeout = setTimeout(() => {
     // Page reload on inactivity
-    location.reload(); 
+    location.reload();
   }, MAX_IDLE);
 }
 
@@ -94,7 +132,7 @@ async function logoutUser(message = "You have been logged out.") {
   if (!schoolCode || !safeIP) {
     if (exists("loginPage")) el("loginPage").classList.remove("hidden");
     if (exists("homePage")) el("homePage").classList.add("hidden");
-    alert(message);
+    showModal("Logout", message); // Changed from alert()
     return;
   }
 
@@ -124,10 +162,10 @@ async function logoutUser(message = "You have been logged out.") {
     if (hardTimeout) clearTimeout(hardTimeout);
     stopCamera();
 
-    alert(message);
+    showModal("Logged Out", message); // Changed from alert()
   } catch (error) {
     console.error("Error during logout:", error);
-    alert("An error occurred during logout. Please refresh the page.");
+    showModal("Error", "An error occurred during logout. Please refresh the page.", true); // Changed from alert()
   }
 }
 
@@ -135,19 +173,21 @@ async function logoutUser(message = "You have been logged out.") {
 // ✅ Activity listeners (idle)
 // ============================
 ["click", "keydown", "input", "change", "mousemove", "touchstart"].forEach(evt => {
-  document.addEventListener(evt, resetSessionTimer, { passive: true });
+  document.addEventListener(evt, resetSessionTimer, {
+    passive: true
+  });
 });
 
 // ============================
 // ✅ Login Function (Full-proof)
 // ============================
-window.verifyLogin = async function () {
+window.verifyLogin = async function() {
   try {
     const uidOrPhone = (safeGet("loginUser")?.value || "").trim();
     const pwd = (safeGet("loginPass")?.value || "").trim();
 
     if (!uidOrPhone || !pwd) {
-      showOrAlert("Please enter both User ID or Phone Number and Password.", "error");
+      showModal("Login Failed", "Please enter both User ID or Phone Number and Password.", true);
       return;
     }
 
@@ -155,7 +195,7 @@ window.verifyLogin = async function () {
     const snapshot = await get(child(rootRef, `schools`));
 
     if (!snapshot.exists()) {
-      showOrAlert("No school records found", "error");
+      showModal("Login Failed", "No school records found", true);
       return;
     }
 
@@ -181,13 +221,13 @@ window.verifyLogin = async function () {
     }
 
     if (!matchedUser) {
-      showOrAlert("Invalid User ID / Phone or Password", "error");
+      showModal("Login Failed", "Invalid User ID / Phone or Password", true);
       return;
     }
 
     // ✅ Status check (case-insensitive)
     if (!matchedUser.status || matchedUser.status.toString().trim().toLowerCase() !== "active") {
-      showOrAlert("You are an Inactive user. Please Contact Admin to Activate your account first.", "error");
+      showModal("Login Failed", "You are an Inactive user. Please Contact Admin to Activate your account first.", true);
       return;
     }
 
@@ -195,7 +235,7 @@ window.verifyLogin = async function () {
     const cleanSchoolName = rawSchoolName.replace(/[^a-zA-Z0-9 ,]/g, '').replace(/\s+/g, ' ').trim();
 
     if (!cleanSchoolName) {
-      showOrAlert("School name is invalid in database!", "error");
+      showModal("Login Failed", "School name is invalid in database!", true);
       return;
     }
 
@@ -221,18 +261,20 @@ window.verifyLogin = async function () {
       expiresAt: Date.now() + MAX_SESSION
     });
 
-    try { onDisconnect(ipRef).remove(); } catch (_) {}
+    try {
+      onDisconnect(ipRef).remove();
+    } catch (_) {}
 
     resetSessionTimer();
     if (hardTimeout) clearTimeout(hardTimeout);
-    hardTimeout = setTimeout(async () => {
+    hardTimeout = setTimeout(async() => {
       await logoutUser("Session ended after 1 hour.");
     }, MAX_SESSION);
 
-    showOrAlert("Login Successful!", "success");
+    showModal("Login Successful!", "Welcome!");
 
   } catch (error) {
-    showOrAlert("Firebase Error: " + (error.message || error), "error");
+    showModal("Error", "Firebase Error: " + (error.message || error), true);
     console.error(error);
   }
 };
@@ -262,7 +304,7 @@ async function generateUniqueEnrollment(type) {
   }
 
   const dbRoot = dbRef(database);
-  const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+  const monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
   const now = new Date();
   const dd = String(now.getDate()).padStart(2, "0");
@@ -292,9 +334,9 @@ async function generateUniqueEnrollment(type) {
 // -----------------------------
 // ✅ Navigation to Form
 // -----------------------------
-window.navigateToForm = async function () {
+window.navigateToForm = async function() {
   const type = (safeGet("idType")?.value || "").trim().toLowerCase();
-  if (!type) return showOrAlert("Please select ID type", "error");
+  if (!type) return showModal("Error", "Please select ID type", true);
   lastType = type;
   if (exists("homePage")) el("homePage").classList.add("hidden");
   if (exists("idForm")) el("idForm").classList.remove("hidden");
@@ -350,7 +392,7 @@ async function generateFormFields(type) {
   } catch (e) {
     console.error("Enrollment generation failed:", e);
     enrollNo = `${type.toUpperCase()}-TEMP-${Date.now()}`;
-    showOrAlert("Warning: Could not generate unique enrollment number.", "warning");
+    showModal("Warning", "Could not generate unique enrollment number.", false);
   }
 
   fields.forEach(fieldDef => {
@@ -422,20 +464,26 @@ function compressImage(sourceCanvasOrImage, maxWidth = 480, quality = 0.6) {
 async function startCamera() {
   try {
     if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-      showOrAlert("Camera not supported on this device", "error");
+      showModal("Error", "Camera not supported on this device", true);
       return;
     }
     stream = await navigator.mediaDevices.getUserMedia({
-      video: { facingMode: { ideal: "environment" } }
+      video: {
+        facingMode: {
+          ideal: "environment"
+        }
+      }
     });
     const video = safeGet("video");
-    if (!video) return showOrAlert("Video element not found", "error");
+    if (!video) return showModal("Error", "Video element not found", true);
     video.srcObject = stream;
     await video.play().catch(() => {});
     video.classList.remove("hidden");
 
     // ✅ Set button state for Capture
-    const { cameraBtn } = getButtonRefs();
+    const {
+      cameraBtn
+    } = getButtonRefs();
     if (cameraBtn) {
       cameraBtn.innerHTML = `<i class="fas fa-camera"></i><span>Capture</span>`;
       cameraBtn.onclick = takePicture;
@@ -443,11 +491,11 @@ async function startCamera() {
   } catch (err) {
     console.error("Camera error:", err);
     if (err.name === "NotAllowedError") {
-      showOrAlert("Camera permission denied. Please enable it in settings.", "error");
+      showModal("Error", "Camera permission denied. Please enable it in settings.", true);
     } else if (err.name === "NotFoundError") {
-      showOrAlert("No camera found on this device.", "error");
+      showModal("Error", "No camera found on this device.", true);
     } else {
-      showOrAlert("Unable to access camera: " + err.message, "error");
+      showModal("Error", "Unable to access camera: " + err.message, true);
     }
   }
 }
@@ -468,7 +516,7 @@ function takePicture() {
   const video = safeGet("video");
   const canvas = safeGet("canvas");
   if (!video || !canvas || !video.videoWidth) {
-    return showOrAlert("Camera not ready.", "error");
+    return showModal("Error", "Camera not ready.", true);
   }
   canvas.width = video.videoWidth;
   canvas.height = video.videoHeight;
@@ -480,7 +528,9 @@ function takePicture() {
   stopCamera();
 
   // ✅ Set button state for Retake
-  const { cameraBtn } = getButtonRefs();
+  const {
+    cameraBtn
+  } = getButtonRefs();
   if (cameraBtn) {
     cameraBtn.innerHTML = `<i class="fas fa-redo"></i><span>Retake</span>`;
     cameraBtn.onclick = retakePicture;
@@ -502,12 +552,14 @@ function retakePicture() {
 async function handleSubmit(e) {
   try {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
-    const { newEntryBtn } = getButtonRefs();
+    const {
+      newEntryBtn
+    } = getButtonRefs();
     if (newEntryBtn) newEntryBtn.disabled = true;
 
     // ✅ Photo validation added here
     if (!imageData) {
-      showOrAlert("Please Capture Photo before submitting.", "error");
+      showModal("Error", "Please Capture Photo before submitting.", true);
       if (newEntryBtn) newEntryBtn.disabled = false;
       return;
     }
@@ -531,10 +583,9 @@ async function handleSubmit(e) {
     const nameKey = `${lastType || 'default'}_name`;
     const dobKey = `${lastType || 'default'}_dob`;
     const enroll = rawData[enrollKey];
-    
+
     if (!enroll) {
-      showOrAlert("❌ Submit failed: Enrollment number missing.", "error");
-      setTimeout(goHomeSafe, 2000);
+      showSubmitFailedAndGoHomeSafe("❌ Submit failed: Enrollment number missing.");
       if (newEntryBtn) newEntryBtn.disabled = false;
       return;
     }
@@ -542,17 +593,18 @@ async function handleSubmit(e) {
     const schoolId = schoolCode || "UNKNOWN_ID";
     const schoolNode = (schoolName || "UNKNOWN_SCHOOL").toUpperCase();
     const dbPath = `DATA-MASTER/${schoolNode}/${schoolId}/${(lastType || "default").toUpperCase()}/${enroll || "unknown"}`;
-    
+
     if (rawData[dobKey]) {
       const dobDate = new Date(rawData[dobKey]);
       if (!isNaN(dobDate)) {
         const day = String(dobDate.getDate()).padStart(2, '0');
-        const month = dobDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+        const month = dobDate.toLocaleString('en-US', {
+          month: 'short'
+        }).toUpperCase();
         const year = dobDate.getFullYear();
         rawData[dobKey] = `${day}-${month}-${year}`;
       } else {
-        showOrAlert("❌ Submit failed: Invalid date.", "error");
-        setTimeout(goHomeSafe, 2000);
+        showSubmitFailedAndGoHomeSafe("❌ Submit failed: Invalid date.");
         if (newEntryBtn) newEntryBtn.disabled = false;
         return;
       }
@@ -581,26 +633,40 @@ async function handleSubmit(e) {
 
   } catch (err) {
     console.error("Unexpected error:", err);
-    showSubmitFailedAndGoHomeSafe();
+    showSubmitFailedAndGoHomeSafe("❌ An unexpected error occurred. Please try again.");
   } finally {
-    const { newEntryBtn } = getButtonRefs();
+    const {
+      newEntryBtn
+    } = getButtonRefs();
     if (newEntryBtn) newEntryBtn.disabled = false;
   }
 }
 
 // ✅ Safe goHome
 function goHomeSafe() {
-  try { goHome(); } catch(e) { console.warn("goHome failed", e); }
+  try {
+    goHome();
+  } catch (e) {
+    console.warn("goHome failed", e);
+  }
 }
 
 // ✅ Safe preview
 function showPreviewSafe(img, enroll) {
-  try { showPreview(img, enroll); } catch(e) { console.warn("Preview failed", e); }
+  try {
+    showPreview(img, enroll);
+  } catch (e) {
+    console.warn("Preview failed", e);
+  }
 }
 
 // ✅ Safe Firebase set
 function setSafe(ref, data) {
-  try { return set(ref, data); } catch(e) { return Promise.reject(e); }
+  try {
+    return set(ref, data);
+  } catch (e) {
+    return Promise.reject(e);
+  }
 }
 
 // -----------------------------
@@ -629,47 +695,49 @@ function uploadImageToImgBBSafe(enroll, dbPath) {
         }
       };
 
-      xhr.onload = function () {
+      xhr.onload = function() {
         try {
           if (xhr.status === 200) {
             const result = JSON.parse(xhr.responseText);
             if (result.success && result.data && result.data.display_url) {
               const photoURL = result.data.display_url;
-              update(dbRef(database, dbPath), { photo: photoURL })
+              update(dbRef(database, dbPath), {
+                  photo: photoURL
+                })
                 .then(() => {
                   updateProgressBarSafe(100);
-                  showOrAlert("✅ Submitted Successfully!", "success");
+                  showModal("Success", "Submitted Successfully!");
                   resolve();
                 })
                 .catch(err => {
                   console.error("DB update failed:", err);
-                  showSubmitFailedAndGoHomeSafe(dbPath);
+                  showSubmitFailedAndGoHomeSafe();
                   reject(err);
                 });
             } else {
               console.error("ImgBB returned no url or success false:", result);
-              showSubmitFailedAndGoHomeSafe(dbPath);
+              showSubmitFailedAndGoHomeSafe();
               reject(new Error("ImgBB upload failed"));
             }
           } else {
             console.error("ImgBB status not 200:", xhr.status, xhr.responseText);
-            showSubmitFailedAndGoHomeSafe(dbPath);
+            showSubmitFailedAndGoHomeSafe();
             reject(new Error("ImgBB upload HTTP error"));
           }
         } catch (e) {
           console.error("Error processing ImgBB response:", e);
-          showSubmitFailedAndGoHomeSafe(dbPath);
+          showSubmitFailedAndGoHomeSafe();
           reject(e);
         }
       };
 
       xhr.onerror = () => {
-        showSubmitFailedAndGoHomeSafe(dbPath);
+        showSubmitFailedAndGoHomeSafe();
         reject(new Error("Network error uploading image"));
       };
 
       xhr.send(formData);
-    } catch(e) {
+    } catch (e) {
       reject(e);
     }
   });
@@ -683,16 +751,15 @@ function updateProgressBarSafe(percent) {
       progressEl.style.width = percent + "%";
       progressEl.textContent = percent + "%";
     }
-  } catch(e) { console.warn(e); }
+  } catch (e) {
+    console.warn(e);
+  }
 }
 
 // ✅ Safe submit failed handler
-function showSubmitFailedAndGoHomeSafe(dbPath) {
-  try {
-    showOrAlert("❌ Submit failed!", "error");
-    if (dbPath) remove(dbRef(database, dbPath)).finally(() => setTimeout(goHomeSafe, 2000));
-    else setTimeout(goHomeSafe, 2000);
-  } catch(e) { setTimeout(goHomeSafe, 2000); }
+function showSubmitFailedAndGoHomeSafe(message = "❌ Submit failed!") {
+  showModal("Error", message, true);
+  setTimeout(goHomeSafe, 2000);
 }
 
 // ============================
@@ -700,7 +767,7 @@ function showSubmitFailedAndGoHomeSafe(dbPath) {
 // ============================
 function showPreview(photoUrl, enrollmentNumber) {
   if (!photoUrl || !enrollmentNumber) {
-    showOrAlert("❌ Missing photo or enrollment number!", "error");
+    showModal("Error", "❌ Missing photo or enrollment number!", true);
     return;
   }
 
@@ -709,7 +776,7 @@ function showPreview(photoUrl, enrollmentNumber) {
   const previewContainer = safeGet("preview");
 
   if (!previewPage || !idForm || !previewContainer) {
-    alert("❌ Required preview elements not found in DOM.");
+    showModal("Error", "❌ Required preview elements not found in DOM.", true);
     return;
   }
 
@@ -721,8 +788,8 @@ function showPreview(photoUrl, enrollmentNumber) {
 
   const formatLabel = key =>
     key.replace(/^(student|staff)_/, '')
-       .replace(/_/g, ' ')
-       .replace(/\b\w/g, c => c.toUpperCase());
+    .replace(/_/g, ' ')
+    .replace(/\b\w/g, c => c.toUpperCase());
 
   const buildTableRows = (keysToInclude) => {
     return Object.entries(data).reduce((rows, [key, value]) => {
@@ -735,10 +802,16 @@ function showPreview(photoUrl, enrollmentNumber) {
       if (keysToInclude.includes(key.toLowerCase())) rows.front += row;
       else rows.back += row;
       return rows;
-    }, { front: '', back: '' });
+    }, {
+      front: '',
+      back: ''
+    });
   };
 
-  const { front, back } = buildTableRows(frontKeys);
+  const {
+    front,
+    back
+  } = buildTableRows(frontKeys);
 
   previewContainer.innerHTML = `
     <div id="idCardBox" style="max-width: 400px; margin: 30px auto; font-family: 'Poppins', sans-serif; border-radius: 16px; overflow: hidden; background: #ffffff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); transition: all 0.3s ease-in-out;">
@@ -819,7 +892,7 @@ function generateBarcodeImage(enroll) {
 // ✅ Save ID as JPG
 function saveIDAsImage() {
   const previewEl = safeGet("idCardBox");
-  if (!previewEl) return showOrAlert("❌ Preview not found!", "error");
+  if (!previewEl) return showModal("Error", "❌ Preview not found!", true);
   const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
   const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
   const fileName = `${enrollmentNumber}-${studentName}.jpg`;
@@ -828,7 +901,7 @@ function saveIDAsImage() {
       const script = document.createElement("script");
       script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
       script.onload = () => capture();
-      script.onerror = () => showOrAlert("Failed to load html2canvas library.", "error");
+      script.onerror = () => showModal("Error", "Failed to load html2canvas library.", true);
       document.body.appendChild(script);
     } else {
       capture();
@@ -844,7 +917,7 @@ function saveIDAsImage() {
       a.href = canvas.toDataURL("image/jpeg", 1.0);
       a.download = fileName;
       a.click();
-    }).catch(err => showOrAlert("❌ Failed to save image: " + (err?.message || err), "error"));
+    }).catch(err => showModal("Error", "❌ Failed to save image: " + (err?.message || err), true));
   };
   doCapture();
 }
@@ -861,7 +934,9 @@ function newEntry() {
   const idForm = safeGet("idForm");
   const canvas = safeGet("canvas");
   const video = safeGet("video");
-  const { cameraBtn } = getButtonRefs();
+  const {
+    cameraBtn
+  } = getButtonRefs();
   const idTypeSelect = safeGet("idType");
 
   if (previewPage) previewPage.classList.add("hidden");
@@ -895,29 +970,14 @@ function goHome() {
   if (safeGet("preview")) safeGet("preview").innerHTML = '';
   safeGet("homePage")?.classList.remove("hidden");
   if (safeGet("idType")) safeGet("idType").value = "";
-  const { cameraBtn } = getButtonRefs();
+  const {
+    cameraBtn
+  } = getButtonRefs();
   if (cameraBtn) {
     cameraBtn.innerHTML = `<i class="fas fa-video"></i><span>Camera</span>`;
     cameraBtn.onclick = startCamera;
   }
 }
-
-// ✅ Message Display Utility (Fixed)
-function showOrAlert(message, type = "success") {
-  const popup = safeGet("messagePopup");
-  if (popup) {
-    popup.textContent = message;
-    popup.className = `popup ${type}`;
-    popup.style.display = "block";
-    setTimeout(() => {
-      popup.style.display = "none";
-      popup.className = "popup";
-    }, 4000);
-  } else {
-    alert(message);
-  }
-}
-
 
 // ============================
 // ✅ Export to Global Scope
