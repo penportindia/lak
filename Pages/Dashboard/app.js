@@ -1,5 +1,5 @@
 // ----------------------------------------------------
-// Active Schools Dashboard - Optimized (Shallow Enrollment Read)
+// Active Schools Dashboard - Optimized (Realtime Update with Child Listeners)
 // ----------------------------------------------------
 
 // 1) Import Firebase Modules
@@ -7,7 +7,9 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/12.0.0/firebas
 import {
   getDatabase,
   ref,
-  onValue
+  onChildAdded,
+  onChildRemoved,
+  onValue // activeSchools ke liye zaruri hai
 } from "https://www.gstatic.com/firebasejs/12.0.0/firebase-database.js";
 
 // 2) Firebase Config
@@ -24,7 +26,6 @@ const firebaseConfig = {
 // 3) Init
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
-const BASE_URL = firebaseConfig.databaseURL;
 
 // 4) DOM Elements
 const studentCountEl = document.getElementById("studentCount");
@@ -37,31 +38,12 @@ const sortType = document.getElementById("sortType");
 const dateWiseListEl = document.getElementById("dateWiseList");
 const totalOnlineEl = document.getElementById("totalOnlineUsers");
 
-// 5) Global State + Cache
-let schoolsData = [];
+// 5) Global State (New: Using Map for efficient data management)
+const schoolsData = new Map();
 let activeSchools = Object.create(null);
-
-const CACHE_KEY = "dashboard:v5:aggregates"; 
-const CACHE_TTL_MS = 10 * 60 * 1000; // 10 min
-
-function readCache() {
-  try {
-    const raw = sessionStorage.getItem(CACHE_KEY);
-    if (!raw) return null;
-    const parsed = JSON.parse(raw);
-    if (!parsed?.timestamp) return null;
-    if (Date.now() - parsed.timestamp > CACHE_TTL_MS) return null;
-    return parsed.payload;
-  } catch { return null; }
-}
-function writeCache(payload) {
-  try {
-    sessionStorage.setItem(
-      CACHE_KEY,
-      JSON.stringify({ timestamp: Date.now(), payload })
-    );
-  } catch {}
-}
+let studentCount = 0;
+let staffCount = 0;
+let dateMap = new Map();
 
 // 6) Helpers
 function normalizeName(name) {
@@ -73,7 +55,7 @@ function parseEnrollmentDate(enrollmentId) {
   const day = parseInt(dateStr.slice(0, 2), 10);
   const monStr = dateStr.slice(2, 5).toUpperCase();
   const year = parseInt(dateStr.slice(5), 10);
-  const months = { JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11 };
+  const months = { JAN: 0, FEB: 1, MAR: 2, APR: 3, MAY: 4, JUN: 5, JUL: 6, AUG: 7, SEP: 8, OCT: 9, NOV: 10, DEC: 11 };
   const month = months[monStr];
   if (!Number.isFinite(day) || !Number.isFinite(year) || month === undefined) return null;
   return new Date(year, month, day);
@@ -83,100 +65,111 @@ function debounce(fn, wait = 150) {
   let t; return (...args) => { clearTimeout(t); t = setTimeout(() => fn.apply(null, args), wait); };
 }
 
-// 🔹 Helper: shallow fetch (keys only, no values)
-async function fetchKeys(path) {
-  const url = `${BASE_URL}/${path}.json?shallow=true`;
-  const res = await fetch(url);
-  if (!res.ok) return {};
-  return res.json();
-}
+// 7) Live Update and Bandwidth Optimized Logic
+// ✅ This function will only listen to changes in enrollment numbers.
+function listenToEnrollmentChanges() {
+  const masterRef = ref(db, "DATA-MASTER");
 
-// 7) Load Dashboard Data (with shallow fetch)
-async function loadDashboardData() {
-  try {
-    const cached = readCache();
-    if (cached) { applyAggregatesToUI(cached); return; }
+  // 🔥 Listen for changes to each school's name/ID
+  onChildAdded(masterRef, (schoolNameSnapshot) => {
+    const schoolName = schoolNameSnapshot.key;
+    const schoolIds = schoolNameSnapshot.val();
 
-    let studentCount = 0, staffCount = 0;
-    const schoolMap = Object.create(null);
-    const dateMap = Object.create(null);
+    for (const schoolId in schoolIds) {
+      if (typeof schoolIds[schoolId] !== 'object' || schoolIds[schoolId] === null) continue;
 
-    // 🔹 Level-1: all SCHOOL_NAME
-    const schoolNames = await fetchKeys("DATA-MASTER");
-    for (const schoolName in schoolNames) {
-      // 🔹 Level-2: all SCHOOL_ID under that school
-      const schoolIds = await fetchKeys(`DATA-MASTER/${schoolName}`);
-      for (const schoolId in schoolIds) {
-        const displayName = schoolName || schoolId;
-        const norm = normalizeName(displayName);
-        if (!schoolMap[norm]) schoolMap[norm] = { displayName, students: 0, staff: 0 };
+      const studentsRef = ref(db, `DATA-MASTER/${schoolName}/${schoolId}/STUDENT`);
+      const staffRef = ref(db, `DATA-MASTER/${schoolName}/${schoolId}/STAFF`);
 
-        // Students enrollment IDs (keys only)
-        const students = await fetchKeys(`DATA-MASTER/${schoolName}/${schoolId}/STUDENT`);
-        for (const enrollId in students || {}) {
-          studentCount++;
-          schoolMap[norm].students++;
-          const d = parseEnrollmentDate(enrollId);
-          if (d) {
-            const key = d.toISOString().slice(0, 10);
-            (dateMap[key] ??= { students: 0, staff: 0 }).students++;
-          }
-        }
+      // ✅ Child Listener for Students
+      onChildAdded(studentsRef, (snapshot) => {
+        updateCounts(schoolName, "student", 1, snapshot.key);
+      });
+      onChildRemoved(studentsRef, (snapshot) => {
+        updateCounts(schoolName, "student", -1, snapshot.key);
+      });
 
-        // Staff enrollment IDs (keys only)
-        const staff = await fetchKeys(`DATA-MASTER/${schoolName}/${schoolId}/STAFF`);
-        for (const enrollId in staff || {}) {
-          staffCount++;
-          schoolMap[norm].staff++;
-          const d = parseEnrollmentDate(enrollId);
-          if (d) {
-            const key = d.toISOString().slice(0, 10);
-            (dateMap[key] ??= { students: 0, staff: 0 }).staff++;
-          }
-        }
-      }
+      // ✅ Child Listener for Staff
+      onChildAdded(staffRef, (snapshot) => {
+        updateCounts(schoolName, "staff", 1, snapshot.key);
+      });
+      onChildRemoved(staffRef, (snapshot) => {
+        updateCounts(schoolName, "staff", -1, snapshot.key);
+      });
     }
-
-    const schoolsDataArr = Object.keys(schoolMap).map(norm => {
-      const s = schoolMap[norm];
-      return { name: s.displayName, normalized: norm, students: s.students, staff: s.staff, total: s.students+s.staff };
-    });
-
-    const aggregates = {
-      studentCount,
-      staffCount,
-      totalEnrollment: studentCount+staffCount,
-      uniqueSchools: Object.keys(schoolMap).length,
-      schoolsData: schoolsDataArr.sort((a,b)=>b.total-a.total),
-      dateMap
-    };
-
-    applyAggregatesToUI(aggregates);
-    writeCache(aggregates);
-  } catch (err) {
-    console.error("loadDashboardData error:", err);
-    setText(studentCountEl,0);setText(staffCountEl,0);setText(totalEnrollmentEl,0);setText(uniqueSchoolsEl,0);
-    schoolsData=[];renderSchools();renderDateWise({});
-  }
+  });
 }
 
-function applyAggregatesToUI({ studentCount, staffCount, totalEnrollment, uniqueSchools, schoolsData: sd, dateMap }) {
-  setText(studentCountEl, studentCount||0);
-  setText(staffCountEl, staffCount||0);
-  setText(totalEnrollmentEl, totalEnrollment||0);
-  setText(uniqueSchoolsEl, uniqueSchools||0);
-  schoolsData = Array.isArray(sd)?sd:[];
+function updateCounts(schoolName, type, change, enrollmentId) {
+  const norm = normalizeName(schoolName);
+
+  if (!schoolsData.has(norm)) {
+    schoolsData.set(norm, {
+      name: schoolName,
+      normalized: norm,
+      students: 0,
+      staff: 0,
+      total: 0
+    });
+  }
+
+  const school = schoolsData.get(norm);
+  if (type === "student") {
+    studentCount += change;
+    school.students += change;
+  } else if (type === "staff") {
+    staffCount += change;
+    school.staff += change;
+  }
+  school.total = school.students + school.staff;
+
+  if (school.total <= 0) {
+    schoolsData.delete(norm);
+  }
+
+  // DateWise counts
+  const d = parseEnrollmentDate(enrollmentId);
+  if (d) {
+    const key = d.toISOString().slice(0, 10);
+    if (!dateMap.has(key)) {
+      dateMap.set(key, { students: 0, staff: 0 });
+    }
+    const dateCounts = dateMap.get(key);
+    if (type === "student") {
+      dateCounts.students += change;
+    } else if (type === "staff") {
+      dateCounts.staff += change;
+    }
+    if ((dateCounts.students + dateCounts.staff) <= 0) {
+      dateMap.delete(key);
+    }
+  }
+
+  // ✅ Trigger UI update
+  renderAll();
+}
+
+// ✅ New function to render all UI elements
+function renderAll() {
+  setText(studentCountEl, studentCount);
+  setText(staffCountEl, staffCount);
+  setText(totalEnrollmentEl, studentCount + staffCount);
+  setText(uniqueSchoolsEl, schoolsData.size);
+
   renderSchools();
-  renderDateWise(dateMap||{});
+  renderDateWise(Object.fromEntries(dateMap));
 }
 
 // ----------------------------------------------------
-// 8) Render Schools (optimized with keys only + colored icons)
+// 8) Render Schools (remains the same)
 // ----------------------------------------------------
 function renderSchools() {
   if (!schoolListEl) return;
 
-  let filtered = [...schoolsData];
+  // Convert Map to Array for filtering/sorting
+  let schoolsDataArray = Array.from(schoolsData.values());
+  let filtered = [...schoolsDataArray];
+
   const searchVal = (searchBox?.value || "").toLowerCase();
   if (searchVal) {
     filtered = filtered.filter(s =>
@@ -254,7 +247,7 @@ if (searchBox) searchBox.addEventListener("input", debounce(renderSchools, 150))
 if (sortType) sortType.addEventListener("change", renderSchools);
 
 // ----------------------------------------------------
-// 9) Render Date-Wise (Inline + Different Header Colors)
+// 9) Render Date-Wise (remains the same)
 // ----------------------------------------------------
 function renderDateWise(dateMap) {
   if (!dateWiseListEl) return;
@@ -264,19 +257,18 @@ function renderDateWise(dateMap) {
     if (!dateStr) return new Date();
     const [year, month, day] = dateStr.split("-").map(Number);
     const d = new Date(year, month - 1, day);
-    d.setDate(d.getDate() + 1); // 🔥 1 दिन plus
+    d.setDate(d.getDate() + 1);
     return d;
   }
 
-  // 🔥 अलग-अलग header colors (7 तक)
   const headerColors = [
-    "linear-gradient(135deg,#9333ea,#a855f7)", // Purple
-    "linear-gradient(135deg,#2563eb,#3b82f6)", // Blue
-    "linear-gradient(135deg,#16a34a,#22c55e)", // Green
-    "linear-gradient(135deg,#f59e0b,#fbbf24)", // Amber
-    "linear-gradient(135deg,#dc2626,#ef4444)", // Red
-    "linear-gradient(135deg,#0d9488,#14b8a6)", // Teal
-    "linear-gradient(135deg,#be185d,#ec4899)"  // Pink
+    "linear-gradient(135deg,#9333ea,#a855f7)",
+    "linear-gradient(135deg,#2563eb,#3b82f6)",
+    "linear-gradient(135deg,#16a34a,#22c55e)",
+    "linear-gradient(135deg,#f59e0b,#fbbf24)",
+    "linear-gradient(135deg,#dc2626,#ef4444)",
+    "linear-gradient(135deg,#0d9488,#14b8a6)",
+    "linear-gradient(135deg,#be185d,#ec4899)"
   ];
 
   const entries = Object.entries(dateMap || {}).sort(
@@ -291,7 +283,6 @@ function renderDateWise(dateMap) {
 
   const last7 = entries.slice(0, 7);
 
-  // ✅ Container को grid बनाओ (PC पर हमेशा 7 columns)
   dateWiseListEl.style.display = "grid";
   dateWiseListEl.style.gridTemplateColumns = "repeat(7, 1fr)";
   dateWiseListEl.style.gap = "14px";
@@ -299,7 +290,6 @@ function renderDateWise(dateMap) {
   last7.forEach(([dateKey, counts], index) => {
     const dateObj = parseDateString(dateKey);
 
-    // 📅 सिर्फ "DD MMM" दिखेगा
     const uiDate = dateObj.toLocaleDateString("en-GB", {
       day: "2-digit",
       month: "short"
@@ -316,7 +306,6 @@ function renderDateWise(dateMap) {
       cursor:pointer;
     `;
 
-    // header bg alag alag hoga
     const headerBg = headerColors[index % headerColors.length];
 
     card.innerHTML = `
@@ -327,18 +316,18 @@ function renderDateWise(dateMap) {
       </div>
       <div style="padding:14px 16px;display:grid;gap:10px;font-size:14px;color:#374151;">
         <div style="display:flex;align-items:center;gap:6px;">
-          <i class="ri-user-3-line" style="color:#2563eb;" title="Students"></i> 
-          <span class="label" style="display:inline;">Students:</span> 
+          <i class="ri-user-3-line" style="color:#2563eb;" title="Students"></i>
+          <span class="label" style="display:inline;">Students:</span>
           <b>${counts.students || 0}</b>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <i class="ri-team-line" style="color:#16a34a;" title="Staff"></i> 
-          <span class="label" style="display:inline;">Staff:</span> 
+          <i class="ri-team-line" style="color:#16a34a;" title="Staff"></i>
+          <span class="label" style="display:inline;">Staff:</span>
           <b>${counts.staff || 0}</b>
         </div>
         <div style="display:flex;align-items:center;gap:6px;">
-          <i class="ri-bar-chart-2-line" style="color:#f59e0b;" title="Total"></i> 
-          <span class="label" style="display:inline;">Total:</span> 
+          <i class="ri-bar-chart-2-line" style="color:#f59e0b;" title="Total"></i>
+          <span class="label" style="display:inline;">Total:</span>
           <b>${(counts.students||0)+(counts.staff||0)}</b>
         </div>
       </div>`;
@@ -346,7 +335,6 @@ function renderDateWise(dateMap) {
     dateWiseListEl.appendChild(card);
   });
 
-  // ✅ Styles: Hover effect + Mobile Responsive
   const styleEl = document.createElement("style");
   styleEl.textContent = `
     .date-card:hover {
@@ -354,13 +342,11 @@ function renderDateWise(dateMap) {
       box-shadow: 0 6px 14px rgba(0,0,0,0.12);
     }
     @media (max-width: 1024px) {
-      /* Tablet पर 3 cards per row */
       #${dateWiseListEl.id} {
         grid-template-columns: repeat(3, 1fr) !important;
       }
     }
     @media (max-width: 640px) {
-      /* Mobile पर 2 cards per row */
       #${dateWiseListEl.id} {
         grid-template-columns: repeat(2, 1fr) !important;
       }
@@ -372,7 +358,7 @@ function renderDateWise(dateMap) {
 }
 
 // ----------------------------------------------------
-// 10) Listen for Active Schools
+// 10) Listen for Active Schools (remains the same)
 // ----------------------------------------------------
 function listenActiveSchools() {
   try {
@@ -437,19 +423,7 @@ function processActiveSchools(val) {
 }
 
 // ----------------------------------------------------
-// 11) Polling Dashboard Data (Reuse loadDashboardData)
+// 11) Start Listeners
 // ----------------------------------------------------
-async function pollDashboardData() {
-  try {
-    await loadDashboardData(); // ऊपर वाला shallow + cache वाला function
-  } catch (err) {
-    console.error("pollDashboardData error:", err);
-  }
-}
-
-// ----------------------------------------------------
-// 12) Start Listeners (Polling + Realtime for Active Schools)
-// ----------------------------------------------------
-pollDashboardData();                   // पहली बार तुरंत लोड
-setInterval(pollDashboardData, 60000); // हर 60 सेकंड बाद shallow refresh
-listenActiveSchools();                 // Active schools अभी भी realtime पर
+listenToEnrollmentChanges();
+listenActiveSchools();
