@@ -848,7 +848,7 @@ function showPreview(photoUrl, enrollmentNumber) {
 
           <!-- Photo -->
           <div style="
-            margin:14px auto 12px; width:110px; height:145px; overflow:hidden;
+            margin:14px auto 12px; width:120px; height:155px; overflow:hidden;
             border-radius:12px; border:3px solid #fff;
             box-shadow:0 4px 12px rgba(0,0,0,0.25);
           ">
@@ -864,7 +864,7 @@ function showPreview(photoUrl, enrollmentNumber) {
 
         <!-- Back Section -->
         <div style="background:#f9fafb; padding:18px 16px;">
-          <table style="width:100%; font-size:13px; border-spacing:0;">
+          <table style="width:100%; font-size:10px; border-spacing:0;">
             ${back}
           </table>
 
@@ -1071,3 +1071,4 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
