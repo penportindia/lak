@@ -889,13 +889,15 @@ function generateBarcodeImage(enroll) {
   checkAndConvert();
 }
 
-// ✅ Save ID as JPG
+// ✅ Save ID as JPG (Browser + Android WebView Support)
 function saveIDAsImage() {
   const previewEl = safeGet("idCardBox");
   if (!previewEl) return showModal("Error", "❌ Preview not found!", true);
+
   const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
   const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
   const fileName = `${enrollmentNumber}-${studentName}.jpg`;
+
   const doCapture = () => {
     if (typeof html2canvas === "undefined") {
       const script = document.createElement("script");
@@ -907,18 +909,34 @@ function saveIDAsImage() {
       capture();
     }
   };
+
   const capture = () => {
     html2canvas(previewEl, {
       scale: 3,
       useCORS: true,
       scrollY: -window.scrollY
     }).then(canvas => {
-      const a = document.createElement("a");
-      a.href = canvas.toDataURL("image/jpeg", 1.0);
-      a.download = fileName;
-      a.click();
-    }).catch(err => showModal("Error", "❌ Failed to save image: " + (err?.message || err), true));
+      const imageData = canvas.toDataURL("image/jpeg", 1.0);
+
+      // ✅ अगर Android WebView है → native bridge call करो
+      if (window.Android && typeof window.Android.saveImage === "function") {
+        window.Android.saveImage(imageData, fileName);
+        showModal("Success", "✅ Saved to Gallery!");
+      } else {
+        // ✅ Browser fallback → download as file
+        const a = document.createElement("a");
+        a.href = imageData;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showModal("Success", "✅ Image downloaded!");
+      }
+    }).catch(err => {
+      showModal("Error", "❌ Failed to save image: " + (err?.message || err), true);
+    });
   };
+
   doCapture();
 }
 
@@ -992,3 +1010,4 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
