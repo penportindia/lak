@@ -547,27 +547,27 @@ function retakePicture() {
 }
 
 // -----------------------------
-// ✅ Submit Handler (Updated)
+// ✅ Submit Handler (Foolproof)
 // -----------------------------
 async function handleSubmit(e) {
   try {
     if (e && typeof e.preventDefault === "function") e.preventDefault();
-    const {
-      newEntryBtn
-    } = getButtonRefs();
+    const { newEntryBtn } = getButtonRefs();
     if (newEntryBtn) newEntryBtn.disabled = true;
 
-    // ✅ Photo validation added here
+    // 🟢 Validation: Photo required
     if (!imageData) {
       showModal("Error", "Please Capture Photo before submitting.", true);
       if (newEntryBtn) newEntryBtn.disabled = false;
       return;
     }
 
+    // 🟢 Validation: Form fields
     const formFields = document.querySelectorAll("#formFields input, #formFields select, #formFields textarea");
     if (!formFields || formFields.length === 0) {
+      showModal("Error", "Form fields not found!", true);
       if (newEntryBtn) newEntryBtn.disabled = false;
-      throw new Error("Form fields not found");
+      return;
     }
 
     const rawData = {};
@@ -584,102 +584,93 @@ async function handleSubmit(e) {
     const dobKey = `${lastType || 'default'}_dob`;
     const enroll = rawData[enrollKey];
 
+    // 🟢 Validation: Enrollment required
     if (!enroll) {
-      showSubmitFailedAndGoHomeSafe("❌ Submit failed: Enrollment number missing.");
+      showModal("Error", "❌ Enrollment number is required.", true);
       if (newEntryBtn) newEntryBtn.disabled = false;
       return;
     }
 
-    const schoolId = schoolCode || "UNKNOWN_ID";
-    const schoolNode = (schoolName || "UNKNOWN_SCHOOL").toUpperCase();
-    const dbPath = `DATA-MASTER/${schoolNode}/${schoolId}/${(lastType || "default").toUpperCase()}/${enroll || "unknown"}`;
-
+    // 🟢 Validation: DOB format
     if (rawData[dobKey]) {
       const dobDate = new Date(rawData[dobKey]);
       if (!isNaN(dobDate)) {
         const day = String(dobDate.getDate()).padStart(2, '0');
-        const month = dobDate.toLocaleString('en-US', {
-          month: 'short'
-        }).toUpperCase();
+        const month = dobDate.toLocaleString('en-US', { month: 'short' }).toUpperCase();
         const year = dobDate.getFullYear();
         rawData[dobKey] = `${day}-${month}-${year}`;
       } else {
-        showSubmitFailedAndGoHomeSafe("❌ Submit failed: Invalid date.");
+        showModal("Error", "❌ Invalid Date of Birth.", true);
         if (newEntryBtn) newEntryBtn.disabled = false;
         return;
       }
     }
 
-    rawData.schoolName = schoolNode;
+    // Paths
+    const schoolId = schoolCode || "UNKNOWN_ID";
+    const schoolNode = (schoolName || "UNKNOWN_SCHOOL").toUpperCase();
+    const dbPath = `DATA-MASTER/${schoolNode}/${schoolId}/${(lastType || "default").toUpperCase()}/${enroll}`;
+
+    // ----------------------------------------
+    // 🟢 STEP 1: Prepare Data & Show Preview Immediately
+    // ----------------------------------------
     const data = {
       [enrollKey]: enroll,
       [nameKey]: rawData[nameKey] || "",
-      schoolName: rawData.schoolName,
+      schoolName: schoolNode,
       schoolId: schoolId,
-      photo: ""
+      photo: "" // अभी खाली, बाद में URL आएगा
     };
     Object.keys(rawData).forEach(key => {
       if (!["photo", "schoolName", "schoolId", nameKey, enrollKey].includes(key)) {
         data[key] = rawData[key];
       }
     });
-
     entryData = data;
+
+    // ✅ Preview अभी दिखाओ (तुरंत feedback)
     showPreviewSafe(imageData, enroll);
 
+    // ----------------------------------------
+    // 🔴 STEP 2: Upload Image to ImgBB
+    // ----------------------------------------
+    const photoURL = await uploadImageToImgBBSafe(enroll);
+    if (!photoURL) {
+      showSubmitFailedAndGoHomeSafe(); // Fail → stop
+      if (newEntryBtn) newEntryBtn.disabled = false;
+      return;
+    }
+
+    // ----------------------------------------
+    // 🟢 STEP 3: Save Full Entry to Firebase
+    // ----------------------------------------
+    data.photo = photoURL; // अब photo URL डाल दो
     const recordRef = dbRef(database, dbPath);
     await setSafe(recordRef, data);
-    await uploadImageToImgBBSafe(enroll, dbPath);
+
+    // ✅ Success message
+    showModal("Success", "✅ Submitted Successfully!");
 
   } catch (err) {
     console.error("Unexpected error:", err);
-    showSubmitFailedAndGoHomeSafe("❌ An unexpected error occurred. Please try again.");
+    showSubmitFailedAndGoHomeSafe("❌ Submit failed!");
   } finally {
-    const {
-      newEntryBtn
-    } = getButtonRefs();
+    const { newEntryBtn } = getButtonRefs();
     if (newEntryBtn) newEntryBtn.disabled = false;
   }
 }
 
-// ✅ Safe goHome
-function goHomeSafe() {
-  try {
-    goHome();
-  } catch (e) {
-    console.warn("goHome failed", e);
-  }
-}
-
-// ✅ Safe preview
-function showPreviewSafe(img, enroll) {
-  try {
-    showPreview(img, enroll);
-  } catch (e) {
-    console.warn("Preview failed", e);
-  }
-}
-
-// ✅ Safe Firebase set
-function setSafe(ref, data) {
-  try {
-    return set(ref, data);
-  } catch (e) {
-    return Promise.reject(e);
-  }
-}
-
 // -----------------------------
-// ✅ Upload image to ImgBB + update DB.photo
+// ✅ Upload Image to ImgBB
 // -----------------------------
-function uploadImageToImgBBSafe(enroll, dbPath) {
+function uploadImageToImgBBSafe(enroll) {
   return new Promise((resolve, reject) => {
     try {
       if (!imageData) return reject("No image data");
 
       const base64 = imageData.replace(/^data:image\/[a-z]+;base64,/, "");
       const formData = new FormData();
-      formData.append("key", "011e81139fd279b28a3b55c414b241b7");
+      formData.append("key", "011e81139fd279b28a3b55c414b241b7"); // ImgBB API key
       formData.append("image", base64);
       formData.append("name", enroll);
 
@@ -695,47 +686,25 @@ function uploadImageToImgBBSafe(enroll, dbPath) {
         }
       };
 
-      xhr.onload = function() {
+      xhr.onload = function () {
         try {
           if (xhr.status === 200) {
             const result = JSON.parse(xhr.responseText);
             if (result.success && result.data && result.data.display_url) {
-              const photoURL = result.data.display_url;
-              update(dbRef(database, dbPath), {
-                  photo: photoURL
-                })
-                .then(() => {
-                  updateProgressBarSafe(100);
-                  showModal("Success", "Submitted Successfully!");
-                  resolve();
-                })
-                .catch(err => {
-                  console.error("DB update failed:", err);
-                  showSubmitFailedAndGoHomeSafe();
-                  reject(err);
-                });
+              updateProgressBarSafe(100);
+              resolve(result.data.display_url);
             } else {
-              console.error("ImgBB returned no url or success false:", result);
-              showSubmitFailedAndGoHomeSafe();
               reject(new Error("ImgBB upload failed"));
             }
           } else {
-            console.error("ImgBB status not 200:", xhr.status, xhr.responseText);
-            showSubmitFailedAndGoHomeSafe();
             reject(new Error("ImgBB upload HTTP error"));
           }
         } catch (e) {
-          console.error("Error processing ImgBB response:", e);
-          showSubmitFailedAndGoHomeSafe();
           reject(e);
         }
       };
 
-      xhr.onerror = () => {
-        showSubmitFailedAndGoHomeSafe();
-        reject(new Error("Network error uploading image"));
-      };
-
+      xhr.onerror = () => reject(new Error("Network error uploading image"));
       xhr.send(formData);
     } catch (e) {
       reject(e);
@@ -743,7 +712,25 @@ function uploadImageToImgBBSafe(enroll, dbPath) {
   });
 }
 
-// ✅ Safe progress bar update
+// -----------------------------
+// ✅ Safe Wrappers
+// -----------------------------
+function setSafe(ref, data) {
+  try {
+    return set(ref, data);
+  } catch (e) {
+    return Promise.reject(e);
+  }
+}
+
+function showPreviewSafe(img, enroll) {
+  try {
+    showPreview(img, enroll);
+  } catch (e) {
+    console.warn("Preview failed", e);
+  }
+}
+
 function updateProgressBarSafe(percent) {
   try {
     const progressEl = safeGet("uploadProgress");
@@ -756,98 +743,163 @@ function updateProgressBarSafe(percent) {
   }
 }
 
-// ✅ Safe submit failed handler
-function showSubmitFailedAndGoHomeSafe(message = "❌ Submit failed!") {
-  showModal("Error", message, true);
-  setTimeout(goHomeSafe, 2000);
+function goHomeSafe() {
+  try {
+    goHome();
+  } catch (e) {
+    console.warn("goHome failed", e);
+  }
 }
 
-// ============================
-// ✅ Show Preview using provided image source
-// ============================
+function showSubmitFailedAndGoHomeSafe(message = "❌ Submit failed!") {
+  try {
+    showModal("Error", message, true);
+    setTimeout(goHomeSafe, 2000);
+  } catch (e) {
+    console.warn("Submit failed modal error:", e);
+  }
+}
+
+
+
+// ✅ Show Preview (Foolproof Premium ID Card)
 function showPreview(photoUrl, enrollmentNumber) {
-  if (!photoUrl || !enrollmentNumber) {
-    showModal("Error", "❌ Missing photo or enrollment number!", true);
-    return;
-  }
+  try {
+    // Validation
+    if (!photoUrl || !enrollmentNumber) {
+      showModal("Error", "❌ Missing photo or enrollment number!", true);
+      return;
+    }
 
-  const previewPage = safeGet("previewPage");
-  const idForm = safeGet("idForm");
-  const previewContainer = safeGet("preview");
+    const previewPage = safeGet("previewPage");
+    const idForm = safeGet("idForm");
+    const previewContainer = safeGet("preview");
 
-  if (!previewPage || !idForm || !previewContainer) {
-    showModal("Error", "❌ Required preview elements not found in DOM.", true);
-    return;
-  }
+    if (!previewPage || !idForm || !previewContainer) {
+      showModal("Error", "❌ Required preview elements not found in DOM.", true);
+      return;
+    }
 
-  idForm.classList.add("hidden");
-  previewPage.classList.remove("hidden");
+    // Toggle views
+    idForm.classList.add("hidden");
+    previewPage.classList.remove("hidden");
 
-  const data = entryData || {};
-  const frontKeys = ['name', 'dob', 'class', 'section', 'gender'];
+    const data = entryData || {};
+    const frontKeys = ["name", "dob", "class", "section", "gender"];
 
-  const formatLabel = key =>
-    key.replace(/^(student|staff)_/, '')
-    .replace(/_/g, ' ')
-    .replace(/\b\w/g, c => c.toUpperCase());
+    // Label Formatter
+    const formatLabel = (key) =>
+      key
+        .replace(/^(student|staff)_/, "")
+        .replace(/_/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase());
 
-  const buildTableRows = (keysToInclude) => {
-    return Object.entries(data).reduce((rows, [key, value]) => {
-      if (!value || ['image', 'type', 'photo', 'enrollment_number'].includes(key)) return rows;
-      const row = `
-        <tr>
-          <td style="font-weight:600;font-size:12px;padding:2px 6px;">${formatLabel(key)}</td>
-          <td style="font-size:12px;padding:2px 6px;">${value}</td>
-        </tr>`;
-      if (keysToInclude.includes(key.toLowerCase())) rows.front += row;
-      else rows.back += row;
-      return rows;
-    }, {
-      front: '',
-      back: ''
-    });
-  };
+    // Build Info Rows
+    const buildTableRows = (keysToInclude) => {
+      return Object.entries(data).reduce(
+        (rows, [key, value]) => {
+          if (
+            !value ||
+            ["image", "type", "photo", "enrollment_number"].includes(key)
+          )
+            return rows;
 
-  const {
-    front,
-    back
-  } = buildTableRows(frontKeys);
+          const row = `
+            <tr>
+              <td style="font-weight:600; font-size:13px; padding:5px 8px; text-align:left; color:#000; white-space:nowrap;">
+                ${formatLabel(key)} :
+              </td>
+              <td style="font-size:13px; padding:5px 8px; text-align:left; color:#111;">
+                ${value}
+              </td>
+            </tr>`;
 
-  previewContainer.innerHTML = `
-    <div id="idCardBox" style="max-width: 400px; margin: 30px auto; font-family: 'Poppins', sans-serif; border-radius: 16px; overflow: hidden; background: #ffffff; box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25); transition: all 0.3s ease-in-out;">
-      <div style="background: #1e293b; color: #ffffff; padding: 20px 16px; text-align: center;">
-        <div style="font-size: 24px; font-weight: 700;">${data.schoolName || 'SCHOOL NAME'}</div>
-        <div style="font-size: 15px; font-weight: 500; margin-top: 4px;">ID CARD ENROLLMENT</div>
-        <div style="font-size: 10px; margin-top: 8px; color: #cfd8dc;">
-          Thank you. Your data has been received.<br>ID will be delivered in 5–7 working days.
+          if (keysToInclude.includes(key.toLowerCase())) rows.front += row;
+          else rows.back += row;
+          return rows;
+        },
+        { front: "", back: "" }
+      );
+    };
+
+    const { front, back } = buildTableRows(frontKeys);
+
+    // Build Card HTML
+    previewContainer.innerHTML = `
+      <div id="idCardBox" style="
+        max-width:420px; margin:30px auto; font-family:'Poppins',sans-serif;
+        border-radius:18px; overflow:hidden; background:#ffffff;
+        box-shadow:0 8px 24px rgba(0,0,0,0.22);
+        transition:all .3s ease-in-out;
+      ">
+        <!-- Header Section -->
+        <div style="background:#000000; color:#fff; padding:20px 18px; text-align:center;">
+          <div style="font-size:22px; font-weight:700; letter-spacing:0.5px;
+                      font-family:'Oswald',sans-serif;">
+            ${data.schoolName || "SCHOOL NAME"}
+          </div>
+          <div style="font-size:13px; font-weight:500; margin-top:4px; opacity:0.9;">
+            ID Card Enrollment
+          </div>
+          <p style="font-size:11px; margin-top:8px; color:#f3f4f6; line-height:1.4;">
+            ✅ Your enrollment was successful.<br>
+            Your ID card will be delivered within <strong>5–7 working days</strong>.
+          </p>
+
+          <!-- Photo -->
+          <div style="
+            margin:14px auto 12px; width:110px; height:145px; overflow:hidden;
+            border-radius:12px; border:3px solid #fff;
+            box-shadow:0 4px 12px rgba(0,0,0,0.25);
+          ">
+            <img src="${photoUrl}" crossorigin="anonymous"
+                 style="width:100%; height:100%; object-fit:cover;">
+          </div>
+
+          <!-- Front Info Table -->
+          <table style="width:100%; margin-top:8px; font-size:13px; border-spacing:0;">
+            ${front}
+          </table>
         </div>
-        <div style="margin: 16px auto 12px; width: 120px; height: 160px; overflow: hidden; border-radius: 12px; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
-          <img src="${photoUrl}" crossorigin="anonymous" style="width: 100%; height: 100%; object-fit: cover;">
+
+        <!-- Back Section -->
+        <div style="background:#f9fafb; padding:18px 16px;">
+          <table style="width:100%; font-size:13px; border-spacing:0;">
+            ${back}
+          </table>
+
+          <div style="text-align:center; margin-top:16px;">
+            <div style="font-size:10px; font-weight:600; color:#000;">
+             ${enrollmentNumber}
+            </div>
+            <svg id="barcode" style="margin-top:6px; width:140px; height:40px;"></svg>
+          </div>
+
+          <hr style="margin:18px 0; border:none; border-top:1px dashed #d1d5db;">
+
+          <div style="font-size:11px; text-align:center; color:#374151;">
+            Printed by <strong>Lakshmi ID Maker</strong><br>
+            Query? Call: <a href="tel:9304394825" style="color:#000; text-decoration:none;">9304394825</a>
+          </div>
         </div>
-        <table style="width: 100%; margin-top: 12px; font-size: 13px; color: #e3f2fd;">${front}</table>
       </div>
-      <div style="background: #f1f1f1; padding: 18px 20px;">
-        <table style="width: 100%; font-size: 13px; color: #333;">${back}</table>
-        <div style="text-align: center; margin-top: 18px;">
-          <div style="font-size: 14px; font-weight: 600; color: #2c3e50;">Enrollment No: ${enrollmentNumber}</div>
-          <svg id="barcode" style="margin-top: 6px; width: 140px; height: 40px;"></svg>
-        </div>
-        <hr style="margin: 20px 0; border: none; border-top: 1px dashed #b0bec5;">
-        <div style="font-size: 10px; text-align: center; color: #78909c;">
-          Printed by <strong>Lakshmi ID Maker</strong> | Query? Call: 9304394825
-        </div>
-      </div>
-    </div>
-  `;
+    `;
 
-  if (typeof JsBarcode === "undefined") {
-    const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js";
-    script.onload = () => generateBarcodeImage(enrollmentNumber);
-    script.onerror = () => console.warn("Failed to load JsBarcode");
-    document.body.appendChild(script);
-  } else {
-    generateBarcodeImage(enrollmentNumber);
+    // Barcode load & render
+    if (typeof JsBarcode === "undefined") {
+      const script = document.createElement("script");
+      script.src =
+        "https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js";
+      script.onload = () => generateBarcodeImage(enrollmentNumber);
+      script.onerror = () =>
+        console.warn("⚠️ Failed to load JsBarcode, barcode not generated.");
+      document.body.appendChild(script);
+    } else {
+      generateBarcodeImage(enrollmentNumber);
+    }
+  } catch (err) {
+    console.error("❌ showPreview failed:", err);
+    showModal("Error", "❌ Preview generation failed!", true);
   }
 }
 
@@ -859,15 +911,18 @@ function generateBarcodeImage(enroll) {
       format: "CODE128",
       width: 1.5,
       height: 40,
-      displayValue: false
+      displayValue: false,
     });
   } catch (e) {
-    console.warn("JsBarcode call failed:", e);
+    console.warn("⚠️ JsBarcode call failed:", e);
+    return;
   }
+
+  // Convert SVG → PNG
   const checkAndConvert = () => {
     const svg = document.querySelector("#barcode");
     if (!svg || svg.children.length === 0) {
-      return setTimeout(checkAndConvert, 100);
+      return setTimeout(checkAndConvert, 120);
     }
     try {
       const svgData = new XMLSerializer().serializeToString(svg);
@@ -881,13 +936,18 @@ function generateBarcodeImage(enroll) {
         const pngFile = canvas.toDataURL("image/png");
         svg.outerHTML = `<img src="${pngFile}" style="width:140px;height:40px;">`;
       };
-      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svgData)));
+      img.onerror = () =>
+        console.warn("⚠️ Failed to load barcode SVG into Image element.");
+      img.src =
+        "data:image/svg+xml;base64," +
+        btoa(unescape(encodeURIComponent(svgData)));
     } catch (e) {
-      console.error("Failed to convert barcode SVG -> PNG:", e);
+      console.error("⚠️ Failed to convert barcode SVG -> PNG:", e);
     }
   };
   checkAndConvert();
 }
+
 
 // ✅ Save ID as JPG (Browser + Android WebView Support)
 function saveIDAsImage() {
@@ -939,6 +999,7 @@ function saveIDAsImage() {
 
   doCapture();
 }
+
 
 // ✅ Form Navigation / UI Handling
 function editEntry() {
@@ -1010,4 +1071,3 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
-
