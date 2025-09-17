@@ -293,7 +293,7 @@ select {
 
 .progress-container {
     width: 100%;
-    height: 25px;
+    height: 30px;
     background-color: var(--border-light);
     border-radius: 8px;
     overflow: hidden;
@@ -447,3 +447,4 @@ footer a:hover {
         align-items: center;
     }
 }
+
