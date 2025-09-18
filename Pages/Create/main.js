@@ -762,10 +762,9 @@ function showSubmitFailedAndGoHomeSafe(message = "❌ Submit failed!") {
 
 
 
-// ✅ Show Preview (Foolproof Premium ID Card)
+// ================= Show Preview (Foolproof Premium ID Card) =================
 function showPreview(photoUrl, enrollmentNumber) {
   try {
-    // Validation
     if (!photoUrl || !enrollmentNumber) {
       showModal("Error", "❌ Missing photo or enrollment number!", true);
       return;
@@ -776,66 +775,46 @@ function showPreview(photoUrl, enrollmentNumber) {
     const previewContainer = safeGet("preview");
 
     if (!previewPage || !idForm || !previewContainer) {
-      showModal("Error", "❌ Required preview elements not found in DOM.", true);
+      showModal("Error", "❌ Required preview elements not found!", true);
       return;
     }
 
-    // Toggle views
     idForm.classList.add("hidden");
     previewPage.classList.remove("hidden");
 
     const data = entryData || {};
     const frontKeys = ["name", "dob", "class", "section", "gender"];
 
-    // Label Formatter
     const formatLabel = (key) =>
-      key
-        .replace(/^(student|staff)_/, "")
-        .replace(/_/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase());
+      key.replace(/^(student|staff)_/, "").replace(/_/g, " ").replace(/\b\w/g, c => c.toUpperCase());
 
-    // Build Info Rows
-    const buildTableRows = (keysToInclude) => {
-      return Object.entries(data).reduce(
-        (rows, [key, value]) => {
-          if (
-            !value ||
-            ["image", "type", "photo", "enrollment_number"].includes(key)
-          )
-            return rows;
-
-          const row = `
-            <tr>
-              <td style="font-weight:600; font-size:13px; padding:5px 8px; text-align:left; color:#000; white-space:nowrap;">
-                ${formatLabel(key)} :
-              </td>
-              <td style="font-size:13px; padding:5px 8px; text-align:left; color:#111;">
-                ${value}
-              </td>
-            </tr>`;
-
-          if (keysToInclude.includes(key.toLowerCase())) rows.front += row;
-          else rows.back += row;
-          return rows;
-        },
-        { front: "", back: "" }
-      );
-    };
+    const buildTableRows = (keysToInclude) =>
+      Object.entries(data).reduce((rows, [key, value]) => {
+        if (!value || ["image", "type", "photo", "enrollment_number"].includes(key)) return rows;
+        const row = `
+          <tr>
+            <td style="font-weight:600; font-size:13px; padding:5px 8px; text-align:left; color:#000; white-space:nowrap;">
+              ${formatLabel(key)} :
+            </td>
+            <td style="font-size:13px; padding:5px 8px; text-align:left; color:#111;">
+              ${value}
+            </td>
+          </tr>`;
+        if (keysToInclude.includes(key.toLowerCase())) rows.front += row;
+        else rows.back += row;
+        return rows;
+      }, { front: "", back: "" });
 
     const { front, back } = buildTableRows(frontKeys);
 
-    // Build Card HTML
     previewContainer.innerHTML = `
       <div id="idCardBox" style="
         max-width:420px; margin:30px auto; font-family:'Poppins',sans-serif;
         border-radius:18px; overflow:hidden; background:#ffffff;
         box-shadow:0 8px 24px rgba(0,0,0,0.22);
-        transition:all .3s ease-in-out;
-      ">
-        <!-- Header Section -->
-        <div style="background:#000000; color:#fff; padding:20px 18px; text-align:center;">
-          <div style="font-size:22px; font-weight:700; letter-spacing:0.5px;
-                      font-family:'Oswald',sans-serif;">
+        transition:all .3s ease-in-out;">
+        <div style="background:#000; color:#fff; padding:20px 18px; text-align:center;">
+          <div style="font-size:22px; font-weight:700; letter-spacing:0.5px; font-family:'Oswald',sans-serif;">
             ${data.schoolName || "SCHOOL NAME"}
           </div>
           <div style="font-size:13px; font-weight:500; margin-top:4px; opacity:0.9;">
@@ -846,23 +825,15 @@ function showPreview(photoUrl, enrollmentNumber) {
             Your ID card will be delivered within <strong>5–7 working days</strong>.
           </p>
 
-          <!-- Photo -->
-          <div style="
-            margin:14px auto 12px; width:120px; height:155px; overflow:hidden;
-            border-radius:12px; border:3px solid #fff;
-            box-shadow:0 4px 12px rgba(0,0,0,0.25);
-          ">
-            <img src="${photoUrl}" crossorigin="anonymous"
-                 style="width:100%; height:100%; object-fit:cover;">
+          <div style="margin:14px auto 12px; width:120px; height:155px; overflow:hidden; border-radius:12px; border:3px solid #fff; box-shadow:0 4px 12px rgba(0,0,0,0.25);">
+            <img src="${photoUrl}" crossorigin="anonymous" style="width:100%; height:100%; object-fit:cover;">
           </div>
 
-          <!-- Front Info Table -->
           <table style="width:100%; margin-top:8px; font-size:13px; border-spacing:0;">
             ${front}
           </table>
         </div>
 
-        <!-- Back Section -->
         <div style="background:#f9fafb; padding:18px 16px;">
           <table style="width:100%; font-size:10px; border-spacing:0;">
             ${back}
@@ -870,7 +841,7 @@ function showPreview(photoUrl, enrollmentNumber) {
 
           <div style="text-align:center; margin-top:16px;">
             <div style="font-size:10px; font-weight:600; color:#000;">
-             ${enrollmentNumber}
+              ${enrollmentNumber}
             </div>
             <svg id="barcode" style="margin-top:6px; width:140px; height:40px;"></svg>
           </div>
@@ -885,45 +856,35 @@ function showPreview(photoUrl, enrollmentNumber) {
       </div>
     `;
 
-    // Barcode load & render
+    // Barcode
     if (typeof JsBarcode === "undefined") {
       const script = document.createElement("script");
-      script.src =
-        "https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js";
+      script.src = "https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js";
       script.onload = () => generateBarcodeImage(enrollmentNumber);
-      script.onerror = () =>
-        console.warn("⚠️ Failed to load JsBarcode, barcode not generated.");
       document.body.appendChild(script);
     } else {
       generateBarcodeImage(enrollmentNumber);
     }
+
   } catch (err) {
     console.error("❌ showPreview failed:", err);
     showModal("Error", "❌ Preview generation failed!", true);
   }
 }
 
-// ✅ Generate Barcode as PNG
+// ================= Generate Barcode as PNG =================
 function generateBarcodeImage(enroll) {
   if (!enroll) return;
   try {
-    JsBarcode("#barcode", enroll, {
-      format: "CODE128",
-      width: 1.5,
-      height: 40,
-      displayValue: false,
-    });
+    JsBarcode("#barcode", enroll, { format: "CODE128", width: 1.5, height: 40, displayValue: false });
   } catch (e) {
     console.warn("⚠️ JsBarcode call failed:", e);
     return;
   }
 
-  // Convert SVG → PNG
   const checkAndConvert = () => {
     const svg = document.querySelector("#barcode");
-    if (!svg || svg.children.length === 0) {
-      return setTimeout(checkAndConvert, 120);
-    }
+    if (!svg || svg.children.length === 0) return setTimeout(checkAndConvert, 120);
     try {
       const svgData = new XMLSerializer().serializeToString(svg);
       const canvas = document.createElement("canvas");
@@ -936,11 +897,7 @@ function generateBarcodeImage(enroll) {
         const pngFile = canvas.toDataURL("image/png");
         svg.outerHTML = `<img src="${pngFile}" style="width:140px;height:40px;">`;
       };
-      img.onerror = () =>
-        console.warn("⚠️ Failed to load barcode SVG into Image element.");
-      img.src =
-        "data:image/svg+xml;base64," +
-        btoa(unescape(encodeURIComponent(svgData)));
+      img.src = "data:image/svg+xml;base64," + btoa(unescape(encodeURIComponent(svgData)));
     } catch (e) {
       console.error("⚠️ Failed to convert barcode SVG -> PNG:", e);
     }
@@ -948,78 +905,55 @@ function generateBarcodeImage(enroll) {
   checkAndConvert();
 }
 
+// ================= Save ID Card as Image =================
 function saveIDAsImage() {
-    const previewEl = document.getElementById("idCardBox");
-    if (!previewEl) return showModal("Error", "❌ Preview not found!", true);
+  const previewEl = document.getElementById("idCardBox");
+  if (!previewEl) return showModal("Error", "❌ Preview not found!", true);
 
-    // ✅ Generate safe file name
-    const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
-    const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
-    const timestamp = Date.now();
-    const fileName = `${enrollmentNumber}-${studentName}-${timestamp}.jpg`;
+  const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
+  const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
+  const timestamp = Date.now();
+  const fileName = `${enrollmentNumber}-${studentName}-${timestamp}.jpg`;
 
-    // ---------------- Native WebView support ----------------
-    if (window.Android && typeof window.Android.captureScreen === "function") {
-        // Get element dimensions & position
-        const rect = previewEl.getBoundingClientRect();
-        const scrollX = window.scrollX;
-        const scrollY = window.scrollY;
+  const captureAndSend = () => {
+    html2canvas(previewEl, {
+      scale: 3,
+      useCORS: true,
+      allowTaint: false,
+      logging: false,
+      backgroundColor: '#ffffff',
+      scrollY: -window.scrollY,
+      scrollX: -window.scrollX
+    }).then(canvas => {
+      const imageData = canvas.toDataURL("image/jpeg", 1.0);
 
-        // Pass width, height, x, y to native WebView
-        window.Android.captureScreen(
-            fileName,
-            rect.width,
-            rect.height,
-            scrollX + rect.left,
-            scrollY + rect.top
-        );
+      if (window.Android && typeof window.Android.saveImageFromJS === "function") {
+        window.Android.saveImageFromJS(imageData, fileName);
+        showModal("Success", "✅ Download initiated via WebView!");
+      } else {
+        const a = document.createElement("a");
+        a.href = imageData;
+        a.download = fileName;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        showModal("Success", "✅ Image downloaded successfully!");
+      }
+    }).catch(err => {
+      console.error(err);
+      showModal("Error", "❌ Failed to capture preview: " + (err?.message || err), true);
+    });
+  };
 
-        showModal("Success", "✅ Download Successfull!");
-        return;
-    }
-
-    // ---------------- Browser fallback using html2canvas ----------------
-    const doCapture = () => {
-        if (typeof html2canvas === "undefined") {
-            // Load library dynamically
-            const script = document.createElement("script");
-            script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-            script.onload = () => captureCanvas();
-            script.onerror = () => showModal("Error", "❌ Failed to load html2canvas library.", true);
-            document.body.appendChild(script);
-        } else {
-            captureCanvas();
-        }
-    };
-
-    const captureCanvas = () => {
-        html2canvas(previewEl, {
-            scale: 3,                    // High-res screenshot
-            useCORS: true,               // Load cross-origin images
-            scrollY: -window.scrollY,
-            scrollX: -window.scrollX,
-            windowWidth: document.documentElement.scrollWidth,
-            windowHeight: document.documentElement.scrollHeight,
-            backgroundColor: null         // Preserve transparency if needed
-        }).then(canvas => {
-            const imageData = canvas.toDataURL("image/jpeg", 1.0);
-
-            // Trigger download
-            const a = document.createElement("a");
-            a.href = imageData;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-
-            showModal("Success", "✅ Image downloaded successfully!");
-        }).catch(err => {
-            console.error(err);
-            showModal("Error", "❌ Failed to save image: " + (err?.message || err), true);
-        });
-    };
-
-    doCapture();
+  if (typeof html2canvas === "undefined") {
+    const script = document.createElement("script");
+    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+    script.onload = captureAndSend;
+    script.onerror = () => showModal("Error", "❌ Failed to load html2canvas.", true);
+    document.body.appendChild(script);
+  } else {
+    captureAndSend();
+  }
 }
 
 
@@ -1093,6 +1027,7 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
 
 
 
