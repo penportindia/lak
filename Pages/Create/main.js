@@ -958,6 +958,14 @@ function saveIDAsImage() {
   const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
   const fileName = `${enrollmentNumber}-${studentName}.jpg`;
 
+  // ✅ अगर Android WebView है → native screenshot call करो (पूरे WebView का)
+  if (window.Android && typeof window.Android.captureScreen === "function") {
+    window.Android.captureScreen(fileName);
+    showModal("Success", "✅ Full screenshot saved!");
+    return;
+  }
+
+  // ✅ Browser fallback → सिर्फ div का image बनाओ
   const doCapture = () => {
     if (typeof html2canvas === "undefined") {
       const script = document.createElement("script");
@@ -978,20 +986,14 @@ function saveIDAsImage() {
     }).then(canvas => {
       const imageData = canvas.toDataURL("image/jpeg", 1.0);
 
-      // ✅ अगर Android WebView है → native bridge call करो
-      if (window.Android && typeof window.Android.saveImage === "function") {
-        window.Android.saveImage(imageData, fileName);
-        showModal("Success", "✅ Saved to Gallery!");
-      } else {
-        // ✅ Browser fallback → download as file
-        const a = document.createElement("a");
-        a.href = imageData;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showModal("Success", "✅ Image downloaded!");
-      }
+      // ✅ Browser → download file
+      const a = document.createElement("a");
+      a.href = imageData;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showModal("Success", "✅ Image downloaded!");
     }).catch(err => {
       showModal("Error", "❌ Failed to save image: " + (err?.message || err), true);
     });
@@ -999,6 +1001,7 @@ function saveIDAsImage() {
 
   doCapture();
 }
+
 
 
 // ✅ Form Navigation / UI Handling
@@ -1071,4 +1074,5 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
 
