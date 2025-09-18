@@ -953,16 +953,20 @@ function saveIDAsImage() {
     const previewEl = document.getElementById("idCardBox");
     if (!previewEl) return showModal("Error", "❌ Preview not found!", true);
 
+    // ✅ Generate safe file name
     const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
     const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
-    const fileName = `${enrollmentNumber}-${studentName}.jpg`;
+    const timestamp = Date.now();
+    const fileName = `${enrollmentNumber}-${studentName}-${timestamp}.jpg`;
 
-    // ✅ Android WebView native capture (full element)
+    // ---------------- Native WebView support ----------------
     if (window.Android && typeof window.Android.captureScreen === "function") {
+        // Get element dimensions & position
         const rect = previewEl.getBoundingClientRect();
         const scrollX = window.scrollX;
         const scrollY = window.scrollY;
-        // Pass element dimensions and position to Android
+
+        // Call Android native function
         window.Android.captureScreen(
             fileName,
             rect.width,
@@ -970,13 +974,15 @@ function saveIDAsImage() {
             scrollX + rect.left,
             scrollY + rect.top
         );
-        showModal("Success", "✅ Downloded!");
+
+        showModal("Success", "✅ Download initiated via WebView!");
         return;
     }
 
-    // ✅ Browser fallback
+    // ---------------- Browser fallback using html2canvas ----------------
     const doCapture = () => {
         if (typeof html2canvas === "undefined") {
+            // Load library dynamically
             const script = document.createElement("script");
             script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
             script.onload = () => captureCanvas();
@@ -989,29 +995,34 @@ function saveIDAsImage() {
 
     const captureCanvas = () => {
         html2canvas(previewEl, {
-            scale: 3,
-            useCORS: true,
-            scrollY: -window.scrollY
+            scale: 3,             // high-res screenshot
+            useCORS: true,        // load external images
+            scrollY: -window.scrollY,
+            scrollX: -window.scrollX,
+            windowWidth: document.documentElement.scrollWidth,
+            windowHeight: document.documentElement.scrollHeight
         }).then(canvas => {
+            // Convert canvas to image
             const imageData = canvas.toDataURL("image/jpeg", 1.0);
 
+            // Trigger download
             const a = document.createElement("a");
             a.href = imageData;
             a.download = fileName;
+
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
 
-            showModal("Success", "✅ Image downloaded!");
+            showModal("Success", "✅ Image downloaded successfully!");
         }).catch(err => {
+            console.error(err);
             showModal("Error", "❌ Failed to save image: " + (err?.message || err), true);
         });
     };
 
     doCapture();
 }
-
-
 
 
 // ✅ Form Navigation / UI Handling
@@ -1084,6 +1095,7 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
 
 
 
