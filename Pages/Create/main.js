@@ -948,7 +948,6 @@ function generateBarcodeImage(enroll) {
   checkAndConvert();
 }
 
-
 function saveIDAsImage() {
     const previewEl = document.getElementById("idCardBox");
     if (!previewEl) return showModal("Error", "❌ Preview not found!", true);
@@ -966,7 +965,7 @@ function saveIDAsImage() {
         const scrollX = window.scrollX;
         const scrollY = window.scrollY;
 
-        // Call Android native function
+        // Pass width, height, x, y to native WebView
         window.Android.captureScreen(
             fileName,
             rect.width,
@@ -975,7 +974,7 @@ function saveIDAsImage() {
             scrollY + rect.top
         );
 
-        showModal("Success", "✅ Download initiated via WebView!");
+        showModal("Success", "✅ Download Successfull!");
         return;
     }
 
@@ -995,21 +994,20 @@ function saveIDAsImage() {
 
     const captureCanvas = () => {
         html2canvas(previewEl, {
-            scale: 3,             // high-res screenshot
-            useCORS: true,        // load external images
+            scale: 3,                    // High-res screenshot
+            useCORS: true,               // Load cross-origin images
             scrollY: -window.scrollY,
             scrollX: -window.scrollX,
             windowWidth: document.documentElement.scrollWidth,
-            windowHeight: document.documentElement.scrollHeight
+            windowHeight: document.documentElement.scrollHeight,
+            backgroundColor: null         // Preserve transparency if needed
         }).then(canvas => {
-            // Convert canvas to image
             const imageData = canvas.toDataURL("image/jpeg", 1.0);
 
             // Trigger download
             const a = document.createElement("a");
             a.href = imageData;
             a.download = fileName;
-
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1095,6 +1093,7 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
 
 
 
