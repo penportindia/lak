@@ -949,58 +949,68 @@ function generateBarcodeImage(enroll) {
 }
 
 
-// ✅ Save ID as JPG (Browser + Android WebView Support)
 function saveIDAsImage() {
-  const previewEl = safeGet("idCardBox");
-  if (!previewEl) return showModal("Error", "❌ Preview not found!", true);
+    const previewEl = document.getElementById("idCardBox");
+    if (!previewEl) return showModal("Error", "❌ Preview not found!", true);
 
-  const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
-  const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
-  const fileName = `${enrollmentNumber}-${studentName}.jpg`;
+    const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
+    const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
+    const fileName = `${enrollmentNumber}-${studentName}.jpg`;
 
-  // ✅ अगर Android WebView है → native screenshot call करो (पूरे WebView का)
-  if (window.Android && typeof window.Android.captureScreen === "function") {
-    window.Android.captureScreen(fileName);
-    showModal("Success", "✅ Full screenshot saved!");
-    return;
-  }
-
-  // ✅ Browser fallback → सिर्फ div का image बनाओ
-  const doCapture = () => {
-    if (typeof html2canvas === "undefined") {
-      const script = document.createElement("script");
-      script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-      script.onload = () => capture();
-      script.onerror = () => showModal("Error", "Failed to load html2canvas library.", true);
-      document.body.appendChild(script);
-    } else {
-      capture();
+    // ✅ Android WebView native capture (full element)
+    if (window.Android && typeof window.Android.captureScreen === "function") {
+        const rect = previewEl.getBoundingClientRect();
+        const scrollX = window.scrollX;
+        const scrollY = window.scrollY;
+        // Pass element dimensions and position to Android
+        window.Android.captureScreen(
+            fileName,
+            rect.width,
+            rect.height,
+            scrollX + rect.left,
+            scrollY + rect.top
+        );
+        showModal("Success", "✅ Downloded!");
+        return;
     }
-  };
 
-  const capture = () => {
-    html2canvas(previewEl, {
-      scale: 3,
-      useCORS: true,
-      scrollY: -window.scrollY
-    }).then(canvas => {
-      const imageData = canvas.toDataURL("image/jpeg", 1.0);
+    // ✅ Browser fallback
+    const doCapture = () => {
+        if (typeof html2canvas === "undefined") {
+            const script = document.createElement("script");
+            script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
+            script.onload = () => captureCanvas();
+            script.onerror = () => showModal("Error", "❌ Failed to load html2canvas library.", true);
+            document.body.appendChild(script);
+        } else {
+            captureCanvas();
+        }
+    };
 
-      // ✅ Browser → download file
-      const a = document.createElement("a");
-      a.href = imageData;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      showModal("Success", "✅ Image downloaded!");
-    }).catch(err => {
-      showModal("Error", "❌ Failed to save image: " + (err?.message || err), true);
-    });
-  };
+    const captureCanvas = () => {
+        html2canvas(previewEl, {
+            scale: 3,
+            useCORS: true,
+            scrollY: -window.scrollY
+        }).then(canvas => {
+            const imageData = canvas.toDataURL("image/jpeg", 1.0);
 
-  doCapture();
+            const a = document.createElement("a");
+            a.href = imageData;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            showModal("Success", "✅ Image downloaded!");
+        }).catch(err => {
+            showModal("Error", "❌ Failed to save image: " + (err?.message || err), true);
+        });
+    };
+
+    doCapture();
 }
+
 
 
 
@@ -1074,5 +1084,6 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
 
 
