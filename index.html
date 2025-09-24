@@ -1,181 +1,321 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Login | Lakshimi ID Card</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login | Lakshmi ID Maker</title>
 
-  <!-- Fonts and Icons -->
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js" defer></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
-  <style>
-    * {
-      margin: 0; padding: 0; box-sizing: border-box;
-      font-family: 'Poppins', sans-serif;
-    }
+    <style>
+        :root {
+            /* Updated Color Palette */
+            --primary-color: #0077b6; /* A slightly softer blue */
+            --secondary-color: #0096c7;
+            --light-bg: #f0f2f5; /* Off-white for a softer background */
+            --card-bg: #ffffff;
+            --input-bg: #e9ecef;
+            --text-color: #212529;
+            --placeholder-color: #6c757d;
+            --border-color: #dee2e6;
+        }
 
-    body, html {
-      height: 100%;
-      background: url('https://i.ibb.co/wZ1F6MdS/flat-lay-workstation-with-copy-space-laptop.jpg') no-repeat center center/cover;
-    }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', sans-serif;
+        }
 
-    .overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.6);
-      z-index: 0;
-    }
+        body {
+            height: 100vh;
+            /* Background Image with a subtle overlay */
+            background-image: url('https://i.ibb.co/wZ1F6MdS/flat-lay-workstation-with-copy-space-laptop.jpg'); /* Replace with your image link */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            position: relative;
+            color: var(--text-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            padding: 20px;
+        }
 
-    .container {
-      position: relative;
-      z-index: 1;
-      height: 100%;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
+        /* Overlay to make content more readable */
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(255, 255, 255, 0.6); /* Adjust opacity for desired effect */
+            z-index: 0;
+        }
 
-    .login-box {
-      background: rgba(255, 255, 255, 0.1);
-      backdrop-filter: blur(10px);
-      border-radius: 15px;
-      padding: 30px;
-      width: 90%;
-      max-width: 400px;
-      color: white;
-      box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);
-    }
+        /* Splash Screen - Keep it white for consistency */
+        .splash-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--card-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.8s ease-in-out, visibility 0.8s ease-in-out;
+        }
 
-    .login-box h2 {
-      text-align: center;
-      margin-bottom: 20px;
-      color: #00f7ff;
-    }
+        .splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+        }
 
-    .input-group {
-      margin-bottom: 15px;
-    }
+        .splash-content img {
+            max-width: 350px;
+            animation: pulse 2s infinite ease-in-out;
+        }
 
-    .input-group label {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-    }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.08); opacity: 0.95; }
+            100% { transform: scale(1); opacity: 1; }
+        }
 
-    .input-group input {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: none;
-      background: rgba(255, 255, 255, 0.15);
-      color: white;
-    }
+        /* Login Container */
+        .login-container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 450px;
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            border: 1px solid var(--border-color);
+            animation: fadeIn 1s ease-out forwards;
+            opacity: 0;
+        }
+        
+        @keyframes fadeIn {
+            to { opacity: 1; }
+        }
 
-    .input-group input::placeholder {
-      color: #ccc;
-    }
+        .login-logo {
+            text-align: center;
+            margin-bottom: 20px;
+        }
 
-    .login-btn {
-      width: 100%;
-      padding: 12px;
-      background: #00f7ff;
-      color: black;
-      font-weight: bold;
-      border: none;
-      border-radius: 10px;
-      cursor: pointer;
-      transition: background 0.3s ease;
-    }
+        .login-logo img {
+            max-width: 150px;
+        }
 
-    .login-btn:hover {
-      background: #00c2d6;
-    }
+        .login-logo h1 {
+            font-size: 1.8rem;
+            margin-top: 10px;
+            color: var(--primary-color);
+            font-weight: 700;
+        }
 
-    .error {
-      margin-top: 10px;
-      text-align: center;
-      color: #ff7070;
-    }
+        .input-group {
+            margin-bottom: 20px;
+            position: relative;
+        }
 
-    .footer {
-      margin-top: 20px;
-      font-size: 13px;
-      text-align: center;
-      color: #ccc;
-    }
+        .input-group input {
+            width: 100%;
+            padding: 12px 15px;
+            padding-left: 45px;
+            border-radius: 10px;
+            border: 1px solid var(--border-color);
+            background: var(--input-bg);
+            color: var(--text-color);
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
 
-    .footer a {
-      color: #00f7ff;
-      text-decoration: none;
-    }
+        .input-group input::placeholder {
+            color: var(--placeholder-color);
+        }
 
-    .footer a:hover {
-      text-decoration: underline;
-    }
-  </style>
+        .input-group input:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 10px rgba(0, 119, 182, 0.2);
+            outline: none;
+            background: #fff;
+        }
+
+        .input-group .fas {
+            position: absolute;
+            left: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--placeholder-color);
+            font-size: 1.1rem;
+        }
+
+        .input-group .fas.fa-eye, .input-group .fas.fa-eye-slash {
+            left: auto;
+            right: 15px;
+            cursor: pointer;
+            color: var(--primary-color);
+            transition: color 0.3s ease;
+        }
+
+        .login-btn {
+            width: 100%;
+            padding: 14px;
+            background: var(--primary-color);
+            color: #fff;
+            font-weight: 600;
+            font-size: 1.1rem;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 20px rgba(0, 119, 182, 0.4);
+        }
+
+        .login-btn:hover {
+            background: var(--secondary-color);
+            box-shadow: 0 5px 25px rgba(0, 150, 199, 0.6);
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            margin-top: 20px;
+            text-align: center;
+            color: #dc3545;
+            background: rgba(220, 53, 69, 0.1);
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #dc3545;
+            display: none;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 13px;
+            text-align: center;
+            color: var(--placeholder-color);
+        }
+        
+        .footer a {
+            color: var(--primary-color);
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+
+        .footer a:hover {
+            text-decoration: underline;
+            color: var(--secondary-color);
+        }
+
+        /* Mobile adjustments */
+        @media (max-width: 500px) {
+            .login-container {
+                padding: 30px 20px;
+            }
+            .login-logo img {
+                max-width: 120px;
+            }
+        }
+    </style>
 </head>
 <body>
 
-  <div class="overlay"></div>
-
-  <div class="container">
-    <div class="login-box">
-      <h2><i class="fas fa-id-card-alt"></i> Lakshimi</h2>
-      <form id="loginForm">
-        <div class="input-group">
-          <label for="email"><i class="fas fa-user"></i> Email</label>
-          <input type="email" id="email" placeholder="Enter your email" required />
+    <div class="splash-screen" id="splashScreen">
+        <div class="splash-content">
+            <img src="https://i.ibb.co/r2zt8CRQ/Penport-logo-03.png" alt="Penport India Logo" class="main-logo-splash">
         </div>
-        <div class="input-group">
-          <label for="password"><i class="fas fa-lock"></i> Password</label>
-          <input type="password" id="password" placeholder="Enter your password" required />
-        </div>
-        <button type="submit" class="login-btn">Log In</button>
-        <div id="errorMsg" class="error"></div>
-      </form>
-      <div class="footer">
-        Designed by <a href="https://penportindia.github.io/penport/" target="_blank">Penport India</a>
-      </div>
     </div>
-  </div>
 
-  <!-- Firebase Scripts -->
-  <script type="module">
-    // ✅ Firebase v9 Modular Import (latest working CDN)
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+    <div class="login-container" id="loginContainer">
+        <div class="login-logo">
+            <img src="https://i.ibb.co/spxrb3cK/Logo-Lakshmi.png" alt="Lakshmi ID Maker Logo">
+            <h1>Lakshmi ID Maker</h1>
+        </div>
+        
+        <form id="loginForm">
+            <div class="input-group">
+                <i class="fas fa-envelope"></i>
+                <input type="email" id="email" placeholder="Email" required />
+            </div>
+            <div class="input-group">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Password" required />
+                <i class="fas fa-eye" id="togglePassword"></i>
+            </div>
+            <button type="submit" class="login-btn">LOG IN</button>
+            <div id="errorMsg" class="error-message"></div>
+        </form>
+        <div class="footer">
+            © 2025 Developed by <a href="https://penportindia.github.io/penport/" target="_blank">Penport India</a>
+        </div>
+    </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
-      authDomain: "schools-cdce8.firebaseapp.com",
-      projectId: "schools-cdce8",
-      storageBucket: "schools-cdce8.appspot.com",
-      messagingSenderId: "772712220138",
-      appId: "1:772712220138:web:381c173dccf1a6513fde93"
-    };
+    <script>
+        window.addEventListener('load', () => {
+            const splashScreen = document.getElementById('splashScreen');
+            const loginContainer = document.getElementById('loginContainer');
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-
-    const form = document.getElementById("loginForm");
-    const errorDiv = document.getElementById("errorMsg");
-
-    form.addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-
-      signInWithEmailAndPassword(auth, email, password)
-        .then((userCredential) => {
-          // ✅ Login Success
-          window.location.href = "home.html";
-        })
-        .catch((error) => {
-          errorDiv.textContent = "❌ " + error.message;
+            setTimeout(() => {
+                splashScreen.classList.add('fade-out');
+                loginContainer.style.opacity = '1';
+            }, 1500);
         });
-    });
-  </script>
+
+        const togglePassword = document.getElementById('togglePassword');
+        const passwordInput = document.getElementById('password');
+
+        togglePassword.addEventListener('click', function (e) {
+            const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            passwordInput.setAttribute('type', type);
+            
+            this.classList.toggle('fa-eye');
+            this.classList.toggle('fa-eye-slash');
+        });
+    </script>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-app.js";
+        import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
+            authDomain: "schools-cdce8.firebaseapp.com",
+            projectId: "schools-cdce8",
+            storageBucket: "schools-cdce8.appspot.com",
+            messagingSenderId: "772712220138",
+            appId: "1:772712220138:web:381c173dccf1a6513fde93"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+
+        const form = document.getElementById("loginForm");
+        const errorDiv = document.getElementById("errorMsg");
+
+        form.addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            const email = document.getElementById("email").value;
+            const password = document.getElementById("password").value;
+
+            signInWithEmailAndPassword(auth, email, password)
+                .then((userCredential) => {
+                    window.location.href = "home.html";
+                })
+                .catch((error) => {
+                    errorDiv.textContent = "❌ " + error.message;
+                    errorDiv.style.display = "block";
+                });
+        });
+    </script>
 </body>
 </html>
