@@ -10,10 +10,9 @@
 
     <style>
         :root {
-            /* Updated Color Palette */
-            --primary-color: #0077b6; /* A slightly softer blue */
+            --primary-color: #0077b6;
             --secondary-color: #0096c7;
-            --light-bg: #f0f2f5; /* Off-white for a softer background */
+            --light-bg: #f0f2f5;
             --card-bg: #ffffff;
             --input-bg: #e9ecef;
             --text-color: #212529;
@@ -30,8 +29,7 @@
 
         body {
             height: 100vh;
-            /* Background Image with a subtle overlay */
-            background-image: url('https://i.ibb.co/wZ1F6MdS/flat-lay-workstation-with-copy-space-laptop.jpg'); /* Replace with your image link */
+            background-image: url('https://i.ibb.co/wZ1F6MdS/flat-lay-workstation-with-copy-space-laptop.jpg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -44,19 +42,6 @@
             padding: 20px;
         }
 
-        /* Overlay to make content more readable */
-        body::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(255, 255, 255, 0.6); /* Adjust opacity for desired effect */
-            z-index: 0;
-        }
-
-        /* Splash Screen - Keep it white for consistency */
         .splash-screen {
             position: fixed;
             top: 0;
@@ -87,7 +72,6 @@
             100% { transform: scale(1); opacity: 1; }
         }
 
-        /* Login Container */
         .login-container {
             position: relative;
             z-index: 1;
@@ -216,7 +200,6 @@
             color: var(--secondary-color);
         }
 
-        /* Mobile adjustments */
         @media (max-width: 500px) {
             .login-container {
                 padding: 30px 20px;
@@ -244,11 +227,11 @@
         <form id="loginForm">
             <div class="input-group">
                 <i class="fas fa-envelope"></i>
-                <input type="email" id="email" placeholder="Email" required />
+                <input type="email" id="email" placeholder="Email" required autocomplete="username" />
             </div>
             <div class="input-group">
                 <i class="fas fa-lock"></i>
-                <input type="password" id="password" placeholder="Password" required />
+                <input type="password" id="password" placeholder="Password" required autocomplete="current-password" />
                 <i class="fas fa-eye" id="togglePassword"></i>
             </div>
             <button type="submit" class="login-btn">LOG IN</button>
@@ -300,20 +283,20 @@
 
         const form = document.getElementById("loginForm");
         const errorDiv = document.getElementById("errorMsg");
+        const passwordInput = document.getElementById("password");
+        const emailInput = document.getElementById("email");
 
         form.addEventListener("submit", (e) => {
             e.preventDefault();
 
-            const email = document.getElementById("email").value;
-            const password = document.getElementById("password").value;
-
-            signInWithEmailAndPassword(auth, email, password)
-                .then((userCredential) => {
+            signInWithEmailAndPassword(auth, emailInput.value, passwordInput.value)
+                .then(() => {
                     window.location.href = "home.html";
                 })
-                .catch((error) => {
-                    errorDiv.textContent = "❌ " + error.message;
+                .catch(() => {
+                    errorDiv.textContent = "❌ Invalid Email or Password.";
                     errorDiv.style.display = "block";
+                    passwordInput.value = "";
                 });
         });
     </script>
