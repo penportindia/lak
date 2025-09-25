@@ -23,6 +23,10 @@
 </head>
 
 <body>
+    <div id="splash-screen">
+        <img src="https://i.ibb.co/r2zt8CRQ/Penport-logo-03.png" alt="Lakshmi ID Maker Logo" class="splash-logo">
+    </div>
+
     <div class="app-container">
         <header>
             <img src="https://i.ibb.co/SXrBKWmC/Lakshmi.png" alt="Company Logo" class="logo" />
@@ -138,12 +142,24 @@
 
     <script type="module" src="main.js"></script>
     <script>
+        // Splash Screen Logic
+        document.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splashScreen = document.getElementById('splash-screen');
+                splashScreen.classList.add('fade-out');
+
+                setTimeout(() => {
+                    splashScreen.remove();
+                }, 500);
+            }, 3000);
+        });
+
         // PWA Service Worker Registration
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
                 navigator.serviceWorker.register('service-worker.js')
-                    .then(reg => console.log('✅ Service Worker registered:', reg.scope))
-                    .catch(err => console.error('❌ Service Worker registration failed:', err));
+                    .then(reg => console.log('Service Worker registered:', reg.scope))
+                    .catch(err => console.error('Service Worker registration failed:', err));
             });
         }
     </script>
