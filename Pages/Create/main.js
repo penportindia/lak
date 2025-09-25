@@ -908,54 +908,84 @@ function generateBarcodeImage(enroll) {
 // ================= Save ID Card as Image =================
 function saveIDAsImage() {
   const previewEl = document.getElementById("idCardBox");
-  if (!previewEl) return showModal("Error", "❌ Preview not found!", true);
+  if (!previewEl) return showModal("Error", "Preview not found!", true);
 
   const enrollmentNumber = entryData?.[`${lastType}_enroll`] || "id-card";
-  const studentName = (entryData?.[`${lastType}_name`] || "Unknown").replace(/\s+/g, '');
-  const timestamp = Date.now();
-  const fileName = `${enrollmentNumber}-${studentName}-${timestamp}.jpg`;
+  const fileName = `${enrollmentNumber}.pdf`;
 
-  const captureAndSend = () => {
+  const generatePDF = () => {
     html2canvas(previewEl, {
       scale: 3,
       useCORS: true,
       allowTaint: false,
-      logging: false,
-      backgroundColor: '#ffffff',
+      backgroundColor: '#fefefe',
       scrollY: -window.scrollY,
       scrollX: -window.scrollX
     }).then(canvas => {
-      const imageData = canvas.toDataURL("image/jpeg", 1.0);
+      const imgData = canvas.toDataURL("image/jpeg", 1.0);
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF("p", "mm", "a4");
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      const canvasWidth = canvas.width;
+      const canvasHeight = canvas.height;
+      const scaleX = (pageWidth - margin * 2) / canvasWidth;
+      const scaleY = (pageHeight - margin * 2) / canvasHeight;
+      const scale = Math.min(scaleX, scaleY);
+      const imgWidth = canvasWidth * scale;
+      const imgHeight = canvasHeight * scale;
+      const x = (pageWidth - imgWidth) / 2;
+      const y = (pageHeight - imgHeight) / 2;
+      pdf.setDrawColor(200);
+      pdf.setLineWidth(0.5);
+      pdf.rect(x - 2, y - 2, imgWidth + 4, imgHeight + 4, 'S');
+      pdf.addImage(imgData, "JPEG", x, y, imgWidth, imgHeight);
+      pdf.setFont("helvetica", "normal");
+      pdf.setFontSize(10);
+      pdf.setTextColor(120);
+      pdf.text("Powered by Penport India", pageWidth / 2, pageHeight - 10, { align: "center" });
 
-      if (window.Android && typeof window.Android.saveImageFromJS === "function") {
-        window.Android.saveImageFromJS(imageData, fileName);
-        showModal("Success", "✅ Download initiated via WebView!");
+      if (window.Android && typeof window.Android.savePDFFromJS === "function") {
+        const pdfBlob = pdf.output("blob");
+        const reader = new FileReader();
+        reader.onload = function() {
+          const base64Data = reader.result.split(',')[1];
+          window.Android.savePDFFromJS(base64Data, fileName);
+          showModal("Success", "PDF download initiated via WebView!");
+        };
+        reader.readAsDataURL(pdfBlob);
       } else {
-        const a = document.createElement("a");
-        a.href = imageData;
-        a.download = fileName;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        showModal("Success", "✅ Image downloaded successfully!");
+        pdf.save(fileName);
+        showModal("Success", "PDF downloaded successfully!");
       }
     }).catch(err => {
-      console.error(err);
-      showModal("Error", "❌ Failed to capture preview: " + (err?.message || err), true);
+      showModal("Error", "Failed to generate PDF: " + (err?.message || err), true);
     });
   };
 
-  if (typeof html2canvas === "undefined") {
+  const loadScript = (src, onLoad) => {
     const script = document.createElement("script");
-    script.src = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js";
-    script.onload = captureAndSend;
-    script.onerror = () => showModal("Error", "❌ Failed to load html2canvas.", true);
+    script.src = src;
+    script.onload = onLoad;
+    script.onerror = () => showModal("Error", "Failed to load script: " + src, true);
     document.body.appendChild(script);
+  };
+
+  if (typeof html2canvas === "undefined") {
+    loadScript("https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js", () => {
+      if (typeof window.jspdf === "undefined") {
+        loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", generatePDF);
+      } else {
+        generatePDF();
+      }
+    });
+  } else if (typeof window.jspdf === "undefined") {
+    loadScript("https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js", generatePDF);
   } else {
-    captureAndSend();
+    generatePDF();
   }
 }
-
 
 // ✅ Form Navigation / UI Handling
 function editEntry() {
@@ -1027,6 +1057,7 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
 
 
 
