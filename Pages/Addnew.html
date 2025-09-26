@@ -1,0 +1,783 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Create New</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+/* Clean White Theme Variables */
+:root {
+    --primary-color: #007bff; /* A vibrant, modern Blue */
+    --primary-light: #52a7ff;
+    --primary-dark: #0056b3;
+    --background-color: #F0F2F5; /* Subtle light gray background */
+    --card-background: #FFFFFF;
+    --text-color: #212529; /* Dark text */
+    --secondary-text: #6c757d;
+    --border-color: #DEE2E6;
+    --shadow-color: rgba(0, 0, 0, 0.1);
+    --form-bg: #F8F9FA;
+    --success-color: #28a745;
+    --error-color: #DC3545;
+}
+
+/* --- THE FIX: Full-Proof Centering --- */
+html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%; 
+    width: 100%;
+}
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    transition: background-color 0.3s ease;
+    overflow-x: hidden; /* Prevent horizontal scroll */
+}
+.stage1-container {
+    width: 100%;
+    height: 100vh; /* Takes full viewport height for perfect centering */
+    display: flex; /* Activate Flexbox */
+    justify-content: center; /* Center Horizontally */
+    align-items: center; /* Center Vertically */
+}
+.app-container {
+    width: 100%;
+    max-width: 1200px;
+    padding: 0 1rem; 
+    box-sizing: border-box; 
+}
+/* When in Stage 2, reset centering and use normal flow */
+body.stage2-active .stage1-container {
+    height: auto;
+    align-items: flex-start;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    min-height: 100vh;
+}
+/* Stage 2 Centering */
+body.stage2-active .app-container {
+    padding: 0 2rem; /* Add padding back for the wide Stage 2 card */
+}
+
+/* --- Card Styling --- */
+.card {
+    background: var(--card-background);
+    border-radius: 12px;
+    box-shadow: 0 10px 25px var(--shadow-color);
+    border: 1px solid var(--border-color);
+    padding: 2.5rem;
+    transition: all 0.3s ease;
+    width: 100%; /* Important for max-width on stage 1 card */
+    box-sizing: border-box;
+}
+#selectionCard {
+    max-width: 650px; 
+    margin: 0 auto; /* Ensures centering within the restricted width */
+}
+#dataCard {
+    display: none;
+    padding: 0;
+    margin: 0 auto; /* Use margin auto for full width card centering */
+    overflow: hidden;
+}
+
+/* --- Header & Title --- */
+h3.card-title {
+    font-weight: 700;
+    font-size: 1.6rem;
+    margin: 0 0 0.5rem;
+    color: var(--primary-dark);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.card-title i {
+    font-size: 1.4em;
+    color: var(--primary-color);
+}
+.subtitle {
+    font-size: 0.95rem;
+    color: var(--secondary-text);
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 1.5rem;
+}
+
+/* --- Stage 1: Selection Group --- */
+.select-group {
+    display: flex;
+    gap: 1.5rem;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+.select-group > div {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 250px;
+    flex-grow: 1;
+}
+.select-group label {
+    font-weight: 500;
+    color: var(--secondary-text);
+    font-size: 0.85rem;
+}
+
+/* --- Stage 2: Data Entry Layout (Clean Grid) --- */
+.card-content-grid {
+    display: grid;
+    grid-template-columns: 3fr 1fr;
+    align-items: stretch;
+}
+.form-section {
+    padding: 2.5rem;
+}
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+}
+.form-group {
+    display: flex;
+    flex-direction: column;
+}
+.form-group label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+    color: var(--secondary-text);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+input, select, textarea {
+    padding: 12px 14px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: var(--form-bg);
+    color: var(--text-color);
+    font-family: inherit;
+    font-size: 0.95rem;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease;
+}
+input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    background-color: var(--card-background);
+}
+
+/* Force uppercase on all text inputs for visual consistency */
+input[type="text"], textarea {
+    text-transform: uppercase; 
+}
+
+
+/* --- Photo Upload Section (Attractive Sidebar) --- */
+.photo-upload-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    background-color: var(--form-bg); 
+    padding: 2.5rem 1.5rem;
+    border-left: 1px solid var(--border-color);
+    min-height: 100%;
+}
+.photo-upload-section h3 {
+    font-size: 1.2rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+    margin-bottom: 1.5rem;
+    width: 100%;
+    text-align: center;
+}
+#photo-preview {
+    width: 200px;
+    height: 250px;
+    border: 3px solid var(--primary-light);
+    border-radius: 8px;
+    background-color: var(--card-background);
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s ease, transform 0.2s ease;
+}
+#photo-preview:hover {
+    border-color: var(--primary-color);
+    transform: translateY(-2px);
+}
+#photo-preview img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+.placeholder-text {
+    color: var(--primary-light);
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 0.5rem;
+}
+
+/* --- Buttons & Progress --- */
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2.5rem;
+    justify-content: flex-end;
+}
+button {
+    padding: 12px 24px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    color: #fff;
+    background-color: var(--primary-color);
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: 0 4px 10px rgba(0, 123, 255, 0.3);
+}
+button:hover:not(:disabled) {
+    background-color: var(--primary-dark);
+    box-shadow: 0 6px 15px rgba(0, 123, 255, 0.4);
+    transform: translateY(-1px);
+}
+button:disabled {
+    background-color: #E9ECEF;
+    color: #ADB5BD;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+.btn-secondary {
+    background-color: var(--secondary-text);
+    box-shadow: none;
+}
+.btn-secondary:hover:not(:disabled) {
+    background-color: #4B5563;
+    box-shadow: 0 4px 10px rgba(108, 117, 125, 0.3);
+}
+.progress-bar-container {
+    height: 8px;
+    background-color: var(--border-color);
+    border-radius: 4px;
+    margin-top: 1.5rem;
+    overflow: hidden;
+}
+#uploadProgressBar {
+    background-color: var(--success-color);
+    width: 0%;
+    height: 100%;
+    transition: width 0.3s ease;
+}
+
+/* --- Responsive Adjustments --- */
+@media (max-width: 900px) {
+    .card-content-grid {
+        grid-template-columns: 1fr;
+    }
+    .photo-upload-section {
+        border-top: 1px solid var(--border-color);
+        border-left: none;
+    }
+    body.stage2-active .app-container {
+        padding: 0 1rem;
+    }
+}
+
+/* Select2 Styling Overrides */
+.select2-container--default .select2-selection--single {
+    border: 1px solid var(--border-color) !important;
+    height: 42px !important;
+    padding: 8px 14px !important;
+    border-radius: 8px !important;
+    background-color: var(--form-bg) !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__rendered {
+    line-height: 24px !important;
+    color: var(--text-color) !important;
+}
+.select2-container--default .select2-selection--single .select2-selection__arrow {
+    height: 40px !important;
+}
+</style>
+</head>
+<body>
+<div class="stage1-container" id="stage1Wrapper">
+    <div class="app-container">
+        
+        <div class="card" id="selectionCard">
+            <h3 class="card-title"><i class="fas fa-magic"></i>Create New</h3>
+            <p class="subtitle">Please select the institution and the type of record you wish to create.</p>
+            <div class="select-group">
+                <div>
+                    <label for="schoolSelect">School Name / Institution</label>
+                    <select id="schoolSelect" style="width: 100%;" required></select>
+                </div>
+                <div>
+                    <label for="entryType">Record Type</label>
+                    <select id="entryType" style="width: 100%;" required>
+                        <option value="">-- Select Type --</option>
+                        <option value="student">Student</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </div>
+                <button id="nextStepBtn" disabled style="min-width: 180px; height: 42px;">
+                    <i class="fas fa-arrow-circle-right"></i> PROCEED
+                </button>
+            </div>
+        </div>
+        
+        <div class="card" id="dataCard">
+            <div class="card-content-grid">
+                <div class="form-section">
+                    <h3 class="card-title"><i class="fas fa-clipboard-list"></i> FILL DETAILS</h3>
+                    <p class="subtitle">
+                        Creating ID for: <span id="currentSchoolName" style="color: var(--primary-dark); font-weight: 700;"></span> (<span id="currentEntryType" style="color: var(--primary-dark); font-weight: 700;"></span>)
+                    </p>
+                    
+                    <div class="form-grid" id="formFields">
+                        </div>
+                    
+                    <div class="action-buttons">
+                        <button id="backToSelectionBtn" class="btn-secondary">
+                            <i class="fas fa-undo-alt"></i> Change Institution
+                        </button>
+                        <button id="submitSingle">
+                            <i class="fas fa-cloud-upload-alt"></i> Save & Complete
+                        </button>
+                    </div>
+                    <div class="progress-bar-container">
+                        <div id="uploadProgressBar"></div>
+                    </div>
+                </div>
+                
+                <div class="photo-upload-section">
+                    <h3 class="card-title" style="color: var(--primary-color);"><i class="fas fa-camera"></i> Photo Upload</h3>
+                    <label for="photoFile" id="photo-preview" title="Click to upload photo">
+                        <span class="placeholder-text"><i class="fas fa-user-circle fa-4x"></i><br>UPLOAD IMAGE<br><small>(Optimized Max 30KB)</small></span>
+                    </label>
+                    <input type="file" id="photoFile" accept="image/*" style="display: none;">
+                    <small style="display: block; color: var(--secondary-text); text-align: center; font-size: 0.8rem;">Click the box to upload.</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js" type="module"></script>
+<script src="https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js" type="module"></script>
+<script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
+    import { getDatabase, ref as dbRef, get, child, set } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
+
+    // --- FIREBASE CONFIGURATION (Using your saved data) ---
+    const firebaseConfig = {
+        apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
+        authDomain: "schools-cdce8.firebaseapp.com",
+        databaseURL: "https://schools-cdce8-default-rtdb.firebaseio.com/",
+        projectId: "schools-cdce8",
+        storageBucket: "schools-cdce8.appspot.com",
+        messagingSenderId: "772712220138",
+        appId: "1:772712220138:web:381c173dccf1a6513fde93"
+    };
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+    const imgbbKey = "011e81139fd279b28a3b55c414b241b7"; 
+
+    let imageData = null;
+    let selectedSchool = null;
+    const el = id => document.getElementById(id);
+    const $ = jQuery;
+
+    // --- FIELD DEFINITIONS (Kept consistent) ---
+    const studentFields = [
+        ['enroll', 'Enrollment Number', 'text', true], ['adm', 'Admission Number', 'text'],
+        ['name', 'Student Name', 'text', true], ['class', 'Class', 'select', ['PG','NURSERY','LKG','UKG','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII']],
+        ['section', 'Section', 'select', ['A','B','C','D','E','F','G','H','I','J','K']], ['roll', 'Roll Number', 'text'],
+        ['dob', 'Date of Birth', 'date'], ['father', "Father's Name", 'text'],
+        ['mother', "Mother's Name", 'text'], ['contact', 'Contact Number', 'text'],
+        ['address', 'Address', 'textarea'], ['transport', 'Mode of Transport', 'select', ['SELF','TRANSPORT']],
+        ['house', 'House Name', 'text'], ['blood', 'Blood Group', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','NA']]
+    ];
+
+    const staffFields = [
+        ['enroll', 'Enrollment Number', 'text', true], ['empid', 'Employee ID', 'text'],
+        ['name', 'Name', 'text', true], ['designation', 'Designation', 'select', ['DIRECTOR','PRINCIPAL','VICE PRINCIPAL','COORDINATOR','ADMIN','ACCOUNTANT','LIBRARIAN','TEACHER','CLERK','COMPUTER OPERATOR','RECEPTIONIST','DRIVER','ATTENDANT','GUARD','HELPER','PEON','MED','OTHER']],
+        ['father', "Father / Spouse Name", 'text'], ['dob', 'Date of Birth', 'date'],
+        ['contact', 'Contact Number', 'text'], ['address', 'Address', 'textarea'],
+        ['blood', 'Blood Group', 'select', ['A+','A-','B+','B-','AB+','AB-','O+','O-','NA']]
+    ];
+
+    // --- UI STATE MANAGEMENT ---
+    function updateNextButtonState() {
+        const schoolSelected = $('#schoolSelect').val();
+        const typeSelected = $('#entryType').val();
+        el('nextStepBtn').disabled = !(schoolSelected && typeSelected);
+    }
+    
+    function showStage(stage) {
+        if (stage === 1) {
+            document.body.classList.remove('stage2-active');
+            el('selectionCard').style.display = 'block';
+            el('dataCard').style.display = 'none';
+        } else {
+            document.body.classList.add('stage2-active');
+            el('selectionCard').style.display = 'none';
+            el('dataCard').style.display = 'block';
+            
+            // Update titles
+            el('currentSchoolName').textContent = selectedSchool.data.name.toUpperCase();
+            el('currentEntryType').textContent = el('entryType').value.toUpperCase();
+            
+            // Scroll to the top of the wide card for better UX
+            el('dataCard').scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    }
+
+    // --- CORE FUNCTIONS ---
+    async function loadSchools() {
+        try {
+            const snap = await get(child(dbRef(database), 'schools'));
+            const select = el('schoolSelect');
+            select.innerHTML = '<option value="">-- Select School --</option>';
+            const schools = snap.exists() ? Object.entries(snap.val()) : [];
+            
+            schools.forEach(([key, val]) => {
+                const opt = document.createElement('option');
+                opt.value = key;
+                const schoolName = (val.name || val.schoolname || key).toString();
+                opt.textContent = schoolName;
+                opt.dataset.name = schoolName;
+                select.appendChild(opt);
+            });
+
+            // Initialize Select2
+            $('#schoolSelect').select2({
+                placeholder: "Search or select institution",
+                allowClear: false
+            });
+            $('#entryType').select2({
+                placeholder: "Select type",
+                minimumResultsForSearch: Infinity 
+            });
+            
+            // Attach change listeners
+            $('#schoolSelect').on('change', function() {
+                const key = $(this).val();
+                if (key) {
+                    const opt = this.options[this.selectedIndex];
+                    selectedSchool = { key, data: { name: opt.dataset.name } };
+                } else selectedSchool = null;
+                updateNextButtonState();
+            });
+            $('#entryType').on('change', updateNextButtonState);
+
+        } catch (e) {
+            console.error('loadSchools error:', e);
+            alert('Failed to load schools. Please check your Firebase configuration.');
+        }
+    }
+
+    async function generateUniqueEnrollmentForSchool(schoolId, type) {
+        if (!selectedSchool) return 'ERROR';
+
+        const monthNames = ["JAN","FEB","MAR","APR","MAY","JUN","JUL","AUG","SEP","OCT","NOV","DEC"];
+        const now = new Date();
+        const dd = String(now.getDate()).padStart(2,'0');
+        const mmm = monthNames[now.getMonth()];
+        const yyyy = now.getFullYear();
+        const maxTries = 20;
+        let tries = 0, enrollNo='';
+        
+        while(tries < maxTries){
+            tries++;
+            const serial = String(Math.floor(1000 + Math.random() * 9000));
+            enrollNo = `${schoolId}${dd}${mmm}${yyyy}${serial}`;
+            
+            try {
+                const schoolNode = selectedSchool.data.name.toUpperCase();
+                const path = `DATA-MASTER/${schoolNode}/${schoolId}/${type.toUpperCase()}/${enrollNo}`;
+                const existsSnap = await get(child(dbRef(database), path));
+                if(!existsSnap.exists()) return enrollNo;
+            } catch(e) {
+                console.error('Firebase read error:', e);
+                throw new Error('Failed to check for unique enrollment number.');
+            }
+            await new Promise(r => setTimeout(r, 20));
+        }
+        throw new Error('Failed to generate unique enrollment number.');
+    }
+
+    async function generateForm(type) {
+        const container = el('formFields');
+        container.innerHTML = '';
+        const fields = (type === 'student') ? studentFields : staffFields;
+        const schoolId = selectedSchool?.key || 'SCHOOLID';
+        
+        let enrollNo = 'GENERATING...';
+        try {
+            enrollNo = await generateUniqueEnrollmentForSchool(schoolId, type);
+        } catch(e){
+            console.error(e);
+            alert(e.message);
+            enrollNo = 'ERROR';
+        }
+
+        fields.forEach(field => {
+            const [id, label, control, opt] = field;
+            const fullId = `${type}_${id}`;
+            const div = document.createElement('div');
+            div.className = 'form-group';
+            
+            let inputElement;
+            if(control === 'select'){
+                inputElement = document.createElement('select');
+                inputElement.id = fullId;
+                const defaultOpt = document.createElement('option');
+                defaultOpt.value = '';
+                defaultOpt.disabled = true;
+                defaultOpt.selected = true;
+                defaultOpt.textContent = `Select ${label}`;
+                inputElement.appendChild(defaultOpt);
+                (opt || []).forEach(o => {
+                    const oEl = document.createElement('option');
+                    oEl.value = o;
+                    oEl.textContent = o;
+                    inputElement.appendChild(oEl);
+                });
+            } else if(control === 'textarea'){
+                inputElement = document.createElement('textarea');
+                inputElement.id = fullId;
+                inputElement.rows = '3';
+                // Convert textarea input to uppercase
+                inputElement.oninput = function() {
+                    this.value = this.value.toUpperCase();
+                };
+            } else {
+                inputElement = document.createElement('input');
+                inputElement.type = (id === 'dob') ? 'date' : 'text';
+                inputElement.id = fullId;
+                if(id === 'enroll'){
+                    inputElement.value = enrollNo;
+                    inputElement.readOnly = true;
+                    inputElement.style.backgroundColor = '#E5E7EB'; 
+                    inputElement.style.fontWeight = '600';
+                }
+                // Convert text input (excluding date) to uppercase
+                if (inputElement.type === 'text') {
+                    inputElement.oninput = function() {
+                        this.value = this.value.toUpperCase();
+                    };
+                }
+            }
+            const labelElement = document.createElement('label');
+            labelElement.htmlFor = fullId;
+            labelElement.textContent = label;
+            if(field[3] === true || id === 'name'){
+                labelElement.innerHTML += ` <span style="color:var(--error-color)">*</span>`;
+            }
+            div.appendChild(labelElement);
+            div.appendChild(inputElement);
+            container.appendChild(div);
+        });
+        
+        const firstInput = container.querySelector('input:not([readonly]), select, textarea');
+        if(firstInput) {
+            firstInput.focus();
+        }
+    }
+    
+    // --- PHOTO AND SUBMISSION LOGIC ---
+
+    async function compressAndPreviewImage(file){
+        try{
+            const options = { maxSizeMB: 0.03, maxWidthOrHeight: 480, useWebP: true };
+            const compressedFile = await imageCompression(file, options);
+            const reader = new FileReader();
+            reader.onload = e => {
+                imageData = e.target.result;
+                el('photo-preview').innerHTML = `<img src="${imageData}" alt="Preview" />`;
+            };
+            reader.readAsDataURL(compressedFile);
+        }catch(e){
+            console.error('Image compression error:', e);
+            alert('Failed to process image. Please try a different photo or check the file size.');
+        }
+    }
+
+    async function submitSingle(){
+        const submitBtn = el('submitSingle');
+        submitBtn.disabled = true;
+        el('uploadProgressBar').style.width = '0%';
+        
+        try{
+            if(!selectedSchool){ alert('School not selected. Please go back to Step 1.'); return; }
+            if(!imageData){ alert('Please upload a photo first.'); return; }
+
+            const type = el('entryType').value;
+            const fields = Array.from(document.querySelectorAll('#formFields input,#formFields select,#formFields textarea'));
+            const payload = {
+                schoolName: selectedSchool.data.name,
+                schoolId: selectedSchool.key,
+                photo: ""
+            };
+
+            let isValid = true;
+            let enroll;
+            
+            fields.forEach(f => {
+                const id = f.id.replace(`${type}_`, '');
+                const key = `${type}_${id}`;
+                const value = (f.value || '').trim();
+                
+                payload[key] = value;
+                
+                if (id === 'enroll') {
+                    enroll = value;
+                }
+                
+                if((id === 'name' || id === 'enroll') && !value) {
+                    isValid = false;
+                }
+            });
+
+            if(!isValid){
+                alert('Please fill in all required fields (marked with *).');
+                return;
+            }
+            
+            // FIX: Updated DOB Formatting
+            if(payload[`${type}_dob`]){
+                payload[`${type}_dob`] = formatDate(payload[`${type}_dob`], 'DD-MMM-YYYY');
+            }
+
+            // Upload Photo
+            const photoURL = await uploadImageToImgBB(imageData, enroll, pct => {
+                el('uploadProgressBar').style.width = `${pct}%`;
+            });
+            
+            payload.photo = photoURL;
+            el('uploadProgressBar').style.width = '100%';
+
+            // Save to Firebase 
+            const schoolNode = selectedSchool.data.name.toUpperCase();
+            const schoolId = selectedSchool.key;
+            const dbPath = `DATA-MASTER/${schoolNode}/${schoolId}/${type.toUpperCase()}/${enroll}`;
+            
+            await set(dbRef(database, dbPath), payload);
+            
+            alert('Entry saved successfully! The form is now ready for the next entry.');
+            
+            // Reset for next entry
+            el('photoFile').value = '';
+            imageData = null;
+            el('photo-preview').innerHTML = `<span class="placeholder-text"><i class="fas fa-user-circle fa-4x"></i><br>UPLOAD IMAGE<br><small>(Optimized Max 30KB)</small></span>`;
+            
+            // FIX: Regenerate form with new Enrollment Number
+            await generateForm(type);
+            el('uploadProgressBar').style.width = '0%';
+
+        }catch(e){
+            console.error('Submission failed:', e);
+            alert('Submission failed: ' + (e.message || 'An unknown error occurred.'));
+        } finally {
+            // FIX: Re-enable the submit button regardless of success/failure
+            submitBtn.disabled = false; 
+        }
+    }
+
+    async function uploadImageToImgBB(base64Image, name, onProgress){
+        return new Promise((resolve, reject) => {
+            if(!base64Image) { return reject('No image to upload.'); }
+            const base64 = base64Image.replace(/^data:image\/[a-z]+;base64,/, '');
+            const fd = new FormData();
+            fd.append('key', imgbbKey);
+            fd.append('image', base64);
+            fd.append('name', name);
+            
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', 'https://api.imgbb.com/1/upload');
+            xhr.upload.onprogress = e => {
+                if(e.lengthComputable && typeof onProgress === 'function') {
+                    onProgress(Math.round((e.loaded / e.total) * 100));
+                }
+            };
+            xhr.onload = () => {
+                try {
+                    if(xhr.status === 200) {
+                        const res = JSON.parse(xhr.responseText);
+                        if(res.success && res.data && res.data.display_url) {
+                            return resolve(res.data.display_url);
+                        }
+                    }
+                    reject(new Error(`ImgBB upload failed with status ${xhr.status}. Response: ${xhr.responseText}`));
+                } catch(err) {
+                    reject(new Error('Failed to parse ImgBB response.'));
+                }
+            };
+            xhr.onerror = () => reject(new Error('Network error during image upload.'));
+            xhr.send(fd);
+        });
+    }
+
+    // UPDATED: Function to format date to DD-MMM-YYYY
+    function formatDate(dateString, format){
+        try{
+            const dateObj = new Date(dateString.replace(/-/g, '/')); 
+            const dd = String(dateObj.getDate()).padStart(2,'0');
+            const mm = dateObj.toLocaleString('en-US', { month: 'short' }).toUpperCase();
+            const yyyy = dateObj.getFullYear();
+            
+            if (format === 'DD-MMM-YYYY') {
+                return `${dd}-${mm}-${yyyy}`; 
+            }
+            return dateString;
+        }catch(e){
+            console.error('Date formatting failed:', e);
+            return dateString;
+        }
+    }
+
+    // --- EVENT LISTENERS ---
+    el('nextStepBtn').addEventListener('click', async () => {
+        if (!selectedSchool || !el('entryType').value) return;
+        await generateForm(el('entryType').value);
+        showStage(2);
+    });
+    
+    el('backToSelectionBtn').addEventListener('click', () => {
+        showStage(1);
+    });
+
+    el('photoFile').addEventListener('change', function(e){
+        const file = e.target.files[0];
+        if(file) {
+            compressAndPreviewImage(file);
+        }
+    });
+    el('submitSingle').addEventListener('click', submitSingle);
+
+    // Initial load
+    showStage(1);
+    loadSchools();
+</script>
+</body>
+</html>
