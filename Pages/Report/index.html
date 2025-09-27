@@ -338,9 +338,9 @@
             
             <div class="controls ms-auto" style="flex-wrap: wrap; justify-content: flex-end;">
                 <input id="searchBox" 
-                       type="text" 
-                       placeholder="Search..." 
-                       class="form-control" />
+                        type="text" 
+                        placeholder="Search..." 
+                        class="form-control" />
                 
                 <div class="btn-group" role="group" aria-label="Sorting controls">
                     <button id="sortLatestBtn" class="btn btn-icon active" title="Sort by Latest"><i class="bi bi-clock-history"></i></button>
@@ -426,6 +426,7 @@
         import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-database.js";
         import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/9.23.0/firebase-auth.js";
 
+        // IMPORTANT: Use your actual Firebase configuration here
         const firebaseConfig = {
             apiKey: "AIzaSyAR3KIgxzn12zoWwF3rMs7b0FfP-qe3mO4",
             authDomain: "schools-cdce8.firebaseapp.com",
@@ -462,48 +463,8 @@
         let currentSort = 'latest';
         let currentModalSchoolId = null;
 
-        // Reset `auditStatus` for all schools on initial load
-        function resetAuditStatus() {
-            onValue(ref(db, 'workdone'), (snapshot) => {
-                if (snapshot.exists()) {
-                    const updates = {};
-                    snapshot.forEach(schoolSnapshot => {
-                        const sid = schoolSnapshot.key;
-                        if (schoolSnapshot.val().auditStatus === true) {
-                            updates[`${sid}/auditStatus`] = null;
-                        }
-                        
-                        // Reset all date statuses as well
-                        const schoolData = schoolSnapshot.val();
-                        if (schoolData.STAFF) {
-                            Object.keys(schoolData.STAFF).forEach(key => {
-                                if (schoolData.STAFF[key].auditStatus === true) {
-                                    updates[`${sid}/STAFF/${key}/auditStatus`] = null;
-                                }
-                            });
-                        }
-                        if (schoolData.STUDENT) {
-                            Object.keys(schoolData.STUDENT).forEach(key => {
-                                if (schoolData.STUDENT[key].auditStatus === true) {
-                                    updates[`${sid}/STUDENT/${key}/auditStatus`] = null;
-                                }
-                            });
-                        }
-                    });
-                    if (Object.keys(updates).length > 0) {
-                        update(ref(db), updates).then(() => {
-                            console.log('All audit statuses have been reset.');
-                        }).catch(error => {
-                            console.error('Error resetting audit statuses:', error);
-                        });
-                    }
-                }
-            }, { onlyOnce: true });
-        }
-        
-        resetAuditStatus();
+        // --- IMPROVED HELPER FUNCTIONS ---
 
-        // Helper Functions
         function formatDate(input) {
             let d;
             if (!input) return '';
@@ -529,25 +490,50 @@
         
         function escapeHtml(s) { return String(s).replaceAll('&', '&amp;').replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;').replaceAll("'", '&#039;'); }
         
-        function getLastUpdate(school) {
+        // --- NEW/IMPROVED DATA LOGIC ---
+
+        function getSchoolStatus(school) {
             let latest = null;
-            const records = [...Object.values(school.STAFF || {}), ...Object.values(school.STUDENT || {})];
+            let isCompletelyAudited = true; // School is considered audited until an un-audited record is found.
+            
+            // Combine all records (staff and students)
+            const staffRecords = Object.values(school.STAFF || {});
+            const studentRecords = Object.values(school.STUDENT || {});
+            const records = [...staffRecords, ...studentRecords];
+
             records.forEach(r => {
                 if (r && r.deletedAt) {
+                    // Find Latest Update Time
                     const t = new Date(r.deletedAt);
                     if (!isNaN(t.getTime()) && (!latest || t > latest)) {
                         latest = t;
                     }
+                    
+                    // Check Audit Status
+                    if (r.auditStatus !== true) {
+                        isCompletelyAudited = false;
+                    }
                 }
             });
-            return latest ? latest.toISOString() : null;
+            
+            return { 
+                latest: latest ? latest.toISOString() : null, 
+                isCompletelyAudited: isCompletelyAudited 
+            };
         }
         
-        // Data & Rendering
+        // --- REALTIME DATA LISTENER ---
+
         onValue(ref(db, 'workdone'), (snapshot) => {
             workdoneData = snapshot.exists() ? snapshot.val() : {};
+            // If the school modal is open, re-render its content to show live updates
+            if (currentModalSchoolId) {
+                openSchoolModal(currentModalSchoolId, false); // Do not open a new modal, just update the content
+            }
             renderDashboard();
         });
+
+        // --- RENDERING FUNCTIONS ---
 
         function renderDashboard() {
             const sids = Object.keys(workdoneData);
@@ -558,12 +544,16 @@
 
             const filteredSids = sids.filter(sid => !searchQuery || sid.toLowerCase().includes(searchQuery.toLowerCase()));
 
+            // Sorting
             filteredSids.sort((a, b) => {
                 const schoolA = workdoneData[a] || {};
                 const schoolB = workdoneData[b] || {};
                 
-                const latestA = getLastUpdate(schoolA);
-                const latestB = getLastUpdate(schoolB);
+                const statusA = getSchoolStatus(schoolA);
+                const statusB = getSchoolStatus(schoolB);
+
+                const latestA = statusA.latest;
+                const latestB = statusB.latest;
                 
                 const totalA = (schoolA.STAFF ? Object.keys(schoolA.STAFF).length : 0) + (schoolA.STUDENT ? Object.keys(schoolA.STUDENT).length : 0);
                 const totalB = (schoolB.STAFF ? Object.keys(schoolB.STAFF).length : 0) + (schoolB.STUDENT ? Object.keys(schoolB.STUDENT).length : 0);
@@ -594,16 +584,17 @@
                 totalStaff += staffCount;
                 totalStudents += studentCount;
 
-                const lastUpdate = getLastUpdate(school);
-                const lastUpdateText = lastUpdate ? `${formatDate(lastUpdate.split('T')[0])} · ${formatTime(lastUpdate)}` : '—';
+                const status = getSchoolStatus(school);
+                const lastUpdateText = status.latest ? `${formatDate(status.latest.split('T')[0])} · ${formatTime(status.latest)}` : '—';
+                const isCompletelyAudited = status.isCompletelyAudited;
                 
-                const isAudited = school.auditStatus === true;
-
                 let statusHtml;
-                if (isAudited) {
+                if (isCompletelyAudited && total > 0) {
                     statusHtml = `<span class="text-success" title="Audited"><i class="bi bi-check-circle-fill"></i></span>`;
-                } else {
+                } else if (total > 0) {
                     statusHtml = `<span class="text-warning" title="New Data"><i class="bi bi-star-fill new-data-star"></i></span>`;
+                } else {
+                    statusHtml = `<span class="text-info" title="No Data"><i class="bi bi-info-circle"></i></span>`;
                 }
 
                 const el = document.createElement('div');
@@ -630,8 +621,10 @@
             grandTotalEl.textContent = totalStaff + totalStudents;
         }
 
-        // Modals
-        function openSchoolModal(sid) {
+        // --- MODAL FUNCTIONS ---
+        
+        // The `openModal` parameter controls whether to call modal.show()
+        function openSchoolModal(sid, openModal = true) {
             currentModalSchoolId = sid;
             modalSchoolId.textContent = sid;
             const school = workdoneData[sid] || {};
@@ -639,6 +632,7 @@
             const students = school.STUDENT || {};
             
             const dateMap = {};
+            // Group staff records by date
             Object.keys(staff).forEach(key => {
                 const rec = staff[key];
                 if (rec && rec.deletedAt) {
@@ -647,6 +641,7 @@
                     dateMap[dateKey].staff.push({...rec, key, type: 'STAFF'});
                 }
             });
+            // Group student records by date
             Object.keys(students).forEach(key => {
                 const rec = students[key];
                 if (rec && rec.deletedAt) {
@@ -666,10 +661,13 @@
                     const st = dateMap[d].students.length;
                     const total = s + st;
                     
+                    // Check if ALL records for this date are audited
                     const isAudited = dateMap[d].staff.every(r => r.auditStatus === true) && dateMap[d].students.every(r => r.auditStatus === true);
-                    const statusIcon = isAudited 
+                    const statusIcon = isAudited && total > 0
                         ? `<i class="bi bi-check-circle-fill text-success" title="Audited"></i>` 
-                        : `<i class="bi bi-star-fill new-data-star text-warning" title="Not Audited"></i>`;
+                        : total > 0 
+                        ? `<i class="bi bi-star-fill new-data-star text-warning" title="Not Audited"></i>`
+                        : '';
 
                     html += `
                         <div class="date-card">
@@ -690,16 +688,23 @@
             }
             
             dateCards.innerHTML = html;
-            new bootstrap.Modal(document.getElementById('schoolModal')).show();
+            if (openModal) {
+                 new bootstrap.Modal(document.getElementById('schoolModal')).show();
+            }
         }
 
         function openDateModal(sid, date) {
             const school = workdoneData[sid] || {};
-            const allRecords = [...Object.keys(school.STAFF || {}).map(key => ({...school.STAFF[key], recordKey: key, type: 'STAFF'})), ...Object.keys(school.STUDENT || {}).map(key => ({...school.STUDENT[key], recordKey: key, type: 'STUDENT'}))];
+            const allRecords = [
+                ...Object.keys(school.STAFF || {}).map(key => ({...school.STAFF[key], recordKey: key, type: 'STAFF'})), 
+                ...Object.keys(school.STUDENT || {}).map(key => ({...school.STUDENT[key], recordKey: key, type: 'STUDENT'}))
+            ];
             
             let rows = '';
+            // Filter records for the specific date
             const recordsForDate = allRecords.filter(rec => rec && rec.deletedAt && rec.deletedAt.startsWith(date));
 
+            // Set audit button data and visibility
             if (recordsForDate.length > 0) {
                 auditReportBtn.style.display = 'block';
                 auditReportBtn.dataset.school = sid;
@@ -719,7 +724,7 @@
                 rows += `
                     <tr>
                         <td>${type}</td>
-                        <td>${escapeHtml(rec.key || '—')}</td>
+                        <td>${escapeHtml(rec.recordKey || '—')}</td>
                         <td>${formatTime(rec.deletedAt)}</td>
                         <td>${auditStatusHtml}</td>
                     </tr>
@@ -728,10 +733,17 @@
 
             modalDateTitle.textContent = `School: ${sid} · ${formatDate(date)}`;
             dateDetails.innerHTML = rows || '<tr><td colspan="4" class="muted text-center">No records.</td></tr>';
-            new bootstrap.Modal(document.getElementById('dateModal')).show();
+            
+            // Re-use existing modal instance if possible
+            let dateModal = bootstrap.Modal.getInstance(document.getElementById('dateModal'));
+            if (!dateModal) {
+                 dateModal = new bootstrap.Modal(document.getElementById('dateModal'));
+            }
+            dateModal.show();
         }
 
-        // Event Listeners
+        // --- EVENT LISTENERS ---
+
         searchBox.addEventListener('input', (e) => {
             searchQuery = e.target.value;
             renderDashboard();
@@ -770,9 +782,13 @@
                     const school = workdoneData[sid] || {};
                     const updates = {};
                     
-                    const allRecords = [...Object.keys(school.STAFF || {}).map(key => ({...school.STAFF[key], recordKey: key, type: 'STAFF'})), ...Object.keys(school.STUDENT || {}).map(key => ({...school.STUDENT[key], recordKey: key, type: 'STUDENT'}))];
+                    const allRecords = [
+                        ...Object.keys(school.STAFF || {}).map(key => ({...school.STAFF[key], recordKey: key, type: 'STAFF'})), 
+                        ...Object.keys(school.STUDENT || {}).map(key => ({...school.STUDENT[key], recordKey: key, type: 'STUDENT'}))
+                    ];
                     const recordsForDate = allRecords.filter(rec => rec && rec.deletedAt && rec.deletedAt.startsWith(date));
                     
+                    // Prepare all audit updates for the records on that specific date
                     recordsForDate.forEach(rec => {
                         updates[`workdone/${sid}/${rec.type}/${rec.recordKey}/auditStatus`] = true;
                     });
@@ -781,27 +797,22 @@
                         update(ref(db), updates).then(() => {
                             console.log(`All records for ${sid} on ${date} have been audited.`);
                             
-                            // Check if all records for the entire school are audited
-                            const allSchoolRecords = [...Object.values(school.STAFF || {}), ...Object.values(school.STUDENT || {})];
-                            const latestUnAuditedRecord = allSchoolRecords.find(rec => rec.auditStatus !== true);
-
-                            if (!latestUnAuditedRecord) {
-                                const schoolRef = ref(db, `workdone/${sid}`);
-                                update(schoolRef, { auditStatus: true });
-                            }
-                            
-                            // Close the date modal after auditing
+                            // Close the date modal. The Firebase listener will handle the live update.
                             const dateModal = bootstrap.Modal.getInstance(document.getElementById('dateModal'));
                             if (dateModal) dateModal.hide();
+                            
+                            // Since the school modal is open (currentModalSchoolId is set), 
+                            // the onValue listener will trigger and call openSchoolModal 
+                            // with the latest data, updating its content instantly.
+                            
                         }).catch(error => {
-                            console.error("Error auditing records:", error);
+                            console.error('Error auditing records:', error);
                         });
                     }
                 }
             }
         });
     </script>
-    
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
