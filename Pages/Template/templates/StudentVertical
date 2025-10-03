@@ -1,0 +1,250 @@
+{
+  "front": {
+    "pageStyle": {
+      "width": "340px",
+      "height": "220px",
+      "background": "#F0F4F8",
+      "padding": "10px",
+      "boxSizing": "border-box",
+      "border": "1px solid #0A3D62",
+      "borderRadius": "10px",
+      "boxShadow": "0 8px 20px rgba(0, 0, 0, 0.2)",
+      "position": "relative",
+      "overflow": "hidden",
+      "fontFamily": "'Verdana', sans-serif"
+    },
+    "items": [
+      {
+        "type": "rectangle",
+        "top": "0px",
+        "left": "0px",
+        "width": "100%",
+        "height": "50px",
+        "background": "#0A3D62",
+        "borderRadius": "10px 10px 0 0"
+      },
+      {
+        "type": "image",
+        "bookmark": "photo",
+        "top": "65px",
+        "left": "15px",
+        "width": "85px",
+        "height": "105px",
+        "borderRadius": "6px",
+        "border": "2px solid #0A3D62"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_name",
+        "text": "{{student_name}}",
+        "top": "175px",
+        "left": "10px",
+        "width": "95px",
+        "fontSize": "11px",
+        "fontWeight": "900",
+        "color": "#DC3545",
+        "textAlign": "center"
+      },
+      {
+        "type": "text",
+        "text": "Adm No:",
+        "top": "65px",
+        "left": "115px",
+        "width": "80px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#4A4A4A",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_adm",
+        "text": "{{student_adm}}",
+        "top": "65px",
+        "left": "195px",
+        "width": "120px",
+        "fontSize": "9px",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Class/Sec:",
+        "top": "78px",
+        "left": "115px",
+        "width": "80px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#4A4A4A",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "class_sec_roll",
+        "text": "{{student_class}} / {{student_section}} / {{student_roll}}",
+        "top": "78px",
+        "left": "195px",
+        "width": "120px",
+        "fontSize": "9px",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "DOB:",
+        "top": "91px",
+        "left": "115px",
+        "width": "80px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#4A4A4A",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_dob",
+        "text": "{{student_dob}}",
+        "top": "91px",
+        "left": "195px",
+        "width": "120px",
+        "fontSize": "9px",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Blood:",
+        "top": "104px",
+        "left": "115px",
+        "width": "80px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#DC3545",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_blood",
+        "text": "{{student_blood}}",
+        "top": "104px",
+        "left": "195px",
+        "width": "120px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#DC3545",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Father:",
+        "top": "117px",
+        "left": "115px",
+        "width": "80px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#4A4A4A",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_father",
+        "text": "{{student_father}}",
+        "top": "117px",
+        "left": "195px",
+        "width": "120px",
+        "fontSize": "9px",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Mother:",
+        "top": "130px",
+        "left": "115px",
+        "width": "80px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#4A4A4A",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_mother",
+        "text": "{{student_mother}}",
+        "top": "130px",
+        "left": "195px",
+        "width": "120px",
+        "fontSize": "9px",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Contact:",
+        "top": "143px",
+        "left": "115px",
+        "width": "80px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#4A4A4A",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_contact",
+        "text": "{{student_contact}}",
+        "top": "143px",
+        "left": "195px",
+        "width": "120px",
+        "fontSize": "9px",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Mode:",
+        "top": "156px",
+        "left": "115px",
+        "width": "80px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#4A4A4A",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_transport",
+        "text": "{{student_transport}}",
+        "top": "156px",
+        "left": "195px",
+        "width": "120px",
+        "fontSize": "9px",
+        "color": "#333333",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Address:",
+        "top": "175px",
+        "left": "115px",
+        "width": "80px",
+        "fontSize": "9px",
+        "fontWeight": "bold",
+        "color": "#0A3D62",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_address",
+        "text": "{{student_address}}",
+        "top": "185px",
+        "left": "115px",
+        "width": "205px",
+        "height": "30px",
+        "fontSize": "8px",
+        "color": "#333333",
+        "textAlign": "left"
+      }
+    ]
+  }
+}
