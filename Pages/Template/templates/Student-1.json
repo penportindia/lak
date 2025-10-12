@@ -22,7 +22,7 @@
         "left": "55px",
         "width": "110px",
         "height": "110px",
-        "borderRadius": "50%",
+        "borderRadius": "55%",
         "objectFit": "cover",
         "border": "4px solid #008080"
       },
@@ -202,3 +202,4 @@
     ]
   }
 }
+
