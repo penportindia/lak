@@ -3,7 +3,7 @@
     "pageStyle": {
       "width": "220px",
       "height": "340px",
-      "background": "#FFFFFF",
+      "background": "transparent",
       "padding": "15px",
       "boxSizing": "border-box",
       "border": "1px solid #E0E0E0",
@@ -202,4 +202,3 @@
     ]
   }
 }
-
