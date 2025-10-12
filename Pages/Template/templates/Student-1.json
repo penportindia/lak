@@ -3,201 +3,202 @@
     "pageStyle": {
       "width": "220px",
       "height": "340px",
-      "background": "transparent",
-      "padding": "10px",
+      "background": "#FFFFFF",
+      "padding": "15px",
       "boxSizing": "border-box",
-      "border": "1px solid #ccc",
-      "borderRadius": "10px",
-      "boxShadow": "0 2px 6px rgba(0,0,0,0.15)",
+      "border": "1px solid #E0E0E0",
+      "borderRadius": "16px",
+      "boxShadow": "0 8px 25px rgba(0, 0, 0, 0.1)",
       "position": "relative",
       "overflow": "hidden",
-      "fontFamily": "\"Segoe UI\", sans-serif"
+      "fontFamily": "'Segoe UI', 'Helvetica Neue', Arial, sans-serif",
+      "color": "#333333"
     },
     "items": [
       {
         "type": "image",
         "bookmark": "photo",
-        "top": "70px",
-        "left": "65px",
-        "width": "90px",
+        "top": "65px",
+        "left": "55px",
+        "width": "110px",
         "height": "110px",
-        "borderRadius": "12px",
-        "border": "2px solid #0288d1"
+        "borderRadius": "50%",
+        "objectFit": "cover",
+        "border": "4px solid #008080"
       },
       {
         "type": "text",
         "bookmark": "student_name",
         "text": "{{student_name}}",
-        "top": "185px",
+        "top": "178px",
         "left": "0px",
         "width": "100%",
-        "fontSize": "15px",
-        "fontWeight": "bold",
-        "color": "#ff3333",
+        "fontSize": "16px",
+        "fontWeight": "900",
+        "color": "#212121",
         "textAlign": "center"
       },
       {
         "type": "text",
-        "text": "Adm No.:",
+        "text": "Admission No.",
         "top": "205px",
         "left": "15px",
-        "width": "70px",
-        "fontSize": "11px",
-        "fontWeight": "bold",
-        "color": "#0096FF",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "{{student_adm}}",
-        "top": "205px",
-        "left": "80px",
-        "width": "120px",
-        "fontSize": "11px",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "Class/Sec:",
-        "top": "220px",
-        "left": "15px",
-        "width": "70px",
-        "fontSize": "11px",
-        "fontWeight": "bold",
-        "color": "#0096FF",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "{{student_class}} / {{student_section}} / {{student_roll}}",
-        "top": "220px",
-        "left": "80px",
-        "width": "120px",
-        "fontSize": "11px",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "DOB:",
-        "top": "235px",
-        "left": "15px",
-        "width": "70px",
-        "fontSize": "11px",
-        "fontWeight": "bold",
-        "color": "#0096FF",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "{{student_dob}}",
-        "top": "235px",
-        "left": "80px",
-        "width": "120px",
-        "fontSize": "11px",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "Father:",
-        "top": "250px",
-        "left": "15px",
-        "width": "70px",
-        "fontSize": "11px",
-        "fontWeight": "bold",
-        "color": "#0096FF",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "{{student_father}}",
-        "top": "250px",
-        "left": "80px",
-        "width": "120px",
-        "fontSize": "9px",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "Mother:",
-        "top": "265px",
-        "left": "15px",
-        "width": "70px",
-        "fontSize": "11px",
-        "fontWeight": "bold",
-        "color": "#0096FF",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "{{student_mother}}",
-        "top": "265px",
-        "left": "80px",
-        "width": "120px",
-        "fontSize": "9px",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "Contact:",
-        "top": "280px",
-        "left": "15px",
-        "width": "70px",
-        "fontSize": "11px",
-        "fontWeight": "bold",
-        "color": "#0096FF",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "{{student_contact}}",
-        "top": "280px",
-        "left": "80px",
-        "width": "120px",
-        "fontSize": "11px",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "Mode:",
-        "top": "295px",
-        "left": "15px",
-        "width": "70px",
-        "fontSize": "11px",
-        "fontWeight": "bold",
-        "color": "#0096FF",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "{{student_transport}}",
-        "top": "295px",
-        "left": "80px",
-        "width": "120px",
-        "fontSize": "11px",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "Address:",
-        "top": "310px",
-        "left": "15px",
-        "width": "70px",
-        "fontSize": "11px",
-        "fontWeight": "bold",
-        "color": "#0096FF",
-        "textAlign": "left"
-      },
-      {
-        "type": "text",
-        "text": "{{student_address}}",
-        "top": "310px",
-        "left": "80px",
-        "width": "120px",
+        "width": "90px",
         "fontSize": "8px",
+        "fontWeight": "600",
+        "color": "#008080",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_adm_student_transport",
+        "text": "{{student_adm}} / {{student_transport}}",
+        "top": "224px",
+        "left": "15px",
+        "width": "90px",
+        "fontSize": "8px",
+        "fontWeight": "700",
+        "color": "#424242",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Class / Sec / Roll",
+        "top": "205px",
+        "left": "115px",
+        "width": "90px",
+        "fontSize": "8px",
+        "fontWeight": "600",
+        "color": "#008080",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_class_section_roll",
+        "text": "{{student_class}} / {{student_section}} / {{student_roll}}",
+        "top": "222px",
+        "left": "120px",
+        "width": "90px",
+        "fontSize": "11px",
+        "fontWeight": "700",
+        "color": "#424242",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Date of Birth",
+        "top": "238px",
+        "left": "15px",
+        "width": "90px",
+        "fontSize": "8px",
+        "fontWeight": "600",
+        "color": "#008080",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_dob",
+        "text": "{{student_dob}}",
+        "top": "251px",
+        "left": "15px",
+        "width": "90px",
+        "fontSize": "11px",
+        "fontWeight": "700",
+        "color": "#424242",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "Parent Contact",
+        "top": "238px",
+        "left": "115px",
+        "width": "90px",
+        "fontSize": "8px",
+        "fontWeight": "600",
+        "color": "#008080",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_contact",
+        "text": "{{student_contact}}",
+        "top": "251px",
+        "left": "115px",
+        "width": "90px",
+        "fontSize": "11px",
+        "fontWeight": "700",
+        "color": "#424242",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "FATHER:",
+        "top": "271px",
+        "left": "15px",
+        "width": "40px",
+        "fontSize": "8px",
+        "fontWeight": "600",
+        "color": "#212121",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_father",
+        "text": "{{student_father}}",
+        "top": "271px",
+        "left": "60px",
+        "width": "145px",
+        "fontSize": "8px",
+        "fontWeight": "500",
+        "color": "#424242",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "MOTHER:",
+        "top": "284px",
+        "left": "15px",
+        "width": "40px",
+        "fontSize": "8px",
+        "fontWeight": "600",
+        "color": "#212121",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_mother",
+        "text": "{{student_mother}}",
+        "top": "284px",
+        "left": "60px",
+        "width": "145px",
+        "fontSize": "8px",
+        "fontWeight": "500",
+        "color": "#424242",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "text": "ADDRESS:",
+        "top": "297px",
+        "left": "15px",
+        "width": "50px",
+        "fontSize": "8px",
+        "fontWeight": "600",
+        "color": "#212121",
+        "textAlign": "left"
+      },
+      {
+        "type": "text",
+        "bookmark": "student_address",
+        "text": "{{student_address}}",
+        "top": "297px",
+        "left": "65px",
+        "width": "140px",
+        "fontSize": "8px",
+        "fontWeight": "500",
+        "color": "#424242",
         "textAlign": "left"
       }
     ]
   }
 }
-
-
