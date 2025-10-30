@@ -32,7 +32,7 @@ const studentFields = [
     ['enroll','Enrollment Number','text',true],
     ['adm','Admission Number','text'],
     ['name','Student Name','text',true],
-    ['class','Class','select',['PG','NURSERY','LKG','UKG','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII']],
+    ['class','Class','select',['PG','NUR','LKG','UKG','I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII']],
     ['section','Section','select',['A','B','C','D','E','F','G','H','I','J','K']],
     ['roll','Roll Number','text'],
     ['dob','Date of Birth','date'],
@@ -458,3 +458,4 @@ document.addEventListener('DOMContentLoaded', () => {
 
     el('submitSingle').addEventListener('click', submitSingle);
 });
+
