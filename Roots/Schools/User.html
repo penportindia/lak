@@ -5,9 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>School Manager</title>
-    <!-- Inter Font -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <!-- Remix Icons -->
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
 
     <style>
@@ -183,6 +181,18 @@
             transform: translateY(-1px);
         }
 
+        /* Red button for delete confirmation */
+        .btn-danger {
+            background: var(--danger);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #D83333;
+            transform: translateY(-1px);
+        }
+
+
         .btn-filter {
             background: var(--card-bg);
             color: var(--text-light);
@@ -208,7 +218,7 @@
 
         table {
             width: 100%;
-            min-width: 800px;
+            min-width: 900px;
             border-collapse: separate;
             border-spacing: 0;
             background: var(--card-bg);
@@ -319,7 +329,7 @@
             box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
             animation: fadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
         }
-        
+
         #messageModal .modal-content {
             max-width: 25rem;
             padding: 1.5rem;
@@ -340,7 +350,8 @@
             margin-bottom: 1rem;
         }
 
-        .modal-header h2, #messageModal .modal-header h3 {
+        .modal-header h2,
+        #messageModal .modal-header h3 {
             margin: 0;
             font-size: 1.5rem;
             font-weight: 700;
@@ -353,7 +364,7 @@
             color: #9CA3AF;
             transition: 0.2s;
         }
-        
+
         #messageModal .close-btn {
             font-size: 1.5rem;
             line-height: 1;
@@ -373,6 +384,7 @@
         .form-group {
             display: flex;
             flex-direction: column;
+            position: relative; /* For suggestion box */
         }
 
         .form-group label {
@@ -401,6 +413,56 @@
             background: var(--card-bg);
             box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
         }
+
+        /* Highlight invalid fields */
+        .form-group input.is-invalid {
+            border-color: var(--danger);
+        }
+
+        /* Suggestion Box Styling */
+        #nameSuggestion {
+            position: absolute;
+            top: 100%; /* Below the input */
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-top: none;
+            border-radius: 0 0 var(--radius-md) var(--radius-md);
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-height: 150px;
+            overflow-y: auto;
+            display: none; /* Hidden by default */
+        }
+
+        .suggestion-item {
+            padding: 0.75rem 1rem;
+            font-size: 0.9rem;
+            color: var(--text-dark);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .suggestion-item:hover {
+            background: #F3F4F6;
+        }
+
+        .suggestion-item span.status {
+            font-weight: 600;
+            font-size: 0.8rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 9999px;
+            color: var(--primary);
+            background: #E6F0FF;
+        }
+
+        .suggestion-item span.status.inactive {
+            color: var(--warning);
+            background: #FFEDD5;
+        }
+
 
         .form-actions {
             margin-top: 2rem;
@@ -464,9 +526,11 @@
     </style>
 
     <script type="module">
+        // Google Firebase SDK Imports
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
         import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-        import { firebaseConfig } from '../Database/Database.js'; 
+        // Assuming your config file is at this relative path
+        import { firebaseConfig } from '../Database/Database.js';
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
@@ -476,13 +540,38 @@
         let currentFilter = "ALL";
         const byId = id => document.getElementById(id);
 
+        // --- MODIFIED: Phone Validation for exactly 10 digits ---
+        const validatePhone = (phone) => {
+            // Checks for exactly 10 digits
+            return /^\d{10}$/.test(phone.trim());
+        }
+
+        // --- UNIQUE ENR4-DIGIT ID GENERATION (Full-Proof) ---
         async function generateUserId() {
-            return "ENR" + Math.floor(1000 + Math.random() * 9000);
+            let newUserId;
+            let isDuplicate = true;
+            let attempts = 0;
+
+            while (isDuplicate && attempts < 1000) {
+                const digits = Math.floor(1000 + Math.random() * 9000);
+                newUserId = "ENR" + digits;
+
+                isDuplicate = schoolData.some(r => r.userid === newUserId);
+                attempts++;
+
+                if (!isDuplicate) {
+                    return newUserId;
+                }
+            }
+
+            console.error("Could not generate a unique ENR ID after 1000 attempts.");
+            openMessageModal("System Error", "❌ Failed to generate a unique School ID. Please try again.");
+            return null;
         }
 
         const generatePassword = () => Math.random().toString(36).substring(2, 10).toUpperCase();
-        
-        // --- Custom Message Modal Functions (Replaces alert/confirm) ---
+
+        // --- Custom Message Modal Functions ---
 
         function openMessageModal(title, message, isConfirm = false, onConfirm = null) {
             const modal = byId("messageModal");
@@ -502,8 +591,7 @@
 
             if (isConfirm) {
                 const confirmBtn = document.createElement('button');
-                // Use red color for delete confirmation
-                confirmBtn.className = "btn btn-primary bg-red-600 hover:bg-red-700"; 
+                confirmBtn.className = "btn btn-danger";
                 confirmBtn.textContent = 'Confirm Delete';
                 confirmBtn.onclick = () => {
                     closeMessageModal();
@@ -520,13 +608,12 @@
             byId("messageModal").style.display = "none";
             document.body.style.overflow = "auto";
         }
-        
+
         // --- Main Modal Functions ---
 
         function openModal() {
             byId("userModal").style.display = "flex";
             document.body.style.overflow = "hidden";
-            // Update modal title for edit/add
             byId("modalTitle").textContent = editUserId ? "Edit School Details" : "Add New School";
         }
 
@@ -544,19 +631,25 @@
             byId("password").value = "";
             byId("status").value = "ACTIVE";
             editUserId = null;
+            // Clear suggestion box
+            byId("nameSuggestion").innerHTML = "";
+            byId("nameSuggestion").style.display = "none";
+            // Clear any invalid states
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
         }
+
+        // --- Data Fetching and Display ---
 
         function fetchData() {
             const schoolsRef = ref(db, "schools");
             onValue(schoolsRef, (snapshot) => {
                 const data = snapshot.exists() ? snapshot.val() : {};
-                // Convert object of objects to array of objects for easier processing
                 schoolData = Object.keys(data).map(key => data[key]);
                 updateCounts();
                 renderTable(schoolData);
             }, (error) => {
                 console.error("Firebase Read Error:", error);
-                openMessageModal("Error", "Data fetching error: " + error.message);
+                openMessageModal("Error", "❌ Data fetching error: " + error.message);
             });
         }
 
@@ -572,7 +665,7 @@
         function renderTable(data) {
             const tbody = byId("tableBody");
             tbody.innerHTML = "";
-            
+
             const filteredData = data.filter(row => currentFilter === "ALL" || row.status === currentFilter);
 
             if (filteredData.length === 0) {
@@ -600,9 +693,50 @@
                 tbody.appendChild(tr);
             });
         }
+        
+        // --- NEW: School Name Suggestion Logic ---
+        window.checkSchoolName = function() {
+            const nameInput = byId("name");
+            const suggestionBox = byId("nameSuggestion");
+            const searchTerm = nameInput.value.trim().toUpperCase();
+            
+            suggestionBox.innerHTML = '';
+            suggestionBox.style.display = 'none';
+
+            if (searchTerm.length < 3) return; // Only show suggestions if 3 or more characters are typed
+
+            const suggestions = schoolData.filter(r => 
+                r.name.includes(searchTerm) && r.userid !== editUserId
+            );
+
+            if (suggestions.length > 0) {
+                suggestions.forEach(school => {
+                    const item = document.createElement('div');
+                    item.className = 'suggestion-item';
+                    const statusClass = school.status === 'ACTIVE' ? '' : 'inactive';
+                    item.innerHTML = `
+                        <span>${school.name}</span>
+                        <span class="status ${statusClass}">${school.status}</span>
+                    `;
+                    suggestionBox.appendChild(item);
+                });
+                suggestionBox.style.display = 'block';
+            }
+        }
+        
+        // Hide suggestion box when clicking outside (in the form)
+        document.addEventListener('click', (e) => {
+            if (e.target.id !== 'name') {
+                byId("nameSuggestion").style.display = 'none';
+            }
+        });
+
+
+        // --- CRUD Operations ---
 
         async function saveUser() {
             try {
+                // Get values and normalize (Name/Address to uppercase)
                 const name = byId("name").value.trim().toUpperCase();
                 const address = byId("address").value.trim().toUpperCase();
                 const phone = byId("phone").value.trim();
@@ -611,52 +745,57 @@
                 let password = byId("password").value.trim();
                 const isEditing = !!editUserId;
 
-                if (!name || !address || !phone) {
-                    openMessageModal("Missing Fields", "⚠️ Please fill all required fields (Name, Address, Phone).");
+                // Clear previous validation styles
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+                // Basic Validation
+                if (!name) byId("name").classList.add('is-invalid');
+                if (!address) byId("address").classList.add('is-invalid');
+                
+                // MODIFIED: 10-digit check
+                if (!phone || !validatePhone(phone)) byId("phone").classList.add('is-invalid');
+                
+                if (!name || !address || !phone || !validatePhone(phone)) {
+                    openMessageModal("Missing/Invalid Fields", 
+                        `⚠️ Please ensure all required fields are filled correctly. 
+                         Phone number must be exactly 10 digits.`);
                     return;
                 }
 
-                // Check for duplicates only if adding, or if name/phone changed during editing
+                // Duplicate Check (Name or Phone)
                 const duplicate = schoolData.find(r =>
                     (r.name === name || r.phone === phone) && r.userid !== editUserId
                 );
-                
+
                 if (duplicate) {
                     openMessageModal("Duplicate Error", "❌ Duplicate entry! Same School Name or Phone already exists.");
                     return;
                 }
 
                 const oldSchoolData = isEditing ? schoolData.find(r => r.userid === editUserId) : null;
-                const oldName = oldSchoolData ? oldSchoolData.name : null;
-                const nameChanged = isEditing && name !== oldName;
-
                 let updates = {};
-                
+
                 if (!isEditing) {
-                    if (!userid) userid = await generateUserId();
+                    // CREATE operation: Generate unique ID and password
+                    userid = await generateUserId();
+                    if (!userid) return;
+
                     if (!password) password = generatePassword();
-                    
+
                     const newSchoolData = { name, address, phone, userid, password, status };
-                    // Set data using user ID as the key
-                    updates[`/schools/${userid}`] = newSchoolData; 
+                    updates[`/schools/${userid}`] = newSchoolData;
                 } else {
+                    // UPDATE operation: Use existing ID
                     userid = editUserId;
-                    
+
                     // Maintain existing password if not changed in form
                     if (!password) password = oldSchoolData.password;
 
                     const baseUpdate = { name, address, phone, userid, password, status };
                     updates[`/schools/${userid}`] = baseUpdate;
-                    
-                    if (nameChanged) {
-                        /* Multi-Path Update Logic (Placeholder)
-                        If school name needs to be updated in other nodes (students, teachers, etc.), 
-                        add those paths to the 'updates' object here.
-                        */
-                       console.log(`Name changed from ${oldName} to ${name}. Multi-path updates would go here.`);
-                    }
                 }
-                
+
+                // Apply updates to Firebase
                 await update(ref(db, '/'), updates);
 
                 openMessageModal("Success", `✅ School ${isEditing ? 'updated' : 'added'} successfully!`);
@@ -664,16 +803,17 @@
 
             } catch (err) {
                 console.error("Save Error:", err);
-                openMessageModal("Error", "❌ Error saving data. Please try again.");
+                openMessageModal("Error", "❌ Error saving data. Please try again. Details: " + err.message);
             }
         }
-        
+
         window.editRow = function (userid) {
             const row = schoolData.find(r => r.userid === userid);
             if (!row) {
                 openMessageModal("Error", "❌ School record not found.");
                 return;
             }
+            // Populate form fields
             byId("name").value = row.name;
             byId("address").value = row.address;
             byId("phone").value = row.phone;
@@ -701,11 +841,11 @@
                 }
             };
 
-            // Use custom modal for confirmation (Replacing window.confirm)
+            // Use custom modal for confirmation
             openMessageModal(
                 "Confirm Deletion",
-                `Are you sure you want to delete this school record (ID: ${userid})? This action cannot be undone.`,
-                true, // isConfirm: true
+                `Are you sure you want to delete school: ${row.name} (ID: ${userid})? This action cannot be undone.`,
+                true,
                 confirmAction
             );
         }
@@ -725,12 +865,14 @@
             currentFilter = filter;
             document.querySelectorAll(".btn-filter").forEach(btn => btn.classList.remove("active"));
             byId("btn-" + filter).classList.add("active");
-            // Re-render the table with the filtered view
-            renderTable(schoolData.filter(row => currentFilter === "ALL" || row.status === currentFilter));
+            renderTable(schoolData);
         }
-        
+
+        // --- Initialization ---
+
         window.onload = () => { fetchData(); filterTable("ALL"); };
-        
+
+        // Make functions globally available for inline HTML events
         window.openModal = openModal;
         window.closeModal = closeModal;
         window.saveUser = saveUser;
@@ -789,7 +931,6 @@
         </div>
     </div>
 
-    <!-- MAIN CRUD MODAL -->
     <div class="modal" id="userModal" onclick="if(event.target.id === 'userModal') closeModal()">
         <div class="modal-content">
             <div class="modal-header">
@@ -799,15 +940,16 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label for="name">School Name *</label>
-                    <input id="name" placeholder="Enter school name" required />
+                    <input id="name" placeholder="Enter school name" required oninput="checkSchoolName()" />
+                    <div id="nameSuggestion"></div>
                 </div>
                 <div class="form-group">
                     <label for="address">Address *</label>
                     <input id="address" placeholder="Enter address" required />
                 </div>
                 <div class="form-group">
-                    <label for="phone">Phone *</label>
-                    <input id="phone" type="tel" pattern="[0-9]*" placeholder="Enter phone number" required />
+                    <label for="phone">Phone * (10 Digits)</label>
+                    <input id="phone" type="text" placeholder="Enter 10-digit phone number" required maxlength="10" />
                 </div>
                 <div class="form-group">
                     <label for="status">Status</label>
@@ -831,8 +973,7 @@
             </div>
         </div>
     </div>
-    
-    <!-- CUSTOM MESSAGE/CONFIRMATION MODAL -->
+
     <div class="modal" id="messageModal" onclick="if(event.target.id === 'messageModal') closeMessageModal()">
         <div class="modal-content">
             <div class="modal-header">
@@ -841,8 +982,7 @@
             </div>
             <p id="messageText" class="text-gray-700 mb-6"></p>
             <div class="flex justify-end gap-3" id="messageButtons">
-                <!-- Buttons are inserted by openMessageModal function -->
-            </div>
+                </div>
         </div>
     </div>
 </body>
