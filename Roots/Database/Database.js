@@ -16,8 +16,9 @@ export const firebaseConfig = {
 // -----------------------------
 export const cloudinaryConfig = {
     // Replace 'YOUR_CLOUD_NAME' with your Cloudinary account cloud name
-    uploadUrl: "https://api.cloudinary.com/v1_1/dlugbxmkm/image/upload",
+    uploadUrl: "https://api.cloudinary.com/v1_1/do676qizd/image/upload",
     
     // Replace 'YOUR_UPLOAD_PRESET' with your unsigned upload preset
-    uploadPreset: "photo_uplode"
+    uploadPreset: "sanaphoto"
 };
+
