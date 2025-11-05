@@ -1,30 +1,27 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>School Manager</title>
+    <title>School Manager | Firebase ERP</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/remixicon@4.2.0/fonts/remixicon.css" rel="stylesheet" />
-
+    
     <style>
         :root {
             --primary: #4A90E2;
             --primary-dark: #357ABD;
-            --secondary: #6B7280;
-            --dark: #1F2937;
-            --text-dark: #374151;
-            --text-light: #6B7280;
             --success: #10B981;
             --warning: #F59E0B;
             --danger: #EF4444;
             --bg: #F0F4F8;
             --card-bg: #FFFFFF;
             --border-color: #E5E7EB;
+            --text-dark: #374151;
+            --text-light: #6B7280;
             --shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-            --radius-lg: 16px;
             --radius-md: 8px;
+            --radius-lg: 16px;
         }
 
         * {
@@ -38,12 +35,37 @@
             color: var(--text-dark);
             min-height: 100vh;
         }
-
-        .ri-icon {
-            line-height: 1;
+        
+        /* --- LOADER / SPINNER STYLES --- */
+        .loader {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: none; 
         }
 
-        /* NAVBAR */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.85); 
+            display: none; 
+            align-items: center;
+            justify-content: center;
+            z-index: 101; 
+        }
+
+        /* NAVBAR & Layout */
         .navbar {
             background: var(--card-bg);
             padding: 1rem 2rem;
@@ -55,483 +77,108 @@
             top: 0;
             z-index: 10;
         }
-
-        .navbar h1 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .badges {
-            display: flex;
-            gap: 1rem;
-            flex-wrap: wrap;
-        }
-
+        .navbar h1 { margin: 0; font-size: 1.5rem; font-weight: 700;}
+        .badges { display: flex; gap: 1rem; flex-wrap: wrap; }
         .badge {
-            color: var(--text-light);
-            padding: 0.5rem 1rem;
-            border-radius: 9999px;
-            font-size: 0.875rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            transition: all 0.2s ease-in-out;
-            border: 1px solid transparent;
+            padding: 0.5rem 1rem; border-radius: 9999px; font-size: 0.875rem; font-weight: 600;
+            display: flex; align-items: center; gap: 0.5rem; border: 1px solid transparent;
         }
+        .badge.info { background: #E6F0FF; border-color: var(--primary); color: var(--primary); }
+        .badge.success { background: #D1FAE5; border-color: var(--success); color: var(--success); }
+        .badge.warning { background: #FFEDD5; border-color: var(--warning); color: var(--warning); }
 
-        .badge .ri-icon {
-            font-size: 1.2rem;
-        }
-
-        .badge.info {
-            background: #E6F0FF;
-            border-color: var(--primary);
-            color: var(--primary);
-        }
-
-        .badge.success {
-            background: #D1FAE5;
-            border-color: var(--success);
-            color: var(--success);
-        }
-
-        .badge.warning {
-            background: #FFEDD5;
-            border-color: var(--warning);
-            color: var(--warning);
-        }
-
-        /* MAIN CONTAINER & ACTIONS */
-        .container {
-            padding: 2rem 3rem;
-        }
-
+        .container { padding: 2rem 3rem; }
         .top-actions {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 2rem;
-            gap: 1.25rem;
+            display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap; margin-bottom: 2rem; gap: 1.25rem;
         }
 
-        .search-box {
-            position: relative;
-            flex-grow: 1;
-            max-width: 25rem;
-        }
-
+        /* Search & Filters */
+        .search-box { position: relative; flex-grow: 1; max-width: 25rem; }
         .search-box input {
-            width: 100%;
-            padding: 0.75rem 1rem 0.75rem 3rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            background: var(--card-bg);
-            outline: none;
-            color: var(--text-dark);
-            font-size: 0.95rem;
-            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-            transition: all 0.3s;
+            width: 100%; padding: 0.75rem 1rem 0.75rem 3rem; border: 1px solid var(--border-color);
+            border-radius: var(--radius-md); background: var(--card-bg); outline: none;
         }
-
-        .search-box input:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.25);
-        }
-
-        .search-box .ri-icon {
-            position: absolute;
-            left: 1rem;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #9CA3AF;
-            font-size: 1.3rem;
-        }
-
-        .filters {
-            display: flex;
-            gap: 0.5rem;
-        }
+        .search-box .ri-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9CA3AF; font-size: 1.3rem;}
+        .filters { display: flex; gap: 0.5rem; }
 
         /* Buttons */
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.75rem 1.25rem;
-            border-radius: var(--radius-md);
-            border: 1px solid transparent;
-            cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9375rem;
-            transition: all 0.3s;
+            display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem;
+            border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer;
+            font-weight: 600; font-size: 0.9375rem; transition: all 0.3s;
         }
+        .btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
+        .btn-primary { background: var(--primary); color: white; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); }
+        .btn-primary:hover { background: var(--primary-dark); transform: translateY(-1px); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-secondary { background: #E5E7EB; color: #4B5563; box-shadow: none; }
+        .btn-filter { background: var(--card-bg); color: var(--text-light); border: 1px solid var(--border-color); }
+        .btn-filter.active { background: var(--primary); color: white; border-color: var(--primary); }
+        
+        .icon-btn { border: none; background: transparent; cursor: pointer; padding: 0.5rem; border-radius: var(--radius-md); transition: 0.3s; }
+        .icon-btn .ri-icon { font-size: 1.2rem; color: #6B7280; }
+        .icon-btn:hover { background: #F3F4F6; transform: translateY(-1px); }
 
-        .btn-primary {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .btn-primary:hover {
-            background: var(--primary-dark);
-            transform: translateY(-1px);
-        }
-
-        /* Red button for delete confirmation */
-        .btn-danger {
-            background: var(--danger);
-            color: white;
-        }
-
-        .btn-danger:hover {
-            background: #D83333;
-            transform: translateY(-1px);
-        }
-
-
-        .btn-filter {
-            background: var(--card-bg);
-            color: var(--text-light);
-            border: 1px solid var(--border-color);
-            box-shadow: none;
-        }
-
-        .btn-filter:hover {
-            background: #F3F4F6;
-        }
-
-        .btn-filter.active {
-            background: var(--primary);
-            color: white;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.3);
-        }
-
-        /* TABLE */
-        .table-wrapper {
-            overflow-x: auto;
-        }
-
+        /* Table */
         table {
-            width: 100%;
-            min-width: 900px;
-            border-collapse: separate;
-            border-spacing: 0;
-            background: var(--card-bg);
-            border-radius: var(--radius-lg);
-            overflow: hidden;
+            width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0;
+            background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden;
             box-shadow: var(--shadow);
         }
+        th, td { padding: 1rem 1.25rem; text-align: left; font-size: 0.9rem; border-bottom: 1px solid var(--border-color); }
+        th { background: #F9FAFB; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; }
+        .status-chip { padding: 0.4rem 0.8rem; border-radius: 9999px; font-size: 0.75rem; font-weight: 700; display: inline-block; }
+        .status-active { background: #D1FAE5; color: var(--success); }
+        .status-inactive { background: #FFEDD5; color: var(--warning); }
 
-        th,
-        td {
-            padding: 1rem 1.25rem;
-            text-align: left;
-            font-size: 0.9rem;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            background: #F9FAFB;
-            font-weight: 600;
-            color: var(--text-dark);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.8rem;
-        }
-
-        tr:last-child td {
-            border-bottom: none;
-        }
-
-        tbody tr:hover {
-            background: #F9FBFD;
-        }
-
-        thead tr:first-child th:first-child {
-            border-top-left-radius: var(--radius-lg);
-        }
-
-        thead tr:first-child th:last-child {
-            border-top-right-radius: var(--radius-lg);
-        }
-
-        /* Status Chip */
-        .status-chip {
-            padding: 0.4rem 0.8rem;
-            border-radius: 9999px;
-            font-size: 0.75rem;
-            font-weight: 700;
-            display: inline-block;
-            letter-spacing: 0.5px;
-        }
-
-        .status-active {
-            background: #D1FAE5;
-            color: var(--success);
-        }
-
-        .status-inactive {
-            background: #FFEDD5;
-            color: var(--warning);
-        }
-
-        /* Action Buttons */
-        .action-btns {
-            display: flex;
-            gap: 0.25rem;
-        }
-
-        .icon-btn {
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            padding: 0.5rem;
-            border-radius: var(--radius-md);
-            transition: 0.3s;
-        }
-
-        .icon-btn .ri-icon {
-            font-size: 1.2rem;
-            color: #6B7280;
-        }
-
-        .icon-btn:hover {
-            background: #F3F4F6;
-            transform: translateY(-1px);
-        }
-
-        /* MODAL & MESSAGE MODAL */
+        /* Modal */
         .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 100;
-            backdrop-filter: blur(5px);
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none;
+            align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5);
+            z-index: 100; backdrop-filter: blur(5px);
         }
-
         .modal-content {
-            background: var(--card-bg);
-            padding: 2rem;
-            border-radius: 1.25rem;
-            width: 90%;
-            max-width: 48rem;
-            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
-            animation: fadeIn 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            background: var(--card-bg); padding: 2rem; border-radius: 1.25rem;
+            width: 90%; max-width: 48rem; box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.4s;
         }
-
-        #messageModal .modal-content {
-            max-width: 25rem;
-            padding: 1.5rem;
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color); }
+        .close-btn { cursor: pointer; font-size: 2rem; color: #9CA3AF; transition: 0.2s; }
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; }
+        .form-group { display: flex; flex-direction: column; position: relative; }
+        .form-group label { margin-bottom: 0.3rem; font-size: 0.875rem; font-weight: 600; color: var(--text-light); }
+        .form-group input, .form-group select {
+            width: 100%; padding: 0.8rem 1rem; border: 1px solid var(--border-color);
+            border-radius: var(--radius-md); outline: none; font-size: 1rem; background: #F9FAFB;
         }
-
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1.5rem;
-            padding-bottom: 1rem;
-            border-bottom: 1px solid var(--border-color);
+        .form-group input:focus, .form-group select:focus { border-color: var(--primary); background: var(--card-bg); box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2); }
+        .form-group input.is-invalid { border-color: var(--danger); }
+        .form-actions { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; }
+        
+        /* ID Input Specific Styling for Lock/Unlock */
+        .id-input-group input { border-right: none !important; }
+        .id-input-group button { 
+            height: 48px; width: 48px; border: 1px solid var(--border-color); border-left: none;
+            border-radius: 0 var(--radius-md) var(--radius-md) 0; background-color: #F9FAFB;
         }
-
-        #messageModal .modal-header {
-            border-bottom: none;
-            padding-bottom: 0.5rem;
-            margin-bottom: 1rem;
-        }
-
-        .modal-header h2,
-        #messageModal .modal-header h3 {
-            margin: 0;
-            font-size: 1.5rem;
-            font-weight: 700;
-            color: var(--dark);
-        }
-
-        .close-btn {
-            cursor: pointer;
-            font-size: 2rem;
-            color: #9CA3AF;
-            transition: 0.2s;
-        }
-
-        #messageModal .close-btn {
-            font-size: 1.5rem;
-            line-height: 1;
-        }
-
-        .close-btn:hover {
-            color: var(--danger);
-            transform: rotate(90deg);
-        }
-
-        .form-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            position: relative; /* For suggestion box */
-        }
-
-        .form-group label {
-            margin-bottom: 0.3rem;
-            font-size: 0.875rem;
-            font-weight: 600;
-            color: var(--text-light);
-        }
-
-        .form-group input,
-        .form-group select {
-            width: 100%;
-            padding: 0.8rem 1rem;
-            border: 1px solid var(--border-color);
-            border-radius: var(--radius-md);
-            outline: none;
-            font-size: 1rem;
-            background: #F9FAFB;
-            color: var(--text-dark);
-            transition: all 0.3s;
-        }
-
-        .form-group input:focus,
-        .form-group select:focus {
-            border-color: var(--primary);
-            background: var(--card-bg);
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.2);
-        }
-
-        /* Highlight invalid fields */
-        .form-group input.is-invalid {
-            border-color: var(--danger);
-        }
-
-        /* Suggestion Box Styling */
-        #nameSuggestion {
-            position: absolute;
-            top: 100%; /* Below the input */
-            left: 0;
-            right: 0;
-            z-index: 10;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-top: none;
-            border-radius: 0 0 var(--radius-md) var(--radius-md);
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-height: 150px;
-            overflow-y: auto;
-            display: none; /* Hidden by default */
-        }
-
-        .suggestion-item {
-            padding: 0.75rem 1rem;
-            font-size: 0.9rem;
-            color: var(--text-dark);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .suggestion-item:hover {
-            background: #F3F4F6;
-        }
-
-        .suggestion-item span.status {
-            font-weight: 600;
-            font-size: 0.8rem;
-            padding: 0.2rem 0.6rem;
-            border-radius: 9999px;
-            color: var(--primary);
-            background: #E6F0FF;
-        }
-
-        .suggestion-item span.status.inactive {
-            color: var(--warning);
-            background: #FFEDD5;
-        }
-
-
-        .form-actions {
-            margin-top: 2rem;
-            display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
-        }
-
-        .btn-secondary {
-            background: #E5E7EB;
-            color: #4B5563;
-            box-shadow: none;
-        }
-
-        .btn-secondary:hover {
-            background: #D1D5DB;
-        }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(-20px) scale(0.98);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0) scale(1);
-            }
-        }
-
-        /* RESPONSIVENESS (Media Queries) */
+        
         @media (max-width: 900px) {
-            .navbar {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 0.75rem;
-            }
-
-            .container {
-                padding: 1.5rem;
-            }
-
-            .top-actions {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .search-box {
-                max-width: 100%;
-            }
-
-            .filters {
-                justify-content: space-around;
-                width: 100%;
-            }
-
-            .filters .btn {
-                flex-grow: 1;
-            }
+            .navbar { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .container { padding: 1.5rem; }
+            .top-actions { flex-direction: column; align-items: stretch; }
+            .search-box { max-width: 100%; }
         }
     </style>
 
     <script type="module">
-        // Google Firebase SDK Imports
+        // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
         import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-        // Assuming your config file is at this relative path
-        import { firebaseConfig } from '../Database/Database.js';
+        // IMPORTANT: Ensure this path is correct and contains your Firebase config object.
+        import { firebaseConfig } from '../Database/Database.js'; 
 
+        // --- Global Variables and Init ---
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
@@ -539,48 +186,74 @@
         let editUserId = null;
         let currentFilter = "ALL";
         const byId = id => document.getElementById(id);
+        
+        // UI element references
+        const saveButton = byId("saveButton");
+        const mainLoader = byId("mainLoader");
+        const userIdInput = byId("userid");
+        const lockIcon = byId("lockIcon");
 
-        // --- MODIFIED: Phone Validation for exactly 10 digits ---
-        const validatePhone = (phone) => {
-            // Checks for exactly 10 digits
-            return /^\d{10}$/.test(phone.trim());
-        }
+        // --- Core Utility Functions ---
 
-        // --- UNIQUE ENR4-DIGIT ID GENERATION (Full-Proof) ---
-        async function generateUserId() {
+        const validatePhone = (phone) => /^\d{10}$/.test(phone.trim());
+        const generatePassword = () => Math.random().toString(36).substring(2, 10).toUpperCase();
+
+        // --- FULL-PROOF 4-DIGIT ID GENERATION ---
+        async function generateUniqueFourDigitId() {
             let newUserId;
             let isDuplicate = true;
             let attempts = 0;
-
+            
             while (isDuplicate && attempts < 1000) {
-                const digits = Math.floor(1000 + Math.random() * 9000);
-                newUserId = "ENR" + digits;
+                // GUARANTEED 4-DIGIT NUMBER (1000 to 9999 inclusive)
+                const digits = Math.floor(Math.random() * 9000) + 1000;
+                newUserId = "ENR" + digits; 
 
+                // Check uniqueness against currently loaded school data
                 isDuplicate = schoolData.some(r => r.userid === newUserId);
                 attempts++;
 
-                if (!isDuplicate) {
-                    return newUserId;
-                }
+                if (!isDuplicate) return newUserId;
             }
-
-            console.error("Could not generate a unique ENR ID after 1000 attempts.");
-            openMessageModal("System Error", "❌ Failed to generate a unique School ID. Please try again.");
+            openMessageModal("System Error", "❌ Failed to generate a unique School ID after many attempts.");
             return null;
         }
 
-        const generatePassword = () => Math.random().toString(36).substring(2, 10).toUpperCase();
+        // --- ID Edit Toggle Logic ---
 
-        // --- Custom Message Modal Functions ---
+        window.toggleUserIdEdit = function(event) {
+            event.preventDefault();
+            
+            if (userIdInput.readOnly) {
+                // Unlock
+                userIdInput.readOnly = false;
+                userIdInput.style.backgroundColor = "var(--card-bg)";
+                userIdInput.classList.remove('is-invalid');
+                lockIcon.className = "ri-unlock-line ri-icon";
+                lockIcon.style.color = "var(--success)";
+                byId("lockBtn").title = "ID is unlocked. Click to lock.";
+            } else {
+                // Lock
+                userIdInput.readOnly = true;
+                userIdInput.style.backgroundColor = "#F9FAFB";
+                lockIcon.className = "ri-lock-line ri-icon";
+                lockIcon.style.color = "var(--text-light)";
+                byId("lockBtn").title = "ID is locked. Click to edit.";
+            }
+        }
+
+        // --- Modal Management ---
+
+        function toggleLoader(show) {
+            mainLoader.style.display = show ? 'flex' : 'none';
+            document.body.style.overflow = show ? "hidden" : "auto";
+        }
 
         function openMessageModal(title, message, isConfirm = false, onConfirm = null) {
             const modal = byId("messageModal");
-            const titleEl = byId("messageTitle");
-            const textEl = byId("messageText");
             const buttonsEl = byId("messageButtons");
-
-            titleEl.textContent = title;
-            textEl.textContent = message;
+            byId("messageTitle").textContent = title;
+            byId("messageText").textContent = message;
             buttonsEl.innerHTML = '';
 
             const closeBtn = document.createElement('button');
@@ -593,33 +266,49 @@
                 const confirmBtn = document.createElement('button');
                 confirmBtn.className = "btn btn-danger";
                 confirmBtn.textContent = 'Confirm Delete';
-                confirmBtn.onclick = () => {
-                    closeMessageModal();
-                    if (onConfirm) onConfirm();
-                };
+                confirmBtn.onclick = () => { closeMessageModal(); if (onConfirm) onConfirm(); };
                 buttonsEl.appendChild(confirmBtn);
             }
-
             modal.style.display = "flex";
             document.body.style.overflow = "hidden";
         }
 
-        function closeMessageModal() {
+        window.closeMessageModal = function() {
             byId("messageModal").style.display = "none";
-            document.body.style.overflow = "auto";
+            if(byId("userModal").style.display !== "flex") {
+                document.body.style.overflow = "auto";
+            }
         }
 
-        // --- Main Modal Functions ---
-
-        function openModal() {
+        window.openModal = async function() {
             byId("userModal").style.display = "flex";
             document.body.style.overflow = "hidden";
             byId("modalTitle").textContent = editUserId ? "Edit School Details" : "Add New School";
+            
+            if (!editUserId) {
+                saveButton.innerHTML = `<span class="loader" style="margin-right: 0.5rem; display: inline-block;"></span> Generating ID...`;
+                saveButton.disabled = true;
+
+                const generatedId = await generateUniqueFourDigitId();
+                userIdInput.value = generatedId || "ERROR";
+                
+                saveButton.disabled = false;
+                saveButton.innerHTML = 'Save Details';
+            }
+
+            // Ensure ID is locked by default
+            userIdInput.readOnly = true;
+            userIdInput.style.backgroundColor = "#F9FAFB";
+            lockIcon.className = "ri-lock-line ri-icon";
+            lockIcon.style.color = "var(--text-light)";
+            byId("lockBtn").title = "ID is locked. Click to edit.";
         }
 
-        function closeModal() {
+        window.closeModal = function() {
             byId("userModal").style.display = "none";
-            document.body.style.overflow = "auto";
+            if(byId("messageModal").style.display !== "flex") {
+                document.body.style.overflow = "auto";
+            }
             clearForm();
         }
 
@@ -627,29 +316,46 @@
             byId("name").value = "";
             byId("address").value = "";
             byId("phone").value = "";
-            byId("userid").value = "";
+            userIdInput.value = "";
             byId("password").value = "";
             byId("status").value = "ACTIVE";
+            byId("showPasswordIcon").className = "ri-eye-line ri-icon"; 
+            byId("password").type = "password"; 
             editUserId = null;
-            // Clear suggestion box
+            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            saveButton.textContent = 'Save Details';
+            saveButton.disabled = false;
+            // Also clear name suggestion (optional, but good practice)
             byId("nameSuggestion").innerHTML = "";
             byId("nameSuggestion").style.display = "none";
-            // Clear any invalid states
-            document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+        }
+        
+        window.togglePasswordVisibility = function() {
+            const passwordInput = byId("password");
+            const icon = byId("showPasswordIcon");
+            if (passwordInput.type === "password") {
+                passwordInput.type = "text";
+                icon.className = "ri-eye-off-line ri-icon";
+            } else {
+                passwordInput.type = "password";
+                icon.className = "ri-eye-line ri-icon";
+            }
         }
 
         // --- Data Fetching and Display ---
 
         function fetchData() {
+            toggleLoader(true); 
             const schoolsRef = ref(db, "schools");
             onValue(schoolsRef, (snapshot) => {
                 const data = snapshot.exists() ? snapshot.val() : {};
                 schoolData = Object.keys(data).map(key => data[key]);
                 updateCounts();
                 renderTable(schoolData);
+                toggleLoader(false); 
             }, (error) => {
-                console.error("Firebase Read Error:", error);
-                openMessageModal("Error", "❌ Data fetching error: " + error.message);
+                toggleLoader(false); 
+                openMessageModal("Error", "❌ Data fetching error: Check network or Firebase rules.");
             });
         }
 
@@ -665,7 +371,6 @@
         function renderTable(data) {
             const tbody = byId("tableBody");
             tbody.innerHTML = "";
-
             const filteredData = data.filter(row => currentFilter === "ALL" || row.status === currentFilter);
 
             if (filteredData.length === 0) {
@@ -694,162 +399,6 @@
             });
         }
         
-        // --- NEW: School Name Suggestion Logic ---
-        window.checkSchoolName = function() {
-            const nameInput = byId("name");
-            const suggestionBox = byId("nameSuggestion");
-            const searchTerm = nameInput.value.trim().toUpperCase();
-            
-            suggestionBox.innerHTML = '';
-            suggestionBox.style.display = 'none';
-
-            if (searchTerm.length < 3) return; // Only show suggestions if 3 or more characters are typed
-
-            const suggestions = schoolData.filter(r => 
-                r.name.includes(searchTerm) && r.userid !== editUserId
-            );
-
-            if (suggestions.length > 0) {
-                suggestions.forEach(school => {
-                    const item = document.createElement('div');
-                    item.className = 'suggestion-item';
-                    const statusClass = school.status === 'ACTIVE' ? '' : 'inactive';
-                    item.innerHTML = `
-                        <span>${school.name}</span>
-                        <span class="status ${statusClass}">${school.status}</span>
-                    `;
-                    suggestionBox.appendChild(item);
-                });
-                suggestionBox.style.display = 'block';
-            }
-        }
-        
-        // Hide suggestion box when clicking outside (in the form)
-        document.addEventListener('click', (e) => {
-            if (e.target.id !== 'name') {
-                byId("nameSuggestion").style.display = 'none';
-            }
-        });
-
-
-        // --- CRUD Operations ---
-
-        async function saveUser() {
-            try {
-                // Get values and normalize (Name/Address to uppercase)
-                const name = byId("name").value.trim().toUpperCase();
-                const address = byId("address").value.trim().toUpperCase();
-                const phone = byId("phone").value.trim();
-                const status = byId("status").value;
-                let userid = byId("userid").value.trim();
-                let password = byId("password").value.trim();
-                const isEditing = !!editUserId;
-
-                // Clear previous validation styles
-                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-
-                // Basic Validation
-                if (!name) byId("name").classList.add('is-invalid');
-                if (!address) byId("address").classList.add('is-invalid');
-                
-                // MODIFIED: 10-digit check
-                if (!phone || !validatePhone(phone)) byId("phone").classList.add('is-invalid');
-                
-                if (!name || !address || !phone || !validatePhone(phone)) {
-                    openMessageModal("Missing/Invalid Fields", 
-                        `⚠️ Please ensure all required fields are filled correctly. 
-                         Phone number must be exactly 10 digits.`);
-                    return;
-                }
-
-                // Duplicate Check (Name or Phone)
-                const duplicate = schoolData.find(r =>
-                    (r.name === name || r.phone === phone) && r.userid !== editUserId
-                );
-
-                if (duplicate) {
-                    openMessageModal("Duplicate Error", "❌ Duplicate entry! Same School Name or Phone already exists.");
-                    return;
-                }
-
-                const oldSchoolData = isEditing ? schoolData.find(r => r.userid === editUserId) : null;
-                let updates = {};
-
-                if (!isEditing) {
-                    // CREATE operation: Generate unique ID and password
-                    userid = await generateUserId();
-                    if (!userid) return;
-
-                    if (!password) password = generatePassword();
-
-                    const newSchoolData = { name, address, phone, userid, password, status };
-                    updates[`/schools/${userid}`] = newSchoolData;
-                } else {
-                    // UPDATE operation: Use existing ID
-                    userid = editUserId;
-
-                    // Maintain existing password if not changed in form
-                    if (!password) password = oldSchoolData.password;
-
-                    const baseUpdate = { name, address, phone, userid, password, status };
-                    updates[`/schools/${userid}`] = baseUpdate;
-                }
-
-                // Apply updates to Firebase
-                await update(ref(db, '/'), updates);
-
-                openMessageModal("Success", `✅ School ${isEditing ? 'updated' : 'added'} successfully!`);
-                closeModal();
-
-            } catch (err) {
-                console.error("Save Error:", err);
-                openMessageModal("Error", "❌ Error saving data. Please try again. Details: " + err.message);
-            }
-        }
-
-        window.editRow = function (userid) {
-            const row = schoolData.find(r => r.userid === userid);
-            if (!row) {
-                openMessageModal("Error", "❌ School record not found.");
-                return;
-            }
-            // Populate form fields
-            byId("name").value = row.name;
-            byId("address").value = row.address;
-            byId("phone").value = row.phone;
-            byId("userid").value = row.userid;
-            byId("password").value = row.password;
-            byId("status").value = row.status;
-            editUserId = row.userid;
-            openModal();
-        }
-
-        window.deleteRow = function (userid) {
-            const row = schoolData.find(r => r.userid === userid);
-            if (!row) {
-                openMessageModal("Error", "❌ School record not found.");
-                return;
-            }
-
-            const confirmAction = async () => {
-                try {
-                    await remove(ref(db, "schools/" + userid));
-                    openMessageModal("Success", "✅ School deleted successfully.");
-                } catch (err) {
-                    console.error("Delete Error:", err);
-                    openMessageModal("Error", "❌ Error deleting data. Please try again.");
-                }
-            };
-
-            // Use custom modal for confirmation
-            openMessageModal(
-                "Confirm Deletion",
-                `Are you sure you want to delete school: ${row.name} (ID: ${userid})? This action cannot be undone.`,
-                true,
-                confirmAction
-            );
-        }
-
         window.searchTable = function () {
             const term = byId("searchBox").value.toLowerCase().trim();
             const filtered = schoolData.filter(r =>
@@ -868,28 +417,169 @@
             renderTable(schoolData);
         }
 
+        // --- CRUD Operations (Full-Proof Save Logic) ---
+
+        window.saveUser = async function() {
+            saveButton.disabled = true;
+            saveButton.innerHTML = `<span class="loader" style="margin-right: 0.5rem; display: inline-block;"></span> Saving...`; 
+
+            try {
+                const name = byId("name").value.trim().toUpperCase();
+                const address = byId("address").value.trim().toUpperCase();
+                const phone = byId("phone").value.trim();
+                const status = byId("status").value;
+                let userid = userIdInput.value.trim();
+                let password = byId("password").value.trim();
+                const isEditing = !!editUserId;
+
+                document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+                // --- 1. Validation (Mandatory fields and 4-digit ID format) ---
+                let isValid = true;
+                if (!name) { byId("name").classList.add('is-invalid'); isValid = false; }
+                if (!address) { byId("address").classList.add('is-invalid'); isValid = false; }
+                if (!phone || !validatePhone(phone)) { byId("phone").classList.add('is-invalid'); isValid = false; }
+                
+                // ID Format Check: ENR + 4 Digits
+                const idRegex = /^ENR\d{4}$/;
+                if (!userid || !idRegex.test(userid)) { 
+                     userIdInput.classList.add('is-invalid'); 
+                     openMessageModal("Validation Error", "❌ User ID must be in 'ENRXXXX' (4-digit) format.");
+                     return;
+                }
+
+                if (!isValid) {
+                    openMessageModal("Missing/Invalid Fields", `⚠️ Please ensure all required fields are filled correctly.`);
+                    return;
+                }
+
+                // --- 2. Uniqueness Checks ---
+                
+                // Name/Phone duplicate
+                const duplicate = schoolData.find(r =>
+                    (r.name === name || r.phone === phone) && r.userid !== editUserId
+                );
+                if (duplicate) {
+                    openMessageModal("Duplicate Error", "❌ Duplicate entry! Same School Name or Phone already exists.");
+                    return;
+                }
+
+                // Manually Edited/New User ID duplicate
+                if (userid !== editUserId || !isEditing) {
+                    const idDuplicate = schoolData.find(r => r.userid === userid);
+                    if (idDuplicate) {
+                         userIdInput.classList.add('is-invalid'); 
+                         openMessageModal("ID Error", `❌ The ID ${userid} is already taken. Please enter a unique 4-digit ID or lock the field to auto-generate.`);
+                         return;
+                    }
+                }
+                
+                const oldSchoolData = isEditing ? schoolData.find(r => r.userid === editUserId) : null;
+                let updates = {};
+                let successMessage;
+
+                // --- 3. Prepare Data ---
+                if (!isEditing) {
+                    // CREATE
+                    if (!password) password = generatePassword();
+                    successMessage = 'added';
+                } else {
+                    // UPDATE
+                    if (!password) password = oldSchoolData.password;
+                    successMessage = 'updated';
+                
+                    // If ID was changed during edit, DELETE the old record
+                    if (userid !== editUserId && oldSchoolData) {
+                         updates[`/schools/${editUserId}`] = null; 
+                    }
+                }
+                
+                const finalData = { name, address, phone, userid, password, status };
+                updates[`/schools/${userid}`] = finalData;
+
+                // --- 4. Commit to Firebase ---
+                await update(ref(db, '/'), updates);
+
+                openMessageModal("Success", `✅ School ${successMessage} successfully!`);
+                closeModal();
+                
+            } catch (err) {
+                console.error("Save Error:", err);
+                openMessageModal("Error", "❌ Error saving data. Details: " + err.message);
+            } finally {
+                 saveButton.disabled = false;
+                 saveButton.innerHTML = 'Save Details';
+            }
+        }
+
+        window.editRow = function (userid) {
+            const row = schoolData.find(r => r.userid === userid);
+            if (!row) { openMessageModal("Error", "❌ School record not found."); return; }
+            
+            byId("name").value = row.name;
+            byId("address").value = row.address;
+            byId("phone").value = row.phone;
+            userIdInput.value = row.userid;
+            byId("password").value = row.password;
+            byId("status").value = row.status;
+            editUserId = row.userid;
+            openModal();
+        }
+
+        window.deleteRow = function (userid) {
+            const row = schoolData.find(r => r.userid === userid);
+            if (!row) { openMessageModal("Error", "❌ School record not found."); return; }
+
+            const confirmAction = async () => {
+                toggleLoader(true);
+                try {
+                    await remove(ref(db, "schools/" + userid));
+                    openMessageModal("Success", "✅ School deleted successfully.");
+                } catch (err) {
+                    openMessageModal("Error", "❌ Error deleting data.");
+                } finally {
+                    toggleLoader(false);
+                }
+            };
+            openMessageModal(
+                "Confirm Deletion",
+                `Are you sure you want to delete school: ${row.name} (ID: ${userid})?`,
+                true,
+                confirmAction
+            );
+        }
+
         // --- Initialization ---
 
-        window.onload = () => { fetchData(); filterTable("ALL"); };
+        window.onload = () => { 
+            // Make functions globally available
+            window.openModal = openModal;
+            window.closeModal = closeModal;
+            window.saveUser = saveUser;
+            window.closeMessageModal = closeMessageModal;
+            window.togglePasswordVisibility = togglePasswordVisibility;
+            window.searchTable = searchTable; 
+            window.filterTable = filterTable; 
+            window.editRow = editRow;
+            window.deleteRow = deleteRow;
 
-        // Make functions globally available for inline HTML events
-        window.openModal = openModal;
-        window.closeModal = closeModal;
-        window.saveUser = saveUser;
-        window.closeMessageModal = closeMessageModal;
-
+            fetchData(); 
+            filterTable("ALL"); 
+        };
     </script>
 </head>
 
 <body>
+    <div class="loading-overlay" id="mainLoader">
+        <div class="loader" style="width: 40px; height: 40px;"></div>
+    </div>
+    
     <div class="navbar">
         <h1>School Manager</h1>
         <div class="badges">
             <div class="badge info"><i class="ri-group-line ri-icon"></i><span id="userCount">0</span> Total</div>
-            <div class="badge success"><i class="ri-checkbox-circle-line ri-icon"></i><span id="activeCount">0</span>
-                Active</div>
-            <div class="badge warning"><i class="ri-pause-circle-line ri-icon"></i><span id="inactiveCount">0</span>
-                Inactive</div>
+            <div class="badge success"><i class="ri-checkbox-circle-line ri-icon"></i><span id="activeCount">0</span> Active</div>
+            <div class="badge warning"><i class="ri-pause-circle-line ri-icon"></i><span id="inactiveCount">0</span> Inactive</div>
         </div>
     </div>
 
@@ -940,8 +630,8 @@
             <div class="form-grid">
                 <div class="form-group">
                     <label for="name">School Name *</label>
-                    <input id="name" placeholder="Enter school name" required oninput="checkSchoolName()" />
-                    <div id="nameSuggestion"></div>
+                    <input id="name" placeholder="Enter school name" required />
+                    <div id="nameSuggestion"></div> 
                 </div>
                 <div class="form-group">
                     <label for="address">Address *</label>
@@ -958,18 +648,34 @@
                         <option value="INACTIVE">INACTIVE</option>
                     </select>
                 </div>
+                
                 <div class="form-group">
                     <label for="userid">User ID (ENRXXXX)</label>
-                    <input id="userid" placeholder="Auto-generated" readonly />
+                    <div class="id-input-group" style="display: flex; align-items: center;">
+                        <input id="userid" placeholder="Auto-generated" readonly 
+                               style="flex-grow: 1; border-top-right-radius: 0; border-bottom-right-radius: 0;" />
+                        
+                        <button id="lockBtn" class="icon-btn" onclick="toggleUserIdEdit(event)" title="ID is locked. Click to edit.">
+                            <i id="lockIcon" class="ri-lock-line ri-icon"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="form-group">
+                
+                <div class="form-group" style="position: relative;">
                     <label for="password">Password</label>
-                    <input id="password" placeholder="Auto-generated if empty" />
+                    <input id="password" type="password" placeholder="Auto-generated if empty" style="padding-right: 3rem;" />
+                    <i id="showPasswordIcon" class="ri-eye-line ri-icon" 
+                       onclick="togglePasswordVisibility()" 
+                       style="position: absolute; right: 1rem; bottom: 0.8rem; cursor: pointer; color: var(--text-light); font-size: 1.3rem;">
+                    </i>
                 </div>
+                
             </div>
             <div class="form-actions">
                 <button class="btn btn-secondary" onclick="window.closeModal()">Cancel</button>
-                <button class="btn btn-primary" onclick="window.saveUser()">Save Details</button>
+                <button class="btn btn-primary" id="saveButton" onclick="window.saveUser()">
+                    Save Details
+                </button>
             </div>
         </div>
     </div>
@@ -977,12 +683,12 @@
     <div class="modal" id="messageModal" onclick="if(event.target.id === 'messageModal') closeMessageModal()">
         <div class="modal-content">
             <div class="modal-header">
-                <h3 id="messageTitle" class="text-xl font-bold">Message</h3>
+                <h3 id="messageTitle">Message</h3>
                 <span class="close-btn" onclick="window.closeMessageModal()">&times;</span>
             </div>
-            <p id="messageText" class="text-gray-700 mb-6"></p>
-            <div class="flex justify-end gap-3" id="messageButtons">
-                </div>
+            <p id="messageText"></p>
+            <div class="flex justify-end gap-3 form-actions" id="messageButtons">
+            </div>
         </div>
     </div>
 </body>
