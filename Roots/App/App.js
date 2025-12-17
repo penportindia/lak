@@ -325,15 +325,13 @@ window.navigateToForm = async function() {
 // ✅ Generate Form Fields
 // -----------------------------
 async function generateFormFields(type) {
-
-  // 🔴 CHANGE: adm & empid hata diye (sirf yahi change)
-  const numberFields = ['roll', 'contact'];
+  const numberFields = ['adm', 'roll', 'contact', 'empid'];
 
   const studentFields = [
     ['enroll', 'Enrollment Number *', 'text', true],
-    ['adm', 'Admission Number', 'text'], // ✅ special characters allowed
+    ['adm', 'Admission Number', 'text'],
     ['name', 'Student Name *', 'text'],
-    ['class', 'Class *', 'select', ['PG', 'NUR', 'LKG', 'UKG', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII']],
+    ['class', 'Class *', 'select', ['PG', 'NURSERY', 'LKG', 'UKG', 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII']],
     ['section', 'Section *', 'select', ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K']],
     ['roll', 'Roll Number *', 'text'],
     ['dob', 'Date of Birth', 'date'],
@@ -348,7 +346,7 @@ async function generateFormFields(type) {
 
   const staffFields = [
     ['enroll', 'Enrollment Number *', 'text', true],
-    ['empid', 'Employee ID', 'text'], // ✅ special characters allowed
+    ['empid', 'Employee ID', 'text'],
     ['name', 'Name *', 'text'],
     ['designation', 'Designation *', 'select', ['DIRECTOR', 'PRINCIPAL', 'VICE PRINCIPAL', 'COORDINATOR', 'ADMIN', 'ACCOUNTANT', 'LIBRARIAN', 'TEACHER', 'CLERK', 'COMPUTER OPERATOR', 'RECEPTIONIST', 'DRIVER', 'ATTENDANT', 'GUARD', 'CARETAKER', 'HELPER', 'PEON', 'MED', 'OTHER']],
     ['father', "Father / Spouse Name *", 'text'],
@@ -380,10 +378,7 @@ async function generateFormFields(type) {
     const fullId = `${type}_${id}`;
     let inputHTML = '';
 
-    const isRequired =
-      (label.includes('*') && !['dob', 'contact'].includes(id))
-        ? 'required'
-        : '';
+    const isRequired = (label.includes('*') && !['dob', 'contact'].includes(id)) ? 'required' : '';
 
     if (controlType === 'select') {
       const options = Array.isArray(optOrReadonly) ? optOrReadonly : [];
@@ -398,6 +393,7 @@ async function generateFormFields(type) {
           </datalist>
         `;
       } else {
+        // Regular select dropdown
         inputHTML = `<select id="${fullId}" name="${fullId}" ${isRequired}>
           <option value="" disabled selected>Select ${label.replace('*', '').trim()}</option>`;
         options.forEach(opt => inputHTML += `<option value="${opt}">${opt}</option>`);
@@ -405,22 +401,14 @@ async function generateFormFields(type) {
       }
 
     } else if (controlType === 'textarea') {
+      // ✅ Limit address to 50 characters
       const maxLength = 50;
       inputHTML = `<textarea id="${fullId}" name="${fullId}" rows="2" maxlength="${maxLength}" ${isRequired}></textarea>`;
     } else {
       const value = id === 'enroll' ? enrollNo : '';
       const ro = id === 'enroll' ? 'readonly' : '';
-
-      const inputType =
-        id === 'dob'
-          ? 'date'
-          : (numberFields.includes(id) ? 'tel' : 'text');
-
-      const inputAttributes =
-        numberFields.includes(id)
-          ? 'pattern="\\d*" inputmode="numeric"'
-          : '';
-
+      const inputType = id === 'dob' ? 'date' : (numberFields.includes(id) ? 'tel' : 'text');
+      const inputAttributes = numberFields.includes(id) ? 'pattern="\\d*" inputmode="numeric"' : '';
       inputHTML = `<input type="${inputType}" id="${fullId}" name="${fullId}" value="${value}" ${ro} ${inputAttributes} ${isRequired} />`;
     }
 
@@ -430,7 +418,6 @@ async function generateFormFields(type) {
     container.appendChild(wrapper);
   });
 }
-
 // -----------------------------
 // ✅ Image Compression Helper
 // -----------------------------
@@ -942,3 +929,4 @@ window.newEntry = newEntry;
 window.goHome = goHome;
 window.editEntry = editEntry;
 window.saveIDAsImage = saveIDAsImage;
+
