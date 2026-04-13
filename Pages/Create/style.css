@@ -67,7 +67,7 @@ body::-webkit-scrollbar {
     align-items: center;
     background: var(--bg-light);
     min-height: 100vh;
-    padding-top: 120px;
+    padding: 120px 16px 0 16px;
     overflow-x: hidden;
 }
 
