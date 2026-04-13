@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d47a1" />
+    <title>LAKSHMI ID MAKER</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css?v=1.1" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js" defer></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" defer></script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="android-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>LAKSHMI ID MAKER</h1>
+                    <p>Your Trusted Partner For ID Solutions</p>
+                </div>
+            </div>
+        </header>
+
+        <section id="loginPage" class="main-card" aria-labelledby="loginHeading">
+            <h2 id="loginHeading"><i class="fas fa-lock me-2"></i> Login</h2>
+            <div class="form-group">
+                <label for="loginUser">Phone Number</label>
+                <input type="text" id="loginUser" placeholder="Phone Number" autocomplete="username" />
+            </div>
+            <div class="form-group" style="position: relative; display: flex; flex-direction: column;">
+                <label for="loginPass">Password</label>
+                <div style="position: relative; width: 100%;">
+                    <input type="password" id="loginPass" placeholder="Security Key" autocomplete="current-password" style="width: 100%; padding-right: 40px;" />
+                    <span onclick="togglePassword()" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); cursor: pointer; display: flex; align-items: center;">
+                        <i id="eyeIcon" class="fas fa-eye"></i>
+                    </span>
+                </div>
+            </div>
+            <button type="button" onclick="verifyLogin()" class="btn">Login</button>
+        </section>
+
+        <section id="homePage" class="main-card hidden" aria-labelledby="homeHeading">
+            <h2 id="homeHeading"><i class="fas fa-id-card-alt me-2"></i> Start Creating Your ID</h2>
+            <div class="form-group">
+                <label for="schoolName">School Name</label>
+                <select id="schoolName" disabled>
+                    <option>Auto-filled...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="idType">ID Type</label>
+                <select id="idType">
+                    <option value="">Select type</option>
+                    <option value="student">Student</option>
+                    <option value="staff">Staff</option>
+                </select>
+            </div>
+            <button type="button" onclick="navigateToForm()" class="btn">Continue</button>
+        </section>
+
+        <section id="idForm" class="main-card hidden" aria-labelledby="formHeading">
+            <h2 id="formHeading"><i class="fas fa-clipboard me-2"></i> Fill ID Form</h2>
+            <form id="dataForm" onsubmit="handleSubmit(event)">
+                <div id="formFields"></div>
+                <div class="media-container" style="margin-bottom: 20px;">
+                    <video id="video" autoplay playsinline muted class="hidden"></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                </div>
+                <div class="btn-group">
+                    <button id="cameraBtn" type="button" onclick="startCamera()" class="icon-btn camera-btn">
+                        <i class="fas fa-video"></i>
+                        <span>Camera</span>
+                    </button>
+                    <button id="submitBtn" type="submit" class="icon-btn submit-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Submit</span>
+                    </button>
+                    <button id="homeBtn" type="button" onclick="goHome()" class="icon-btn home-btn">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="previewPage" class="main-card hidden" aria-labelledby="previewHeading">
+            <h2 id="previewHeading"><i class="fas fa-image me-2"></i> Preview</h2>
+            <div id="preview" style="margin-bottom: 20px;"></div>
+            <div id="progressContainer" class="progress-container">
+                <div id="uploadProgress" class="progress-bar"></div>
+            </div>
+            <div class="btn-group">
+                <button onclick="saveIDAsImage()" class="icon-btn save-btn">
+                    <i class="fas fa-download"></i>
+                    <span>Save</span>
+                </button>
+                <button onclick="editEntry()" class="icon-btn edit-btn">
+                    <i class="fas fa-pen"></i>
+                    <span>Edit</span>
+                </button>
+                <button id="newEntryBtn" onclick="newEntry()" class="icon-btn new-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>New ID</span>
+                </button>
+            </div>
+        </section>
+
+        <div class="branding-footer">
+            <span><a href="https://penportindia.github.io/penport/" target="_blank">Penport India</a> © 2025</span>
+        </div>
+    </div>
+
+    <div id="messageModal" class="modal-container" aria-modal="true" role="dialog">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div class="modal-body">
+                <div class="modal-icon"></div>
+                <h3 id="modalTitle"></h3>
+                <p id="modalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="modalOkBtn" class="btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
