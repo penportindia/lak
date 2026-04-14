@@ -35,8 +35,6 @@
             color: var(--text-dark);
             min-height: 100vh;
         }
-        
-        /* --- LOADER / SPINNER STYLES --- */
         .loader {
             border: 4px solid #f3f3f3;
             border-top: 4px solid var(--primary);
@@ -64,8 +62,6 @@
             justify-content: center;
             z-index: 101; 
         }
-
-        /* NAVBAR & Layout */
         .navbar {
             background: var(--card-bg);
             padding: 1rem 2rem;
@@ -92,8 +88,6 @@
             display: flex; justify-content: space-between; align-items: center;
             flex-wrap: wrap; margin-bottom: 2rem; gap: 1.25rem;
         }
-
-        /* Search & Filters */
         .search-box { position: relative; flex-grow: 1; max-width: 25rem; }
         .search-box input {
             width: 100%; padding: 0.75rem 1rem 0.75rem 3rem; border: 1px solid var(--border-color);
@@ -101,8 +95,6 @@
         }
         .search-box .ri-icon { position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #9CA3AF; font-size: 1.3rem;}
         .filters { display: flex; gap: 0.5rem; }
-
-        /* Buttons */
         .btn {
             display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.25rem;
             border-radius: var(--radius-md); border: 1px solid transparent; cursor: pointer;
@@ -120,7 +112,6 @@
         .icon-btn .ri-icon { font-size: 1.2rem; color: #6B7280; }
         .icon-btn:hover { background: #F3F4F6; transform: translateY(-1px); }
 
-        /* Table */
         table {
             width: 100%; min-width: 900px; border-collapse: separate; border-spacing: 0;
             background: var(--card-bg); border-radius: var(--radius-lg); overflow: hidden;
@@ -132,7 +123,6 @@
         .status-active { background: #D1FAE5; color: var(--success); }
         .status-inactive { background: #FFEDD5; color: var(--warning); }
 
-        /* Modal */
         .modal {
             position: fixed; top: 0; left: 0; right: 0; bottom: 0; display: none;
             align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5);
@@ -156,7 +146,6 @@
         .form-group input.is-invalid { border-color: var(--danger); }
         .form-actions { margin-top: 2rem; display: flex; justify-content: flex-end; gap: 1rem; }
         
-        /* ID Input Specific Styling for Lock/Unlock */
         .id-input-group input { border-right: none !important; }
         .id-input-group button { 
             height: 48px; width: 48px; border: 1px solid var(--border-color); border-left: none;
@@ -172,13 +161,11 @@
     </style>
 
     <script type="module">
-        // --- Firebase SDK Imports ---
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
         import { getDatabase, ref, onValue, remove, update } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
-        // IMPORTANT: Ensure this path is correct and contains your Firebase config object.
+
         import { firebaseConfig } from '../Database/Database.js'; 
 
-        // --- Global Variables and Init ---
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
@@ -186,30 +173,29 @@
         let editUserId = null;
         let currentFilter = "ALL";
         const byId = id => document.getElementById(id);
-        
-        // UI element references
         const saveButton = byId("saveButton");
         const mainLoader = byId("mainLoader");
         const userIdInput = byId("userid");
         const lockIcon = byId("lockIcon");
 
-        // --- Core Utility Functions ---
+        if (userIdInput) {
+            userIdInput.maxLength = 7;
+            userIdInput.addEventListener('input', () => {
+                userIdInput.value = userIdInput.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 7);
+            });
+        }
 
         const validatePhone = (phone) => /^\d{10}$/.test(phone.trim());
         const generatePassword = () => Math.random().toString(36).substring(2, 10).toUpperCase();
-
-        // --- FULL-PROOF 4-DIGIT ID GENERATION ---
         async function generateUniqueFourDigitId() {
             let newUserId;
             let isDuplicate = true;
             let attempts = 0;
-            
-            while (isDuplicate && attempts < 1000) {
-                // GUARANTEED 4-DIGIT NUMBER (1000 to 9999 inclusive)
-                const digits = Math.floor(Math.random() * 9000) + 1000;
-                newUserId = "ENR" + digits; 
 
-                // Check uniqueness against currently loaded school data
+            while (isDuplicate && attempts < 1000) {
+                const digits = String(Math.floor(Math.random() * 9000) + 1000).padStart(4, '0');
+                newUserId = `ENR${digits}`;
+
                 isDuplicate = schoolData.some(r => r.userid === newUserId);
                 attempts++;
 
@@ -219,21 +205,18 @@
             return null;
         }
 
-        // --- ID Edit Toggle Logic ---
-
         window.toggleUserIdEdit = function(event) {
             event.preventDefault();
             
             if (userIdInput.readOnly) {
-                // Unlock
                 userIdInput.readOnly = false;
                 userIdInput.style.backgroundColor = "var(--card-bg)";
                 userIdInput.classList.remove('is-invalid');
                 lockIcon.className = "ri-unlock-line ri-icon";
                 lockIcon.style.color = "var(--success)";
                 byId("lockBtn").title = "ID is unlocked. Click to lock.";
+                userIdInput.maxLength = 7;
             } else {
-                // Lock
                 userIdInput.readOnly = true;
                 userIdInput.style.backgroundColor = "#F9FAFB";
                 lockIcon.className = "ri-lock-line ri-icon";
@@ -241,8 +224,6 @@
                 byId("lockBtn").title = "ID is locked. Click to edit.";
             }
         }
-
-        // --- Modal Management ---
 
         function toggleLoader(show) {
             mainLoader.style.display = show ? 'flex' : 'none';
@@ -295,8 +276,6 @@
                 saveButton.disabled = false;
                 saveButton.innerHTML = 'Save Details';
             }
-
-            // Ensure ID is locked by default
             userIdInput.readOnly = true;
             userIdInput.style.backgroundColor = "#F9FAFB";
             lockIcon.className = "ri-lock-line ri-icon";
@@ -325,7 +304,6 @@
             document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
             saveButton.textContent = 'Save Details';
             saveButton.disabled = false;
-            // Also clear name suggestion (optional, but good practice)
             byId("nameSuggestion").innerHTML = "";
             byId("nameSuggestion").style.display = "none";
         }
@@ -341,8 +319,6 @@
                 icon.className = "ri-eye-line ri-icon";
             }
         }
-
-        // --- Data Fetching and Display ---
 
         function fetchData() {
             toggleLoader(true); 
@@ -417,8 +393,6 @@
             renderTable(schoolData);
         }
 
-        // --- CRUD Operations (Full-Proof Save Logic) ---
-
         window.saveUser = async function() {
             saveButton.disabled = true;
             saveButton.innerHTML = `<span class="loader" style="margin-right: 0.5rem; display: inline-block;"></span> Saving...`; 
@@ -434,13 +408,11 @@
 
                 document.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
 
-                // --- 1. Validation (Mandatory fields and 4-digit ID format) ---
                 let isValid = true;
                 if (!name) { byId("name").classList.add('is-invalid'); isValid = false; }
                 if (!address) { byId("address").classList.add('is-invalid'); isValid = false; }
                 if (!phone || !validatePhone(phone)) { byId("phone").classList.add('is-invalid'); isValid = false; }
                 
-                // ID Format Check: ENR + 4 Digits
                 const idRegex = /^ENR\d{4}$/;
                 if (!userid || !idRegex.test(userid)) { 
                      userIdInput.classList.add('is-invalid'); 
@@ -453,9 +425,6 @@
                     return;
                 }
 
-                // --- 2. Uniqueness Checks ---
-                
-                // Name/Phone duplicate
                 const duplicate = schoolData.find(r =>
                     (r.name === name || r.phone === phone) && r.userid !== editUserId
                 );
@@ -464,7 +433,6 @@
                     return;
                 }
 
-                // Manually Edited/New User ID duplicate
                 if (userid !== editUserId || !isEditing) {
                     const idDuplicate = schoolData.find(r => r.userid === userid);
                     if (idDuplicate) {
@@ -478,17 +446,16 @@
                 let updates = {};
                 let successMessage;
 
-                // --- 3. Prepare Data ---
+
                 if (!isEditing) {
-                    // CREATE
+
                     if (!password) password = generatePassword();
                     successMessage = 'added';
                 } else {
-                    // UPDATE
+
                     if (!password) password = oldSchoolData.password;
                     successMessage = 'updated';
-                
-                    // If ID was changed during edit, DELETE the old record
+
                     if (userid !== editUserId && oldSchoolData) {
                          updates[`/schools/${editUserId}`] = null; 
                     }
@@ -496,8 +463,6 @@
                 
                 const finalData = { name, address, phone, userid, password, status };
                 updates[`/schools/${userid}`] = finalData;
-
-                // --- 4. Commit to Firebase ---
                 await update(ref(db, '/'), updates);
 
                 openMessageModal("Success", `✅ School ${successMessage} successfully!`);
@@ -548,11 +513,7 @@
                 confirmAction
             );
         }
-
-        // --- Initialization ---
-
         window.onload = () => { 
-            // Make functions globally available
             window.openModal = openModal;
             window.closeModal = closeModal;
             window.saveUser = saveUser;
@@ -652,8 +613,8 @@
                 <div class="form-group">
                     <label for="userid">User ID (ENRXXXX)</label>
                     <div class="id-input-group" style="display: flex; align-items: center;">
-                        <input id="userid" placeholder="Auto-generated" readonly 
-                               style="flex-grow: 1; border-top-right-radius: 0; border-bottom-right-radius: 0;" />
+                        <input id="userid" placeholder="Auto-generated" readonly maxlength="7" pattern="^ENR\d{4}$" title="Must follow ENR1234 format" 
+                               style="flex-grow: 1; border-top-right-radius: 0; border-bottom-right-radius: 0; text-transform: uppercase;" />
                         
                         <button id="lockBtn" class="icon-btn" onclick="toggleUserIdEdit(event)" title="ID is locked. Click to edit.">
                             <i id="lockIcon" class="ri-lock-line ri-icon"></i>
