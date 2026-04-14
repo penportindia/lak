@@ -10,9 +10,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
 
     <style>
-        /* ======================================================================== */
-        /* 1. Variables & Global Reset */
-        /* ======================================================================== */
         :root {
             --primary-color: #0077b6;
             --secondary-color: #023e8a;
@@ -27,7 +24,7 @@
             --credit-normal: #f97316;
             --sidebar-width: 70px;
             --border-radius-xl: 12px;
-            --COMPANY_LOGO_URL: url('https://i.ibb.co/zTBBSD15/Penport-Background.jpg');
+            --COMPANY_LOGO_URL: url('https://i.ibb.co/ym5yxYwM/Penport-logo-001.png');
             --LOGIN_BG_IMAGE_URL: url('https://i.ibb.co/vCFMjrn8/vecteezy-abstract-white-and-orange-corporate-background-11171106-1.jpg');
         }
 
@@ -46,9 +43,6 @@
             min-height: 100vh;
         }
 
-        /* ======================================================================== */
-        /* 2. Login Screen */
-        /* ======================================================================== */
         #loginScreen {
             align-items: center;
             background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), var(--LOGIN_BG_IMAGE_URL);
@@ -98,7 +92,6 @@
             width: 100%;
         }
 
-        /* Ad Container */
         .ad-container {
             background: var(--bg-dark);
             border-bottom-right-radius: var(--border-radius-xl);
@@ -186,7 +179,6 @@
             top: 0;
         }
 
-        /* Login Form */
         .login-logo {
             margin-bottom: 30px;
             text-align: center;
@@ -197,8 +189,8 @@
             background-image: var(--COMPANY_LOGO_URL);
             background-position: center;
             background-repeat: no-repeat;
-            background-size: cover;
-            border: 4px solid var(--primary-color);
+            background-size: contain;
+            border: none;
             border-radius: 50%;
             height: 110px;
             margin: 0 auto 15px;
@@ -321,9 +313,6 @@
             text-decoration: underline;
         }
 
-        /* ======================================================================== */
-        /* 3. Dashboard Container */
-        /* ======================================================================== */
         .container {
             display: none;
             flex: 1;
@@ -332,11 +321,10 @@
 
         .container.visible {
             display: flex;
-            flex-direction: row; /* Changed to row for sidebar + main-area layout */
-            flex: 1; /* Ensures it takes up remaining space for min-height 100vh */
+            flex-direction: row; 
+            flex: 1; 
         }
 
-        /* Sidebar */
         .sidebar {
             background: var(--bg-dark);
             box-shadow: 2px 0 10px rgba(0,0,0,0.3);
@@ -349,9 +337,61 @@
         }
 
         .sidebar-header {
-            border-bottom: 1px solid rgba(255,255,255,0.1);
-            padding: 16px 0;
+            border-bottom: 2px solid rgba(72,202,228,0.3);
+            padding: 12px 8px;
             text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .sidebar-header:hover {
+            background: rgba(72,202,228,0.1);
+        }
+
+        .sidebar-user-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sidebar-user-icon {
+            align-items: center;
+            background: linear-gradient(135deg, #0077b6 0%, #00b4d8 100%);
+            border-radius: 50%;
+            box-shadow: 0 6px 16px rgba(0,119,182,0.5), inset -2px -2px 4px rgba(0,0,0,0.2), inset 2px 2px 4px rgba(255,255,255,0.2);
+            color: #ffffff;
+            display: inline-flex;
+            font-size: 36px;
+            justify-content: center;
+            align-items: center;
+            height: 52px;
+            width: 52px;
+            transition: all 0.3s ease;
+            position: relative;
+            flex-shrink: 0;
+            padding: 0;
+        }
+
+        .sidebar-user-icon svg {
+            width: 32px;
+            height: 32px;
+            fill: #ffffff;
+            display: block;
+        }
+
+        .sidebar-user-icon i {
+            display: none;
+        }
+
+        .sidebar-header:hover .sidebar-user-icon {
+            box-shadow: 0 8px 24px rgba(0,119,182,0.7), inset -2px -2px 4px rgba(0,0,0,0.15), inset 2px 2px 6px rgba(255,255,255,0.3);
+            transform: scale(1.1) rotateZ(-5deg);
+        }
+
+        .sidebar-user-name {
+            display: none;
         }
 
         .sidebar-header i {
@@ -360,10 +400,96 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.2);
             color: var(--accent-color);
-            display: inline-flex;
+            display: none;
             font-size: 30px;
             justify-content: center;
             padding: 6px;
+        }
+
+        .sidebar-user-menu {
+            display: none;
+            position: absolute;
+            top: 100%;
+            right: -250px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #0d1a2b 0%, #1e293b 100%);
+            border: 1px solid rgba(72,202,228,0.2);
+            border-top: 3px solid var(--accent-color);
+            z-index: 1001;
+            padding: 0;
+            min-width: 240px;
+            box-shadow: 0 12px 32px rgba(0,0,0,0.4);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .sidebar-user-menu.show {
+            display: block;
+        }
+
+        .sidebar-user-info {
+            background: rgba(72,202,228,0.1);
+            padding: 16px;
+            border-bottom: 1px solid rgba(72,202,228,0.2);
+            text-align: center;
+        }
+
+        .sidebar-user-info-name {
+            font-size: 14px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 4px;
+            display: block;
+        }
+
+        .sidebar-user-info-role {
+            font-size: 11px;
+            color: var(--accent-color);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .sidebar-user-menu-item {
+            padding: 12px 16px;
+            color: rgba(255,255,255,0.85);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-user-menu-item:last-child {
+            border-bottom: none;
+        }
+
+        .sidebar-user-menu-item:hover {
+            background: rgba(72,202,228,0.15);
+            color: var(--accent-color);
+            padding-left: 20px;
+        }
+
+        .sidebar-user-menu-item i {
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-user-menu-item.logout {
+            background: rgba(239,68,68,0.05);
+            color: #ff7f7f;
+            border-top: 1px solid rgba(239,68,68,0.1);
+        }
+
+        .sidebar-user-menu-item.logout:hover {
+            background: rgba(239,68,68,0.15);
+            color: #ff6b6b;
+            padding-left: 20px;
         }
 
         .menu {
@@ -460,7 +586,6 @@
             visibility: visible;
         }
 
-        /* Main Area */
         .main-area {
             display: flex;
             flex: 1;
@@ -469,14 +594,14 @@
         }
 
         .header {
+            display: none;
             align-items: center;
             border-bottom: 1px solid #e5e7eb;
             background: var(--bg-content);
             box-shadow: 0 1px 5px rgba(0,0,0,0.1);
-            display: flex;
             flex-shrink: 0;
             height: 64px;
-            justify-content: space-between;
+            justify-content: flex-start;
             padding: 0 24px;
         }
 
@@ -486,100 +611,34 @@
             font-weight: 700;
         }
 
-        /* User Dropdown */
         .user-dropdown-container {
-            position: relative;
+            display: none;
         }
 
         .user-card {
-            align-items: center;
-            background: var(--bg-light);
-            border-radius: 32px;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-            cursor: pointer;
-            display: flex;
-            padding: 5px 15px 5px 5px;
-            transition: all 0.2s;
-        }
-
-        .user-card:hover {
-            background: #e2e8f0;
+            display: none;
         }
 
         .user-icon {
-            align-items: center;
-            background: var(--primary-color);
-            border-radius: 50%;
-            color: white;
-            display: flex;
-            height: 36px;
-            justify-content: center;
-            margin-right: 10px;
-            width: 36px;
+            display: none;
         }
 
         .user-text {
-            display: flex;
-            flex-direction: column;
-            line-height: 1.2;
-            text-align: right;
-        }
-
-        .user-text strong {
-            font-size: 14px;
-            font-weight: 600;
-            color: var(--text-dark);
-        }
-
-        .user-text span {
-            font-size: 12px;
-            color: var(--text-muted);
+            display: none;
         }
 
         .dropdown-arrow {
-            color: var(--text-muted);
-            margin-left: 8px;
-            transition: transform 0.2s;
-        }
-
-        .user-card[aria-expanded="true"] .dropdown-arrow {
-            transform: rotate(180deg);
+            display: none;
         }
 
         .dropdown-menu {
-            background: var(--bg-content);
-            border: 1px solid #e2e8f0;
-            border-radius: var(--border-radius-xl);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
             display: none;
-            min-width: 150px;
-            padding: 10px;
-            position: absolute;
-            right: 0;
-            top: 55px;
-            z-index: 1000;
-        }
-
-        .dropdown-menu.visible {
-            display: block;
         }
 
         .logout-btn-dropdown {
-            color: var(--credit-low);
-            cursor: pointer;
-            font-weight: 600;
-            padding: 10px 15px;
-            text-align: center;
-            transition: background 0.2s, color 0.2s;
+            display: none;
         }
 
-        .logout-btn-dropdown:hover {
-            background: #fee2e2;
-            border-radius: 8px;
-            color: #991b1b;
-        }
-
-        /* Main Content / Views */
         .main-content {
             display: flex;
             flex: 1;
@@ -602,18 +661,16 @@
             display: flex;
         }
 
-        /* IFRAME */
         iframe {
             background: var(--bg-content);
             border: none;
             display: block;
-            flex: 1; /* important: ensures iframe takes full height */
+            flex: 1;
             height: 100%;
             overflow: hidden;
             width: 100%;
         }
 
-        /* AD MANAGEMENT UI STYLES */
         #adManagementView {
             background: var(--bg-light);
             overflow-y: auto;
@@ -735,9 +792,6 @@
             color: #991b1b;
         }
 
-        /* ======================================================================== */
-        /* 4. Modal Styles */
-        /* ======================================================================== */
         #restrictionModal {
             align-items: center;
             background: rgba(0, 0, 0, 0.6);
@@ -853,7 +907,6 @@
                 <div class="login-logo">
                     <div class="logo-image"></div>
                     <h1>Penport India</h1>
-                    <h2>ID Card Solution</h2>
                 </div>
                 <form id="loginForm">
                     <div class="input-group">
@@ -898,31 +951,36 @@
 
     <div class="container" id="dashboardContainer">
         <div class="sidebar">
-            <div class="sidebar-header">
-                <i class="material-icons-round">credit_card</i>
+            <div class="sidebar-header" id="sidebarUserHeader" onclick="toggleSidebarUserMenu()">
+                <div class="sidebar-user-wrapper">
+                    <div class="sidebar-user-icon">
+                        <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="12" cy="8" r="4" fill="white"/>
+                            <path d="M 12 14 C 8 14 4 16 4 20 L 4 22 L 20 22 L 20 20 C 20 16 16 14 12 14 Z" fill="white"/>
+                        </svg>
+                    </div>
+                    <div class="sidebar-user-name" id="sidebarUserName">User</div>
+                </div>
+                <div class="sidebar-user-menu" id="sidebarUserMenu">
+                    <div class="sidebar-user-info">
+                        <span class="sidebar-user-info-name" id="sidebarUserDisplayName">User Name</span>
+                        <span class="sidebar-user-info-role" id="sidebarUserDisplayRole">User Role</span>
+                    </div>
+                    <div class="sidebar-user-menu-item logout" onclick="logout()">
+                        <i class="material-icons-round">logout</i>
+                        <span>Logout</span>
+                    </div>
+                </div>
             </div>
             <div class="menu" id="sidebarMenu">
                 </div>
         </div>
 
         <div class="main-area">
-            <div class="header">
-                <div class="header-title" id="dashboardHeaderTitle">Dashboard</div>
-                <div class="header-actions">
-                    <div class="user-dropdown-container">
-                        <div class="user-card" id="userCard" onclick="toggleDropdown()">
-                            <div class="user-icon"><i class="material-icons-round">person</i></div>
-                            <div class="user-text">
-                                <strong id="userName">Loading...</strong>
-                                <span id="userRole">...</span>
-                            </div>
-                            <i class="material-icons-round dropdown-arrow">arrow_drop_down</i>
-                        </div>
-                        <div class="dropdown-menu" id="dropdownMenu">
-                            <div class="logout-btn-dropdown" onclick="logout()">Logout</div>
-                        </div>
-                    </div>
-                </div>
+            <div style="display: none;">
+                <strong id="userName">User</strong>
+                <span id="userRole">Role</span>
+                <div id="dashboardHeaderTitle">Dashboard</div>
             </div>
 
             <div class="main-content">
@@ -1010,41 +1068,139 @@
         </div>
     </div>
 
-    <script type="module">
-    /* ------------------------------
-    Penport: Enhanced Session + Reload-Logout Script
-    - Keeps original app logic and behavior
-    - Adds: forced logout on reload, 30-min session expiry, robust cleanup & redirect
-    ------------------------------ */
+    <script>
+        (function() {
+            let isDevToolsOpen = false;
+            
+            const disableDevTools = () => {
+                document.onkeydown = function(e) {
+                    if (e.key === 'F12' || e.keyCode === 123) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.key === 'I')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.ctrlKey && e.shiftKey && (e.keyCode === 74 || e.key === 'J')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.ctrlKey && e.shiftKey && (e.keyCode === 67 || e.key === 'C')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.ctrlKey && e.shiftKey && (e.keyCode === 75 || e.key === 'K')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.ctrlKey && e.shiftKey && (e.keyCode === 77 || e.key === 'M')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.ctrlKey && e.shiftKey && (e.keyCode === 85 || e.key === 'U')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.ctrlKey && e.shiftKey && (e.keyCode === 80 || e.key === 'P')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.metaKey && e.keyCode === 85) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.metaKey && e.altKey && (e.keyCode === 73 || e.key === 'I')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.metaKey && e.altKey && (e.keyCode === 74 || e.key === 'J')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                    if (e.metaKey && e.altKey && (e.keyCode === 67 || e.key === 'C')) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                };
+                
+                document.onkeyup = function(e) {
+                    if (e.key === 'F12' || e.keyCode === 123) {
+                        e.stopPropagation();
+                        e.preventDefault();
+                        return false;
+                    }
+                };
+                
+                document.oncontextmenu = function(e) {
+                    e.stopPropagation();
+                    e.preventDefault();
+                    return false;
+                };
+                
+                window.addEventListener('keydown', disableDevTools, true);
+                window.addEventListener('keyup', disableDevTools, true);
+            };
+            
+            disableDevTools();
+            
+            setInterval(() => {
+                const widthThreshold = 160;
+                const heightThreshold = 160;
+                if (window.outerWidth - window.innerWidth > widthThreshold || 
+                    window.outerHeight - window.innerHeight > heightThreshold) {
+                    if (!isDevToolsOpen) {
+                        isDevToolsOpen = true;
+                        console.clear();
+                        window.console.log = () => {};
+                        window.console.warn = () => {};
+                        window.console.error = () => {};
+                        window.console.info = () => {};
+                    }
+                } else {
+                    isDevToolsOpen = false;
+                }
+            }, 100);
+            
+            if (typeof window.__REACT_DEVTOOLS_GLOBAL_HOOK__ !== 'undefined') {
+                window.__REACT_DEVTOOLS_GLOBAL_HOOK__.isDisabled = true;
+            }
+        })();
+    </script>
 
-    /* --- Firebase Modular SDK Imports --- */
+    <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
     import { getDatabase, ref as dbRef, get, child, set, onValue } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-database.js";
     import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
     import { firebaseConfig } from 'https://penportindia.github.io/lak/Roots/Database/Database.js';
-
-    /* --- Configuration --- */
-    const USER_STORAGE_KEY = 'penport_id_user_data';   // older/local user storage (kept for compatibility)
-    const SESSION_EXPIRY_KEY = 'penport_session_expiry'; // timestamp (ms) when session should expire
+    const USER_STORAGE_KEY = 'penport_id_user_data'; 
+    const SESSION_EXPIRY_KEY = 'penport_session_expiry';
     const FIREBASE_AD_PATH = 'ads/loginBanner';
     const DEFAULT_AD_IMG = 'https://placehold.co/460x200/0d1a2b/48cae4?text=Advertisement+Here';
-    const SESSION_DURATION_MS = 30 * 60 * 1000; // 30 minutes in ms
+    const SESSION_DURATION_MS = 30 * 60 * 1000;
 
-    /* --- Firebase Init --- */
     const app = initializeApp(firebaseConfig);
     const database = getDatabase(app);
     const auth = getAuth(app);
 
-    /* --- Ad listener unsubscribe holder --- */
     let stopAdListener = null;
 
-    /* --- Session watcher timer handle --- */
     let sessionWatcher = null;
 
-    /* --- Cached vendor data --- */
     let currentVendorData = null;
 
-    /* --- HTML refs (same as original) --- */
     const loginForm = document.getElementById("loginForm");
     const errorDiv = document.getElementById("errorMsg");
     const loginScreen = document.getElementById("loginScreen");
@@ -1057,14 +1213,17 @@
     const sidebarMenu = document.getElementById("sidebarMenu");
     const iframe = document.getElementById("contentFrame");
     const headerTitle = document.getElementById("dashboardHeaderTitle");
+    const sidebarUserHeader = document.getElementById("sidebarUserHeader");
+    const sidebarUserName = document.getElementById("sidebarUserName");
+    const sidebarUserDisplayName = document.getElementById("sidebarUserDisplayName");
+    const sidebarUserDisplayRole = document.getElementById("sidebarUserDisplayRole");
+    const sidebarUserMenu = document.getElementById("sidebarUserMenu");
 
-    /* Dynamic Ad Elements (Login Screen) */
     const adLoading = document.getElementById('adLoading');
     const adImageHeader = document.getElementById('adImageHeader');
     const adTitleEl = document.getElementById('adTitle');
     const adMessageEl = document.getElementById('adMessage');
 
-    /* Ad Management Elements (Dashboard View) */
     const iframeView = document.getElementById('iframeView');
     const adManagementView = document.getElementById('adManagementView');
     const adManagerForm = document.getElementById('adManagerForm');
@@ -1076,7 +1235,6 @@
     const previewTitle = document.getElementById('previewTitle');
     const previewMessage = document.getElementById('previewMessage');
 
-    /* Modal Elements */
     const restrictionModal = document.getElementById("restrictionModal");
     const modalTitle = document.getElementById("modalTitle");
     const modalIcon = document.getElementById("modalIcon");
@@ -1084,7 +1242,6 @@
     const modalMainMessage = document.getElementById("modalMainMessage");
     const modalDeuAmount = document.getElementById("modalDeuAmount");
 
-    /* --- Menu configuration (unchanged) --- */
     const menuConfig = {
         dashboard: { icon: 'space_dashboard', tooltip: 'Dashboard', url: 'https://penportindia.github.io/lak/Roots/Dashborad/Dashboard.html', internal: false },
         schools: { icon: 'business', tooltip: 'Clients', url: 'https://penportindia.github.io/lak/Roots/Schools/User.html', internal: false },
@@ -1103,60 +1260,46 @@
         manager:   ['dashboard', 'schools', 'create', 'manage', 'template', 'print', 'data', 'adManage']
     };
 
-    /* ---------------------------
-    Helper / Session Functions
-    --------------------------- */
-
-    /** Centralized logout + cleanup (call whenever you want to force sign-out) */
     async function performLogout({ skipRedirect = false } = {}) {
         try {
-            // 1) Unsubscribe ad listener
             if (stopAdListener) {
-                try { stopAdListener(); } catch (e) { console.warn("Error unsubscribing ad listener:", e); }
+                try { stopAdListener(); } catch (e) { }
                 stopAdListener = null;
             }
 
-            // 2) Clear session watcher
             if (sessionWatcher) {
                 clearInterval(sessionWatcher);
                 sessionWatcher = null;
             }
 
-            // 3) Remove session expiry & user storage
             try { localStorage.removeItem(SESSION_EXPIRY_KEY); } catch (e) { /* ignore */ }
             try { localStorage.removeItem(USER_STORAGE_KEY); } catch (e) { /* ignore */ }
 
-            // 4) Reset UI elements
             loginScreen.classList.remove("hidden");
             dashboardContainer.classList.remove("visible");
             loginForm.reset();
             errorDiv.style.display = "none";
             iframe.src = '';
             sidebarMenu.innerHTML = '';
-            userNameEl.textContent = 'User';
-            userRoleEl.textContent = 'Role';
+            if (userNameEl) userNameEl.textContent = 'User';
+            if (userRoleEl) userRoleEl.textContent = 'Role';
+            if (sidebarUserName) sidebarUserName.textContent = 'User';
+            if (sidebarUserDisplayName) sidebarUserDisplayName.textContent = 'User Name';
+            if (sidebarUserDisplayRole) sidebarUserDisplayRole.textContent = 'User Role';
+            if (sidebarUserMenu) sidebarUserMenu.classList.remove('show');
             currentVendorData = null;
             closeRestrictionModal();
-
-            // 5) Sign out from Firebase Auth
             try {
-                // signOut returns a promise; we try to await but in some unload scenarios it may get interrupted.
                 await signOut(auth);
             } catch (e) {
-                // swallow - best-effort signOut (may be aborted by unload)
-                console.warn("performLogout: signOut error (best-effort):", e);
+                console.error = function() {};
+                console.warn = function() {};
             }
-
-            // 6) Optionally redirect to login anchor or external login page
-            // If your login is a separate page, replace logic below with: window.location.replace('/login.html');
             if (!skipRedirect) {
-                // Ensure login UI is visible and optional anchor for easier detection
-                try { window.location.hash = '#login'; } catch (e) { /* ignore */ }
-                // If you want full reload to a login-only page uncomment next line and set correct URL:
-                // window.location.replace('/login.html');
-            }
 
-            // Restart login-screen ad listener for public login screen after logout
+                try { window.location.hash = '#login'; } catch (e) { /* ignore */ }
+
+            }
             fetchAndDisplayAd();
 
         } catch (err) {
@@ -1164,7 +1307,6 @@
         }
     }
 
-    /** Save user to local storage (kept for compatibility) */
     function saveUser(data) {
         try {
             localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(data));
@@ -1173,7 +1315,6 @@
         }
     }
 
-    /** Load user from local storage */
     function loadUser() {
         try {
             const data = localStorage.getItem(USER_STORAGE_KEY);
@@ -1184,27 +1325,23 @@
         }
     }
 
-    /** Set session expiry (ms timestamp) and start watcher */
     function startSessionTimer() {
         try {
             const expiry = Date.now() + SESSION_DURATION_MS;
             localStorage.setItem(SESSION_EXPIRY_KEY, String(expiry));
         } catch (e) {
-            console.warn("Could not set session expiry in localStorage:", e);
+                console.error = function() {};
         }
 
-        // Clear any existing watcher
         if (sessionWatcher) {
             clearInterval(sessionWatcher);
             sessionWatcher = null;
         }
 
-        // Check every 5 seconds (responsive) — if you want less frequent check increase interval
         sessionWatcher = setInterval(() => {
             const expiryStr = localStorage.getItem(SESSION_EXPIRY_KEY);
             const expiry = expiryStr ? Number(expiryStr) : 0;
             if (!expiry || Date.now() >= expiry) {
-                // Session expired -> force logout
                 clearInterval(sessionWatcher);
                 sessionWatcher = null;
                 performLogout();
@@ -1212,7 +1349,6 @@
         }, 5000);
     }
 
-    /** Validate current session on-demand (used on auth state changes etc.) */
     function isSessionValid() {
         try {
             const expiryStr = localStorage.getItem(SESSION_EXPIRY_KEY);
@@ -1223,23 +1359,15 @@
         }
     }
 
-    /* ---------------------------
-    Ad Fetch / Preview / Management
-    (kept strongly same as original)
-    --------------------------- */
-
-    /** Fetches and displays the simplified ad banner data from Firebase Realtime DB. */
     function fetchAndDisplayAd() {
         if (adLoading) adLoading.style.display = 'flex';
 
-        // Stop existing listener if any
         if (stopAdListener) {
             try { stopAdListener(); } catch (e) { /* ignore */ }
             stopAdListener = null;
         }
 
         const adRef = dbRef(database, FIREBASE_AD_PATH);
-        // store the unsubscribe function
         stopAdListener = onValue(adRef, (snapshot) => {
             const adData = snapshot.val();
             if (adLoading) adLoading.style.display = 'none';
@@ -1259,18 +1387,17 @@
                     adImageHeader.style.backgroundImage = `url('${DEFAULT_AD_IMG}')`;
                     adImageHeader.textContent = '';
                 }
-                console.warn("No Ad data found in Firebase. Using default content.");
+                console.error = function() {};
             }
         }, (error) => {
             if (adLoading) adLoading.style.display = 'none';
-            console.error("Error fetching ad data:", error);
+                console.error("Error fetching ad data:", error);
             if (adTitleEl) adTitleEl.textContent = "Ad Load Error";
             if (adMessageEl) adMessageEl.textContent = "Could not load latest advertisement details. Please check network.";
             if (adImageHeader) adImageHeader.style.backgroundImage = `url('${DEFAULT_AD_IMG}')`;
         });
     }
 
-    /** Loads the current simplified ad data into the management form. */
     async function loadAdDataToForm() {
         try {
             const snapshot = await get(child(dbRef(database), FIREBASE_AD_PATH));
@@ -1286,7 +1413,6 @@
         }
     }
 
-    /** Shows a temporary success or error alert in the management view. */
     function showAlert(type, message) {
         adManagerAlert.className = `ad-manager-alert ${type}`;
         adManagerAlert.textContent = message;
@@ -1296,7 +1422,6 @@
         }, 4000);
     }
 
-    /** Previews the current form data in the preview box. */
     window.previewAd = () => {
         const title = adTitleInput.value || 'Ad Title...';
         const message = adMessageInput.value || 'Ad Message...';
@@ -1308,7 +1433,6 @@
         previewImageHeader.textContent = 'Ad Preview';
     }
 
-    /* Save ad handler (unchanged) */
     if (adManagerForm) {
         adManagerForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -1322,22 +1446,20 @@
                 await set(dbRef(database, FIREBASE_AD_PATH), newAdData);
                 showAlert('success', '✅ Advertisement saved successfully.');
             } catch (error) {
-                console.error("Error saving ad data:", error);
+            console.error("Error saving ad data:", error);
                 showAlert('error', `❌ Error saving ad: ${error.message}`);
             }
         });
     }
 
-    /* ---------------------------
-    UI / Menu / Modal Functions
-    (preserved from original)
-    --------------------------- */
-
     function updateHeaderUI(userData) {
         const { name, roleKey } = userData;
         const roleDisplay = roleKey ? (roleKey.charAt(0).toUpperCase() + roleKey.slice(1)) : '';
-        userNameEl.textContent = name || 'User';
-        userRoleEl.textContent = roleDisplay || 'Role';
+        if (sidebarUserName) sidebarUserName.textContent = name || 'User';
+        if (sidebarUserDisplayName) sidebarUserDisplayName.textContent = name || 'User Name';
+        if (sidebarUserDisplayRole) sidebarUserDisplayRole.textContent = roleDisplay || 'User Role';
+        if (userNameEl) userNameEl.textContent = name || 'User';
+        if (userRoleEl) userRoleEl.textContent = roleDisplay || 'Role';
     }
 
     function setMainContentView(viewId) {
@@ -1411,7 +1533,14 @@
         item.classList.add("active");
         loadPage(page);
         toggleDropdown(false);
+        if (sidebarUserMenu) sidebarUserMenu.classList.remove('show');
     }
+
+    window.toggleSidebarUserMenu = () => {
+        if (sidebarUserMenu) {
+            sidebarUserMenu.classList.toggle('show');
+        }
+    };
 
     function loadPage(page) {
         const item = menuConfig[page];
@@ -1426,7 +1555,6 @@
         }
     }
 
-    /* Password toggle (unchanged) */
     if (togglePasswordIcon) {
         togglePasswordIcon.addEventListener('click', () => {
             passwordInput.type = passwordInput.type === "password" ? "text" : "password";
@@ -1436,33 +1564,31 @@
 
     window.toggleDropdown = (show) => {
         const dropdownMenu = document.getElementById("dropdownMenu");
+        if (!userCardEl) return;
         const isVisible = userCardEl.classList.contains('open');
         const shouldShow = typeof show === 'boolean' ? show : !isVisible;
         userCardEl.classList.toggle('open', shouldShow);
     };
 
-    /* Global click handler to close dropdown/modal (same) */
     document.addEventListener('click', (e) => {
         const dropdownMenu = document.getElementById("dropdownMenu");
-        if (userCardEl.classList.contains('open') && !userCardEl.contains(e.target) && !dropdownMenu.contains(e.target)) {
+        if (userCardEl && userCardEl.classList.contains('open') && dropdownMenu && !userCardEl.contains(e.target) && !dropdownMenu.contains(e.target)) {
             toggleDropdown(false);
+        }
+        if (sidebarUserMenu && sidebarUserHeader && sidebarUserMenu.classList.contains('show')) {
+            if (!sidebarUserHeader.contains(e.target)) {
+                sidebarUserMenu.classList.remove('show');
+            }
         }
         if (restrictionModal.classList.contains('show') && !document.querySelector('.modal-content').contains(e.target) && e.target === restrictionModal) {
             closeRestrictionModal();
         }
     });
 
-    /* ---------------------------
-    Logout (centralized via performLogout)
-    --------------------------- */
-
     window.logout = async () => {
         await performLogout();
     };
 
-    /* ---------------------------
-    Login Logic (modified to set session expiry & start timer)
-    --------------------------- */
     if (loginForm) {
         loginForm.addEventListener("submit", async (e) => {
             e.preventDefault();
@@ -1518,7 +1644,6 @@
                     currentVendorData = null;
                 }
 
-                // Save user and start session timer (30 minutes)
                 saveUser({
                     name: name,
                     roleKey: userRoleKey,
@@ -1527,7 +1652,6 @@
                     uid: user.uid
                 });
 
-                // Start session expiry (30 minutes from now)
                 startSessionTimer();
 
                 updateHeaderUI({ name: name, roleKey: userRoleKey });
@@ -1555,13 +1679,8 @@
         });
     }
 
-    /* ---------------------------
-    State persistence & onAuthStateChanged
-    - Important: if session expired -> force logout
-    --------------------------- */
     onAuthStateChanged(auth, async (user) => {
         if (user) {
-            // If session is invalid/expired, force logout
             if (!isSessionValid()) {
                 await performLogout();
                 return;
@@ -1583,7 +1702,6 @@
                 dashboardContainer.classList.add("visible");
                 updateHeaderUI(userData);
 
-                // Ensure session watcher running
                 startSessionTimer();
 
                 if (userData.roleKey === 'vendor' && !userData.isActive) {
@@ -1592,22 +1710,17 @@
                     initializeDashboard(userData.roleKey, true);
                 }
             } else {
-                // No matching stored user -> force logout to be safe
                 if (user) await performLogout();
                 loginScreen.classList.remove("hidden");
                 dashboardContainer.classList.remove("visible");
             }
         } else {
-            // Not logged in
             loginScreen.classList.remove("hidden");
             dashboardContainer.classList.remove("visible");
             currentVendorData = null;
         }
     });
 
-    /* ---------------------------
-    Initialize Dashboard Logic (unchanged)
-    --------------------------- */
     function initializeDashboard(role, isInitialLoad = false, forcePage = null) {
         buildSidebarMenu(role);
 
@@ -1630,56 +1743,19 @@
         document.querySelector(`.menu-item[data-page="${firstPageKey}"]`)?.classList.add('active');
     }
 
-    /* ---------------------------
-    Force logout on page reload / close (best-effort)
-    - We both try to signOut during unload, and ALSO signOut immediately on script load
-    --------------------------- */
-
-    /* Attempt to signOut immediately on script load so a reload will present logged-out state.
-    This is key to ensure "reload -> logged out" behavior. */
     (async function immediateSignOutOnLoad() {
         try {
-            // If user is currently signed in, sign them out immediately (best-effort)
-            // We await but any interruption by navigation may abort — however since we do this
-            // at script-start, it effectively logs out when reloading.
+
             await signOut(auth);
         } catch (e) {
-            // ignore
+
         } finally {
-            // Start fetch of ads for login screen immediately
-            try { fetchAndDisplayAd(); } catch (err) { console.warn("fetchAndDisplayAd error:", err); }
+
+            try { fetchAndDisplayAd(); } catch (err) { }
         }
     })();
 
-    /* Try to perform cleanup on page unload (best-effort, may be aborted by browser) */
-    window.addEventListener('beforeunload', (e) => {
-        // Attempt synchronous cleanup where possible
-        try {
-            // Clear local session expiry so on next load session is not valid
-            localStorage.removeItem(SESSION_EXPIRY_KEY);
-            localStorage.removeItem(USER_STORAGE_KEY);
-        } catch (err) { /* ignore */ }
-
-        // Try to call performLogout but don't await (unload may interrupt)
-        try { performLogout({ skipRedirect: true }); } catch (err) { /* ignore */ }
-
-        // Standard practice: no custom message
-    });
-
-    /* Also try unload event */
-    window.addEventListener('unload', (e) => {
-        try {
-            localStorage.removeItem(SESSION_EXPIRY_KEY);
-            localStorage.removeItem(USER_STORAGE_KEY);
-        } catch (err) { /* ignore */ }
-
-        try { performLogout({ skipRedirect: true }); } catch (err) { /* ignore */ }
-    });
-
-    /* ---------------------------
-    Final: Provide safe defaults and start ad listener if not already started
-    --------------------------- */
-    try { fetchAndDisplayAd(); } catch (e) { console.warn("Ad fetch init failed:", e); }
+    try { fetchAndDisplayAd(); } catch (e) { }
 
     </script>
 
