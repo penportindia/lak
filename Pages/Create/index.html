@@ -32,7 +32,7 @@
             <h2 id="loginHeading"><i class="fas fa-lock me-2"></i> Login</h2>
             <div class="form-group">
                 <label for="loginUser">Phone Number</label>
-                <input type="text" id="loginUser" placeholder="Phone Number" autocomplete="username" />
+                <input type="tel" id="loginUser" placeholder="Phone Number" autocomplete="username" inputmode="numeric" pattern="\d{10}" maxlength="10" oninput="enforceTenDigits(this)" />
             </div>
             <div class="form-group" style="position: relative; display: flex; flex-direction: column;">
                 <label for="loginPass">Password</label>
@@ -44,6 +44,14 @@
                 </div>
             </div>
             <button type="button" onclick="verifyLogin()" class="btn">Login</button>
+            <div class="social-login-strip">
+                <div class="social-divider"><span>Connect us</span></div>
+                <div class="social-login-row">
+                    <span class="social-pill google"><i class="fab fa-google"></i><span>Google</span></span>
+                    <span class="social-pill facebook"><i class="fab fa-facebook-f"></i><span>Facebook</span></span>
+                    <a class="social-pill whatsapp" href="https://wa.me/917004848750" target="_blank"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></a>
+                </div>
+            </div>
         </section>
 
         <section id="homePage" class="main-card hidden" aria-labelledby="homeHeading">
@@ -63,6 +71,24 @@
                 </select>
             </div>
             <button type="button" onclick="navigateToForm()" class="btn">Continue</button>
+            <div class="home-branding">
+                <div class="home-brand-top">
+                    <img src="https://i.ibb.co/ym5yxYwM/Penport-logo-001.png" alt="Penport India" />
+                    <div>
+                        <strong>Penport India</strong>
+                    </div>
+                </div>
+                <div class="home-brand-title">Next Level Services</div>
+                <a class="home-contact" href="https://wa.me/917004848750" target="_blank">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>Contact us</span>
+                </a>
+                <div class="home-service-grid">
+                    <div><i class="fas fa-school"></i><span>School ERP</span></div>
+                    <div><i class="fas fa-users-gear"></i><span>HR Management</span></div>
+                    <div><i class="fas fa-boxes-stacked"></i><span>Stock Inventory</span></div>
+                </div>
+            </div>
         </section>
 
         <section id="idForm" class="main-card hidden" aria-labelledby="formHeading">
@@ -73,10 +99,35 @@
                     <video id="video" autoplay playsinline muted class="hidden"></video>
                     <canvas id="canvas" class="hidden"></canvas>
                 </div>
+                <div id="cropControls" class="crop-controls hidden">
+                    <div class="crop-header">
+                        <span>Adjust Photo</span>
+                        <button type="button" onclick="finishCrop()">Next</button>
+                    </div>
+                    <div class="crop-control">
+                        <label for="cropZoom">Zoom</label>
+                        <input id="cropZoom" type="range" min="100" max="260" value="100" oninput="adjustCrop()" />
+                    </div>
+                    <div class="crop-control">
+                        <label for="cropX">Left / Right</label>
+                        <input id="cropX" type="range" min="-100" max="100" value="0" oninput="adjustCrop()" />
+                    </div>
+                    <div class="crop-control">
+                        <label for="cropY">Up / Down</label>
+                        <input id="cropY" type="range" min="-100" max="100" value="0" oninput="adjustCrop()" />
+                    </div>
+                    <button type="button" class="crop-reset" onclick="resetCrop()">Reset Adjustment</button>
+                </div>
+                <input id="galleryInput" type="file" accept="image/*" class="hidden" onchange="handleGalleryChange(event)" />
+                <div id="formStatus" class="inline-status hidden"></div>
                 <div class="btn-group">
                     <button id="cameraBtn" type="button" onclick="startCamera()" class="icon-btn camera-btn">
                         <i class="fas fa-video"></i>
                         <span>Camera</span>
+                    </button>
+                    <button id="galleryBtn" type="button" onclick="openGallery()" class="icon-btn gallery-btn">
+                        <i class="fas fa-images"></i>
+                        <span>Gallery</span>
                     </button>
                     <button id="submitBtn" type="submit" class="icon-btn submit-btn">
                         <i class="fas fa-paper-plane"></i>
@@ -93,15 +144,16 @@
         <section id="previewPage" class="main-card hidden" aria-labelledby="previewHeading">
             <h2 id="previewHeading"><i class="fas fa-image me-2"></i> Preview</h2>
             <div id="preview" style="margin-bottom: 20px;"></div>
-            <div id="progressContainer" class="progress-container">
+            <div id="progressContainer" class="progress-container hidden">
                 <div id="uploadProgress" class="progress-bar"></div>
             </div>
-            <div class="btn-group">
-                <button onclick="saveIDAsImage()" class="icon-btn save-btn">
+            <div id="uploadStatus" class="inline-status hidden"></div>
+            <div class="btn-group preview-actions">
+                <button id="saveBtn" onclick="saveIDAsImage()" class="icon-btn save-btn">
                     <i class="fas fa-download"></i>
                     <span>Save</span>
                 </button>
-                <button onclick="editEntry()" class="icon-btn edit-btn">
+                <button id="editBtn" onclick="editEntry()" class="icon-btn edit-btn">
                     <i class="fas fa-pen"></i>
                     <span>Edit</span>
                 </button>
@@ -113,7 +165,8 @@
         </section>
 
         <div class="branding-footer">
-            <span><a href="https://penportindia.github.io/penport/" target="_blank">Penport India</a> © 2025</span>
+            <span><a href="https://penportindia.github.io/penport/" target="_blank">Penport India</a> &copy; 2025</span>
+            <span class="footer-contact"><a href="https://wa.me/917004848750" target="_blank">Contact us</a></span>
         </div>
     </div>
 
