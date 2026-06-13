@@ -1,0 +1,253 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#0d47a1" />
+    <title>LAKSHMI ID MAKER</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css?v=1.2" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js" defer></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" defer></script>
+    <script>
+        window.showLoginPage = window.showLoginPage || function() {
+            document.getElementById('welcomePage')?.classList.add('hidden');
+            document.getElementById('loginPage')?.classList.remove('hidden');
+        };
+    </script>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="android-header">
+            <div class="header-content">
+                <div class="header-text">
+                    <h1>LAKSHMI ID MAKER</h1>
+                    <p>Your Trusted Partner For ID Solutions</p>
+                </div>
+            </div>
+        </header>
+
+        <section id="welcomePage" class="main-card welcome-card" aria-labelledby="welcomeHeading">
+            <div class="welcome-logo">
+                <i class="fas fa-id-card"></i>
+            </div>
+            <span class="welcome-kicker">Welcome to</span>
+            <h2 id="welcomeHeading">Lakshmi ID Card</h2>
+            <p class="welcome-powered">Powered by Penport India</p>
+            <p class="welcome-copy">Create student and staff ID enrollments with a clean, secure app experience.</p>
+            <div class="welcome-trust">
+                <div class="welcome-trust-main">
+                    <i class="fas fa-award"></i>
+                    <div>
+                        <strong>Trusted by 200+ Schools</strong>
+                        <span>Smart ID enrollment service</span>
+                    </div>
+                </div>
+                <div class="welcome-trust-tags">
+                    <span><i class="fas fa-bolt"></i> Fast Setup</span>
+                    <span><i class="fas fa-headset"></i> Support</span>
+                </div>
+            </div>
+            <div class="welcome-features">
+                <span><i class="fas fa-camera"></i> Photo Capture</span>
+                <span><i class="fas fa-barcode"></i> Barcode ID</span>
+                <span><i class="fas fa-file-pdf"></i> PDF Save</span>
+            </div>
+            <button type="button" onclick="showLoginPage()" class="btn welcome-start-btn">
+                <span>Start</span>
+                <i class="fas fa-arrow-right"></i>
+            </button>
+        </section>
+
+        <section id="loginPage" class="main-card login-card hidden" aria-labelledby="loginHeading">
+            <div class="login-hero">
+                <div class="login-lock"><i class="fas fa-lock"></i></div>
+                <span class="login-kicker">Secure Access</span>
+                <h2 id="loginHeading">Login</h2>
+                <p>Enter your registered school credentials to continue.</p>
+            </div>
+            <div class="login-form-panel">
+                <div class="form-group">
+                    <label for="loginUser">Phone Number</label>
+                    <input type="tel" id="loginUser" placeholder="Phone Number" autocomplete="username" inputmode="numeric" pattern="\d{10}" maxlength="10" oninput="enforceTenDigits(this)" />
+                </div>
+                <div class="form-group">
+                    <label for="loginPass">Password</label>
+                    <div class="password-field">
+                        <input type="password" id="loginPass" placeholder="Security Key" autocomplete="current-password" />
+                        <button type="button" onclick="togglePassword()" class="password-toggle" aria-label="Show or hide password">
+                            <i id="eyeIcon" class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button type="button" onclick="verifyLogin()" class="btn login-submit-btn">
+                    <span>Login</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="social-login-strip">
+                <div class="social-divider"><span>Connect us</span></div>
+                <div class="social-login-row">
+                    <span class="social-pill google"><i class="fab fa-google"></i><span>Google</span></span>
+                    <a class="social-pill facebook" href="https://www.facebook.com/lakshmiidmakerjehanabad" target="_blank" rel="noopener noreferrer"><i class="fab fa-facebook-f"></i><span>Facebook</span></a>
+                    <a class="social-pill whatsapp" href="https://wa.me/919304394825" target="_blank" rel="noopener noreferrer"><i class="fab fa-whatsapp"></i><span>WhatsApp</span></a>
+                </div>
+            </div>
+        </section>
+
+        <section id="homePage" class="main-card hidden" aria-labelledby="homeHeading">
+            <h2 id="homeHeading"><i class="fas fa-id-card-alt me-2"></i> Start Creating Your ID</h2>
+            <div id="schoolProfile" class="school-profile" aria-live="polite">
+                <div class="school-profile-top">
+                    <div class="school-avatar"><i class="fas fa-school"></i></div>
+                    <div class="school-profile-main">
+                        <span class="school-profile-kicker">School Profile</span>
+                        <strong>Auto-filled after login</strong>
+                    </div>
+                </div>
+                <div class="school-profile-meta">
+                    <span><i class="fas fa-shield-halved"></i> Verified Login</span>
+                    <span><i class="fas fa-circle-check"></i> Ready</span>
+                </div>
+            </div>
+            <div class="id-type-panel">
+                <div class="id-type-head">
+                    <div class="id-type-icon"><i class="fas fa-id-badge"></i></div>
+                    <div>
+                        <strong>Create ID Type</strong>
+                    </div>
+                </div>
+                <div class="id-type-control">
+                    <select id="idType">
+                        <option value="">Choose student or staff</option>
+                        <option value="student">Student</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </div>
+                <button type="button" onclick="navigateToForm()" class="btn continue-btn">
+                    <span>Continue</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <aside class="developer-branding" aria-label="Developer branding">
+                <div class="developer-brand-top">
+                    <img src="https://i.ibb.co/ym5yxYwM/Penport-logo-001.png" alt="Penport India" />
+                    <div>
+                        <strong>Penport India</strong>
+                        <span>Next Level Services</span>
+                    </div>
+                </div>
+                <a class="developer-contact" href="https://wa.me/917004848750" target="_blank" aria-label="Contact Penport India on WhatsApp">
+                    <i class="fab fa-whatsapp"></i>
+                    <span>Support</span>
+                </a>
+                <div class="developer-service-grid">
+                    <div><i class="fas fa-school"></i><span>School ERP</span></div>
+                    <div><i class="fas fa-users-gear"></i><span>HR Management</span></div>
+                    <div><i class="fas fa-boxes-stacked"></i><span>Stock Inventory</span></div>
+                </div>
+            </aside>
+        </section>
+
+        <section id="idForm" class="main-card hidden" aria-labelledby="formHeading">
+            <h2 id="formHeading"><i class="fas fa-clipboard me-2"></i> Fill ID Form</h2>
+            <form id="dataForm" onsubmit="handleSubmit(event)">
+                <div id="formFields"></div>
+                <div class="media-container" style="margin-bottom: 20px;">
+                    <video id="video" autoplay playsinline muted class="hidden"></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                </div>
+                <div id="cropControls" class="crop-controls hidden">
+                    <div class="crop-header">
+                        <span>Adjust Photo</span>
+                        <button type="button" onclick="finishCrop()">Next</button>
+                    </div>
+                    <div class="crop-control">
+                        <label for="cropZoom">Zoom</label>
+                        <input id="cropZoom" type="range" min="100" max="260" value="100" oninput="adjustCrop()" />
+                    </div>
+                    <div class="crop-control">
+                        <label for="cropX">Left / Right</label>
+                        <input id="cropX" type="range" min="-100" max="100" value="0" oninput="adjustCrop()" />
+                    </div>
+                    <div class="crop-control">
+                        <label for="cropY">Up / Down</label>
+                        <input id="cropY" type="range" min="-100" max="100" value="0" oninput="adjustCrop()" />
+                    </div>
+                    <button type="button" class="crop-reset" onclick="resetCrop()">Reset Adjustment</button>
+                </div>
+                <input id="galleryInput" type="file" accept="image/*" class="hidden" onchange="handleGalleryChange(event)" />
+                <div id="formStatus" class="inline-status hidden"></div>
+                <div class="btn-group">
+                    <button id="cameraBtn" type="button" onclick="startCamera()" class="icon-btn camera-btn">
+                        <i class="fas fa-video"></i>
+                        <span>Camera</span>
+                    </button>
+                    <button id="galleryBtn" type="button" onclick="openGallery()" class="icon-btn gallery-btn">
+                        <i class="fas fa-images"></i>
+                        <span>Gallery</span>
+                    </button>
+                    <button id="submitBtn" type="submit" class="icon-btn submit-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Submit</span>
+                    </button>
+                    <button id="homeBtn" type="button" onclick="goHome()" class="icon-btn home-btn">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="previewPage" class="main-card hidden" aria-labelledby="previewHeading">
+            <h2 id="previewHeading"><i class="fas fa-image me-2"></i> Preview</h2>
+            <div id="preview" style="margin-bottom: 20px;"></div>
+            <div id="progressContainer" class="progress-container hidden">
+                <div id="uploadProgress" class="progress-bar"></div>
+            </div>
+            <div id="uploadStatus" class="inline-status hidden"></div>
+            <div class="btn-group preview-actions">
+                <button id="saveBtn" onclick="saveIDAsImage()" class="icon-btn save-btn">
+                    <i class="fas fa-download"></i>
+                    <span>Save</span>
+                </button>
+                <button id="editBtn" onclick="editEntry()" class="icon-btn edit-btn">
+                    <i class="fas fa-pen"></i>
+                    <span>Edit</span>
+                </button>
+                <button id="newEntryBtn" onclick="newEntry()" class="icon-btn new-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>New ID</span>
+                </button>
+            </div>
+        </section>
+
+        <div class="branding-footer">
+            <span><a href="https://penportindia.github.io/penport/" target="_blank">Penport India</a> &copy; 2025</span>
+        </div>
+    </div>
+
+    <div id="messageModal" class="modal-container" aria-modal="true" role="dialog">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <div class="modal-body">
+                <div class="modal-icon"></div>
+                <h3 id="modalTitle"></h3>
+                <p id="modalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="modalOkBtn" class="btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="main.js"></script>
+</body>
+</html>
