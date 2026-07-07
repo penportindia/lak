@@ -19,11 +19,34 @@
         "name": "Photo",
         "bookmark": "photo",
         "top": "70px",
-        "left": "62px",
-        "width": "90px",
-        "height": "110px",
-        "borderRadius": "10px",
-        "border": "2px solid #0288d1"
+        "left": "57px",
+        "width": "100px",
+        "height": "100px",
+        "objectFit": "cover",
+        "borderRadius": "50%",
+        "border": "2px solid #0288d1",
+        "borderWidth": "2px",
+        "borderColor": "#0288d1",
+        "borderStyle": "solid",
+        "group": "photo",
+        "isLinked": true
+      },
+      {
+        "type": "text",
+        "name": "Enrollment No",
+        "bookmark": "student_enroll",
+        "text": "{{student_enroll}}",
+        "top": "165px",
+        "left": "178px",
+        "width": "100px",
+        "fontSize": "6px",
+        "fontWeight": "bold",
+        "color": "#111827",
+        "transform": "rotate(-90deg)",
+        "transformOrigin": "0 0",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -35,8 +58,10 @@
         "width": "100%",
         "fontSize": "13px",
         "fontWeight": "bold",
-        "color": "#ff3333",
-        "textAlign": "center"
+        "color": "#111827",
+        "textAlign": "center",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -48,19 +73,55 @@
         "width": "115px",
         "fontSize": "10px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
-        "name": "Class / Section / Roll",
-        "bookmark": "student_classinfo",
-        "text": "{{student_class}} / {{student_section}} / {{student_roll}}",
+        "name": "Class",
+        "bookmark": "student_class",
+        "text": "{{student_class}}",
         "top": "212px",
         "left": "80px",
-        "width": "115px",
+        "width": "35px",
         "fontSize": "10px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
+      },
+      {
+        "type": "text",
+        "name": "Section",
+        "bookmark": "student_section",
+        "text": "{{student_section}}",
+        "top": "212px",
+        "left": "118px",
+        "width": "35px",
+        "fontSize": "10px",
+        "fontWeight": "bold",
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
+      },
+      {
+        "type": "text",
+        "name": "Roll No",
+        "bookmark": "student_roll",
+        "text": "{{student_roll}}",
+        "top": "212px",
+        "left": "156px",
+        "width": "40px",
+        "fontSize": "10px",
+        "fontWeight": "bold",
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -72,7 +133,10 @@
         "width": "115px",
         "fontSize": "10px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -84,7 +148,10 @@
         "width": "115px",
         "fontSize": "9px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -96,7 +163,10 @@
         "width": "115px",
         "fontSize": "9px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -108,7 +178,10 @@
         "width": "115px",
         "fontSize": "10px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -120,7 +193,10 @@
         "width": "115px",
         "fontSize": "10px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -132,7 +208,10 @@
         "width": "115px",
         "fontSize": "10px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -144,7 +223,10 @@
         "width": "115px",
         "fontSize": "9px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "group": "value",
+        "isLinked": true
       },
       {
         "type": "text",
@@ -156,7 +238,12 @@
         "width": "115px",
         "fontSize": "8px",
         "fontWeight": "bold",
-        "textAlign": "left"
+        "color": "#111827",
+        "textAlign": "left",
+        "lineHeight": "10px",
+        "maxLines": 2,
+        "group": "value",
+        "isLinked": true
       }
     ]
   }
