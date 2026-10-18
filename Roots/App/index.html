@@ -1,0 +1,335 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#f3f6fc" />
+    <title>LAKSHMI ID MAKER</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Exo+2:wght@500;600;700;800;900&family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="style.css?v=ba973cdf4ce5" />
+    <link rel="icon" type="image/png" href="LIM%20LOGO.png" />
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/js/all.min.js" defer></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jsbarcode/3.11.5/JsBarcode.all.min.js" defer></script>
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js" defer></script>
+    <script>
+        window.showLoginPage = window.showLoginPage || function() {
+            document.body.classList.remove('welcome-mode');
+            document.getElementById('welcomePage')?.classList.add('hidden');
+            document.getElementById('loginPage')?.classList.remove('hidden');
+        };
+    </script>
+</head>
+
+<body class="welcome-mode">
+    <div id="launchSplash" class="launch-splash" role="status" aria-label="Penport India">
+        <div class="launch-brand"><h2>Penport <span>India</span></h2></div>
+    </div>
+    <div class="app-container">
+        <header class="android-header">
+            <div class="header-content">
+                <div class="app-mark"><img class="brand-logo" src="LIM%20LOGO.png" alt="Lakshmi ID Maker logo" width="44" height="44" /></div>
+                <div class="header-text">
+                    <h1 class="welcome-brand-name">LAKSHMI</h1>
+                    <p class="welcome-brand-category">ID MAKER</p>
+                </div>
+            </div>
+        </header>
+
+        <section id="welcomePage" class="main-card welcome-card" aria-labelledby="welcomeHeading">
+            <div class="welcome-brand">
+                <div class="welcome-brand-symbol">
+                    <img class="brand-logo" src="LIM%20LOGO.png" alt="Lakshmi ID Maker logo" width="58" height="58" fetchpriority="high" />
+                </div>
+                <div><span class="welcome-brand-name">LAKSHMI</span><span class="welcome-brand-category">ID MAKER</span></div>
+            </div>
+            <div class="welcome-center">
+                <div class="welcome-card-art" aria-hidden="true">
+                    <svg viewBox="0 0 320 300" fill="none">
+                        <defs>
+                            <clipPath id="welcomeStudentPhotoClip">
+                                <rect x="129" y="142" width="62" height="70" rx="12" />
+                            </clipPath>
+                        </defs>
+                        <circle cx="160" cy="151" r="124" fill="#E2EBFF"/>
+                        <circle cx="160" cy="151" r="102" stroke="#C6D7FC" stroke-dasharray="3 8"/>
+                        <g transform="rotate(-11 160 150)"><rect x="63" y="69" width="173" height="210" rx="22" fill="#B9CDF5"/></g>
+                        <path d="M143 22h34l-6 63h-22l-6-63Z" fill="#2459D3"/><path d="M153 22h14l-3 63h-8l-3-63Z" fill="#4879E9"/>
+                        <rect x="78" y="74" width="164" height="207" rx="20" fill="white" stroke="#D2DFF6"/>
+                        <path d="M78 94a20 20 0 0 1 20-20h124a20 20 0 0 1 20 20v35H78V94Z" fill="#2459D3"/>
+                        <rect x="142" y="85" width="36" height="6" rx="3" fill="#A8C2FF"/>
+                        <text x="160" y="115" text-anchor="middle" fill="white" font-family="'Exo 2',Arial,sans-serif" font-size="17" font-weight="900" letter-spacing="2.2" stroke="white" stroke-width="0.3" paint-order="stroke fill">LAKSHMI</text>
+                        <rect x="127" y="140" width="66" height="74" rx="14" fill="#EAF0FF" stroke="#D2DFF6" />
+                        <image href="student-portrait.png" x="129" y="142" width="62" height="70" preserveAspectRatio="xMidYMid slice" clip-path="url(#welcomeStudentPhotoClip)" />
+                        <rect x="126" y="221" width="68" height="6" rx="3" fill="#324666"/><rect x="140" y="235" width="40" height="4" rx="2" fill="#BCC9DE"/>
+                        <path d="M127 252v11m5-11v11m4-11v11m7-11v11m4-11v11m5-11v11m7-11v11m4-11v11m7-11v11m4-11v11m6-11v11m5-11v11m7-11v11" stroke="#8C9DB7" stroke-width="2"/>
+                        <circle cx="239" cy="226" r="26" fill="#198875" stroke="#F5F8FF" stroke-width="6"/><path d="m229 226 7 7 13-14" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div class="welcome-intro">
+                    <h2 id="welcomeHeading">Your identity.</h2>
+                    <p>Carry your identity.<br>Go confidently towards your dreams.</p>
+                </div>
+            </div>
+            <div class="welcome-bottom">
+                <button type="button" onclick="showLoginPage()" class="btn welcome-start-btn">
+                    <span>Get started</span>
+                    <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 12h14m-6-6 6 6-6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                </button>
+                <p class="welcome-powered">Powered by <a href="https://penportindia.github.io/penport/" target="_blank" rel="noopener noreferrer">Penport India</a></p>
+            </div>
+        </section>
+
+        <section id="loginPage" class="main-card login-card hidden" aria-labelledby="loginHeading">
+            <div class="login-hero">
+                <div class="login-brand-row">
+                    <img src="LIM%20LOGO.png" alt="Lakshmi ID Maker" width="64" height="64" class="login-brand-logo" />
+                    <div class="login-brand-wordmark"><span class="welcome-brand-name">LAKSHMI</span><span class="welcome-brand-category">ID MAKER</span></div>
+                </div>
+            </div>
+            <div class="login-form-panel">
+                <div class="section-title"><h2 id="loginHeading">Welcome back<span class="login-heading-dot">.</span></h2><p>Sign in to continue your enrollments.</p></div>
+                <div class="form-group">
+                    <label for="loginUser">Phone Number</label>
+                    <div class="login-phone-field">
+                        <span class="login-dial-code">+91</span>
+                        <input type="tel" id="loginUser" placeholder="10-digit phone number" autocomplete="username" inputmode="numeric" pattern="\d{10}" maxlength="10" oninput="enforceTenDigits(this)" />
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="loginPass">Password</label>
+                    <div class="password-field">
+                        <span class="login-field-icon" aria-hidden="true"><i class="fas fa-lock"></i></span>
+                        <input type="password" id="loginPass" placeholder="Enter your password" autocomplete="current-password" />
+                        <button type="button" onclick="togglePassword()" class="password-toggle" aria-label="Show or hide password">
+                            <i id="eyeIcon" class="fas fa-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                <button id="loginSubmitBtn" type="button" onclick="verifyLogin()" class="btn login-submit-btn">
+                    <span>Login</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div class="social-login-strip">
+                <div class="social-divider"><span>Stay connected</span></div>
+                <div class="social-login-row">
+                    <a class="social-pill google" href="https://share.google/fxHfkXpoYuJ3dnHDz" target="_blank" rel="noopener noreferrer" aria-label="Google" title="Google"><i class="fab fa-google"></i></a>
+                    <a class="social-pill facebook" href="https://www.facebook.com/lakshmiidmakerjehanabad" target="_blank" rel="noopener noreferrer" aria-label="Facebook" title="Facebook"><i class="fab fa-facebook-f"></i></a>
+                    <a class="social-pill whatsapp" href="https://wa.me/919304394825" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+                    <a class="social-pill youtube" href="https://youtube.com/@lakshmiidmaker?si=TbGmFDfFP_MzLgoV" target="_blank" rel="noopener noreferrer" aria-label="YouTube" title="YouTube"><i class="fab fa-youtube"></i></a>
+                </div>
+            </div>
+        </section>
+
+        <section id="homePage" class="main-card hidden" aria-labelledby="homeHeading">
+            <h2 id="homeHeading" class="sr-only">ID Enrollment</h2>
+            <div id="schoolProfile" class="school-profile" aria-live="polite">
+                <div class="school-profile-top">
+                    <div class="school-profile-main">
+                        <strong>Auto-filled after login</strong>
+                    </div>
+                </div>
+                <div class="school-profile-meta">
+                    <span><i class="fas fa-shield-halved"></i> Verified Login</span>
+                    <span><i class="fas fa-circle-check"></i> Ready</span>
+                </div>
+                <div class="dashboard-menu">
+                    <button type="button" onclick="showDashboardMenu('create')" class="dashboard-menu-btn create-menu-btn">
+                        <i class="fas fa-plus"></i>
+                        <span>Create New</span>
+                    </button>
+                    <button type="button" onclick="showDashboardMenu('edit')" class="dashboard-menu-btn edit-menu-btn">
+                        <i class="fas fa-pen-to-square"></i>
+                        <span>Edit</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="createMenuPanel" class="id-type-panel dashboard-action-panel hidden">
+                <div class="id-type-head">
+                    <div class="id-type-icon"><i class="fas fa-id-badge"></i></div>
+                    <div>
+                        <strong>Create ID Type</strong>
+                        <span>Start a fresh enrollment</span>
+                    </div>
+                </div>
+                <div class="id-type-control">
+                    <select id="idType">
+                        <option value="">Choose student or staff</option>
+                        <option value="student">Student</option>
+                        <option value="staff">Staff</option>
+                    </select>
+                </div>
+                <button type="button" onclick="navigateToForm()" class="btn continue-btn">
+                    <span>Continue</span>
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+            <div id="editMenuPanel" class="edit-search-panel dashboard-action-panel hidden">
+                <div class="id-type-head">
+                    <div class="id-type-icon edit-search-icon"><i class="fas fa-magnifying-glass"></i></div>
+                    <div>
+                        <strong>Edit Submitted ID</strong>
+                        <span>Find by date and unique digits</span>
+                    </div>
+                </div>
+                <div class="edit-search-grid">
+                    <div class="form-group">
+                        <label for="searchDate">Enrollment Date</label>
+                        <input type="date" id="searchDate" />
+                    </div>
+                    <div class="form-group">
+                        <label for="searchUnique">Last 5 Digits</label>
+                        <input type="tel" id="searchUnique" placeholder="00000" inputmode="numeric" pattern="\d{5}" maxlength="5" oninput="enforceDigits(this, 5)" />
+                    </div>
+                </div>
+                <button type="button" onclick="searchExistingEnrollment()" class="btn edit-search-btn">
+                    <span>Search</span>
+                    <i class="fas fa-search"></i>
+                </button>
+            </div>
+            <section class="school-data-summary" aria-labelledby="schoolDataHeading" aria-busy="true" id="schoolDataSummary">
+                <div class="school-data-heading"><div><h3 id="schoolDataHeading">Overview</h3></div><span class="school-data-icon" aria-hidden="true"><i class="fas fa-chart-simple"></i></span></div>
+                <div class="school-data-counts" aria-live="polite">
+                    <div class="school-data-total"><strong id="schoolTotalCount">—</strong><span>Total IDs</span></div>
+                    <div><strong id="schoolStudentCount">—</strong><span><i class="fas fa-user-graduate" aria-hidden="true"></i> Students</span></div>
+                    <div><strong id="schoolStaffCount">—</strong><span><i class="fas fa-user-tie" aria-hidden="true"></i> Staff</span></div>
+                </div>
+                <button id="schoolDataRetry" type="button" class="school-data-retry hidden" onclick="startSchoolDataSummary()"><i class="fas fa-rotate-right"></i> Retry</button>
+            </section>
+            <p id="schoolDataStatus" class="school-data-status school-data-notice" role="status" aria-live="polite">Loading school records…</p>
+        </section>
+
+        <section id="idForm" class="main-card hidden" aria-labelledby="formHeading">
+            <h2 id="formHeading"><i class="fas fa-clipboard me-2"></i> Fill ID Form</h2>
+            <form id="dataForm" onsubmit="handleSubmit(event)">
+                <div id="formFields"></div>
+                <div class="media-container">
+                    <div class="photo-ready-header"><span>Photo preview</span><span class="photo-ready-badge"><i class="fas fa-check"></i> Ready</span></div>
+                    <div class="camera-toolbar"><span><span class="camera-live-dot"></span> Portrait camera</span><button type="button" onclick="closeCameraPreview()" aria-label="Close camera"><i class="fas fa-xmark"></i></button></div>
+                    <video id="video" autoplay playsinline muted class="hidden"></video>
+                    <canvas id="canvas" class="hidden"></canvas>
+                    <div class="camera-capture-panel"><p>Keep the face centered and well lit</p><button type="button" class="camera-shutter" onclick="takePicture()" aria-label="Capture photo"><span></span></button><span class="camera-capture-label">Tap to capture</span></div>
+                    <div class="crop-preview-label"><i class="fas fa-crop-simple"></i> ID photo preview</div>
+                    <div class="photo-ready-caption"><strong>Looking good?</strong><p>Submit to save, or tap Retake for a new photo.</p></div>
+                </div>
+                <div id="cropControls" class="crop-controls hidden">
+                    <div class="crop-header">
+                        <div><span>Perfect your photo</span><p>Zoom and position for the best fit.</p></div>
+                        <button type="button" onclick="finishCrop()"><i class="fas fa-check"></i> Done</button>
+                    </div>
+                    <div class="crop-control">
+                        <label for="cropZoom"><i class="fas fa-magnifying-glass-plus"></i> Zoom <output id="cropZoomValue" for="cropZoom">1.00×</output></label>
+                        <input id="cropZoom" type="range" min="100" max="260" value="100" oninput="adjustCrop()" />
+                    </div>
+                    <div class="crop-control">
+                        <label for="cropX"><i class="fas fa-arrows-left-right"></i> Horizontal <output id="cropXValue" for="cropX">0</output></label>
+                        <input id="cropX" type="range" min="-100" max="100" value="0" oninput="adjustCrop()" />
+                    </div>
+                    <div class="crop-control">
+                        <label for="cropY"><i class="fas fa-arrows-up-down"></i> Vertical <output id="cropYValue" for="cropY">0</output></label>
+                        <input id="cropY" type="range" min="-100" max="100" value="0" oninput="adjustCrop()" />
+                    </div>
+                    <button type="button" class="crop-reset" onclick="resetCrop()"><i class="fas fa-rotate-left"></i> Reset adjustments</button>
+                </div>
+                <input id="galleryInput" type="file" accept="image/*" class="hidden" onchange="handleGalleryChange(event)" />
+                <div id="formStatus" class="inline-status hidden"></div>
+                <div class="btn-group">
+                    <button id="cameraBtn" type="button" onclick="startCamera()" class="icon-btn camera-btn">
+                        <i class="fas fa-video"></i>
+                        <span>Camera</span>
+                    </button>
+                    <button id="galleryBtn" type="button" onclick="openGallery()" class="icon-btn gallery-btn">
+                        <i class="fas fa-images"></i>
+                        <span>Gallery</span>
+                    </button>
+                    <button id="submitBtn" type="submit" class="icon-btn submit-btn">
+                        <i class="fas fa-paper-plane"></i>
+                        <span>Submit</span>
+                    </button>
+                    <button id="homeBtn" type="button" onclick="goHome()" class="icon-btn home-btn">
+                        <i class="fas fa-home"></i>
+                        <span>Home</span>
+                    </button>
+                </div>
+            </form>
+        </section>
+
+        <section id="previewPage" class="main-card hidden" aria-labelledby="previewHeading">
+            <h2 id="previewHeading"><i class="fas fa-image me-2"></i> Preview</h2>
+            <div id="preview" style="margin-bottom: 20px;"></div>
+            <div id="progressContainer" class="progress-container hidden">
+                <div id="uploadProgress" class="progress-bar"></div>
+            </div>
+            <div id="uploadStatus" class="inline-status hidden"></div>
+            <div class="btn-group preview-actions">
+                <button id="saveBtn" onclick="saveIDAsImage()" class="icon-btn save-btn">
+                    <i class="fas fa-download"></i>
+                    <span>Save PDF</span>
+                </button>
+                <button id="editBtn" onclick="editEntry()" class="icon-btn edit-btn">
+                    <i class="fas fa-pen"></i>
+                    <span>Edit</span>
+                </button>
+                <button id="newEntryBtn" onclick="newEntry()" class="icon-btn new-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>New ID</span>
+                </button>
+            </div>
+        </section>
+
+        <div class="branding-footer">
+            <p class="welcome-powered">Powered by <a href="https://penportindia.github.io/penport/" target="_blank" rel="noopener noreferrer">Penport India</a></p>
+        </div>
+    </div>
+
+    <div id="loginSplash" class="login-splash hidden" role="status" aria-live="polite">
+        <div class="blue-circle-spinner" aria-hidden="true"></div>
+        <strong id="loginSplashTitle" class="sr-only">Signing in</strong>
+        <span id="loginSplashText" class="sr-only">Checking credentials...</span>
+    </div>
+
+    <div id="messageModal" class="modal-container" aria-modal="true" role="dialog">
+        <div class="modal-content">
+            <button type="button" class="close-btn" aria-label="Close dialog">&times;</button>
+            <div class="modal-body">
+                <div class="modal-icon"></div>
+                <h3 id="modalTitle"></h3>
+                <p id="modalMessage"></p>
+            </div>
+            <div class="modal-footer">
+                <button id="modalOkBtn" class="btn">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Launch branding must finish independently of Firebase and CDN loading.
+        const launchSplash = document.getElementById('launchSplash');
+        const launchApp = document.querySelector('.app-container');
+        launchApp.inert = true;
+        document.body.classList.add('launching');
+        setTimeout(() => {
+            launchSplash.classList.add('launch-finished');
+            launchApp.inert = false;
+            document.body.classList.remove('launching');
+            setTimeout(() => launchSplash.remove(), 350);
+        }, 1800);
+    </script>
+    <script>
+        // Keep the native sign-in shell in sync with existing screen navigation.
+        const loginScreen = document.getElementById('loginPage');
+        function syncLoginAppearance() {
+            document.body.classList.toggle('login-mode', !loginScreen.classList.contains('hidden'));
+        }
+        new MutationObserver(syncLoginAppearance).observe(loginScreen, { attributes: true, attributeFilter: ['class'] });
+        syncLoginAppearance();
+    </script>
+    <script type="module" src="main.js?v=b0ae23572172"></script>
+</body>
+</html>
