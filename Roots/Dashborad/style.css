@@ -2,6 +2,135 @@
   font-family: 'Inter', sans-serif;
 }
 
+.filters {
+  align-self: stretch;
+  min-width: 250px;
+  padding: 22px;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 3px 14px #243d6106;
+}
+
+.filters .filter-heading {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 24px;
+}
+
+.filters .filter-heading > i {
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: #eef4ff;
+  color: #356ed1;
+  font-size: 19px;
+}
+
+.filters .filter-heading h3 {
+  color: #253b59;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.filters .filter-heading p {
+  margin-top: 2px;
+  color: #93a0b1;
+  font-size: 10px;
+}
+
+.filters .search {
+  margin-bottom: 20px;
+}
+
+.filters .filter-control {
+  position: relative;
+}
+
+.filters #searchBox,
+.filters #sortType {
+  display: block;
+  width: 100%;
+  min-width: 0;
+  height: 50px;
+  margin: 0;
+  border: 1px solid #dce3ec;
+  border-radius: 9px;
+  outline: none;
+  background: #fff;
+  color: #2b405f;
+  font: 500 13px/1.5 'Inter', sans-serif;
+  transition: border-color .18s, box-shadow .18s;
+}
+
+.filters #searchBox {
+  padding: 12px 14px 12px 39px;
+}
+
+.filters #sortType {
+  appearance: none;
+  padding: 12px 45px 12px 14px;
+  cursor: pointer;
+}
+
+.filters #searchBox::placeholder {
+  color: #a1adbd;
+  font-weight: 400;
+}
+
+.filters .filter-control-icon {
+  position: absolute;
+  top: 50%;
+  left: 13px;
+  transform: translateY(-50%);
+  color: #96a5ba;
+  font-size: 17px;
+  pointer-events: none;
+}
+
+.filters .filter-chevron {
+  position: absolute;
+  top: 9px;
+  right: 8px;
+  display: grid;
+  place-items: center;
+  width: 31px;
+  height: 32px;
+  border-radius: 6px;
+  background: #f0f5fc;
+  color: #5278ac;
+  font-size: 18px;
+  pointer-events: none;
+}
+
+.filters #searchBox:hover,
+.filters #sortType:hover {
+  border-color: #9fb9df;
+}
+
+.filters #searchBox:focus,
+.filters #sortType:focus {
+  border-color: #4b85e4;
+  box-shadow: 0 0 0 3px #3b82f610;
+}
+
+.filters .filter-control:focus-within .filter-control-icon {
+  color: #356ed1;
+}
+
+.filters #sortType option {
+  background: #fff;
+  color: #29466f;
+}
+
+@media (max-width: 767px) {
+  .filters { align-self: stretch; min-width: 0; }
+}
+
 .card-hover {
   transition: all 0.2s ease;
 }
